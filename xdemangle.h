@@ -29,6 +29,7 @@ class XDemangle : public QObject
 
 public:
     explicit XDemangle(QObject *pParent=nullptr);
+    static QString convert(QString sString); // TODO options
 
 signals:
 

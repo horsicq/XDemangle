@@ -24,3 +24,12 @@ XDemangle::XDemangle(QObject *pParent) : QObject(pParent)
 {
 
 }
+
+QString XDemangle::convert(QString sString)
+{
+    QString sResult;
+
+    // TODO
+
+    return sResult;
+}
