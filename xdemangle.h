@@ -28,9 +28,16 @@ class XDemangle : public QObject
     Q_OBJECT
 
 public:
-    explicit XDemangle(QObject *pParent=nullptr);
-    static QString convert(QString sString); // TODO options
+    enum TYPE
+    {
+        TYPE_UNKNOWN=0,
+        TYPE_MSVC,
+        // TODO more
+    };
 
+    explicit XDemangle(QObject *pParent=nullptr);
+    static QString typeIdToString(TYPE type);
+    static QString convert(QString sString,TYPE type);
 signals:
 
 };

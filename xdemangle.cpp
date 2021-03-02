@@ -25,7 +25,20 @@ XDemangle::XDemangle(QObject *pParent) : QObject(pParent)
 
 }
 
-QString XDemangle::convert(QString sString)
+QString XDemangle::typeIdToString(XDemangle::TYPE type)
+{
+    QString sResult="Unknown"; // mb TODO translate
+
+    switch(type)
+    {
+        case TYPE_UNKNOWN:      sResult=QString("Unknown");         break; // mb TODO translate
+        case TYPE_MSVC:         sResult=QString("MSVC C++");        break;
+    }
+
+    return sResult;
+}
+
+QString XDemangle::convert(QString sString,TYPE type)
 {
     QString sResult;
 
