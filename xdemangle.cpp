@@ -31,8 +31,10 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type)
 
     switch(type)
     {
-        case TYPE_UNKNOWN:      sResult=QString("Unknown");         break; // mb TODO translate
-        case TYPE_MSVC:         sResult=QString("MSVC C++");        break;
+        case TYPE_UNKNOWN:      sResult=QString("Unknown");             break; // mb TODO translate
+        case TYPE_MSVC:         sResult=QString("MSVC C++");            break;
+        case TYPE_GCC_2XX:      sResult=QString("GCC 2.XX");            break;
+        case TYPE_GCC_3XX:      sResult=QString("GCC 3.XX-X.XX");       break;
     }
 
     return sResult;
@@ -42,7 +44,32 @@ QString XDemangle::convert(QString sString,TYPE type)
 {
     QString sResult;
 
+    if(type==TYPE_MSVC)
+    {
+        sResult=convert_MSVC(sString);
+    }
+
     // TODO
+
+    return sResult;
+}
+
+QString XDemangle::convert_MSVC(QString sString)
+{
+    // ??$qbswap@$01@@YAPEAXPEBX_JPEAX@Z
+    // ?qHash@@YAIABVQGeoCoordinate@@I@Z
+    QString sResult;
+    // All C++ begins with ?
+
+    if(XBinary::isRegExpPresent("^\\?",sString)) // ? Customer type
+    {
+        sString=sString.mid(1,-1);
+        // TODO Check digits
+        if(XBinary::isRegExpPresent("^\\?\\$",sString)) // ?$
+        {
+            sResult="Test";
+        }
+    }
 
     return sResult;
 }

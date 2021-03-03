@@ -22,6 +22,7 @@
 #define XDEMANGLE_H
 
 #include <QObject>
+#include "xbinary.h" // TODO remove
 
 class XDemangle : public QObject
 {
@@ -32,14 +33,15 @@ public:
     {
         TYPE_UNKNOWN=0,
         TYPE_MSVC,
+        TYPE_GCC_2XX,
+        TYPE_GCC_3XX
         // TODO more
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
     static QString typeIdToString(TYPE type);
     static QString convert(QString sString,TYPE type);
-signals:
-
+    static QString convert_MSVC(QString sString);
 };
 
 #endif // XDEMANGLE_H
