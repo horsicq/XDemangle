@@ -51,7 +51,27 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
     switch(type)
     {
         case TYPE_UNKNOWN:      sResult=QString("Unknown");             break; // mb TODO translate
+        case TYPE_VOID:         sResult=QString("void");                break;
+        case TYPE_BOOL:         sResult=QString("bool");                break;
         case TYPE_INT:          sResult=QString("int");                 break;
+        case TYPE_SCHAR:        sResult=QString("signed char");         break;
+        case TYPE_CHAR:         sResult=QString("char");                break;
+        case TYPE_UCHAR:        sResult=QString("unsigned char");       break;
+        case TYPE_SHORT:        sResult=QString("short");               break;
+        case TYPE_USHORT:       sResult=QString("unsigned short");      break;
+        case TYPE_UINT:         sResult=QString("unsigned int");        break;
+        case TYPE_LONG:         sResult=QString("long");                break;
+        case TYPE_ULONG:        sResult=QString("unsigned long");       break;
+        case TYPE_FLOAT:        sResult=QString("float");               break;
+        case TYPE_DOUBLE:       sResult=QString("double");              break;
+        case TYPE_LONGDOUBLE:   sResult=QString("long double");         break;
+        case TYPE_INT64:        sResult=QString("__int64");             break;
+        case TYPE_UINT64:       sResult=QString("unsigned __int64");    break;
+        case TYPE_CHAR8:        sResult=QString("char");                break;
+        case TYPE_CHAR16:       sResult=QString("char16_t");            break;
+        case TYPE_CHAR32:       sResult=QString("char32_t");            break;
+        case TYPE_WCHAR:        sResult=QString("wchar_t");             break;
+        case TYPE_VARARGS:      sResult=QString("...");                 break;
     }
 
     return sResult;
@@ -140,7 +160,6 @@ XDemangle::SYMBOL XDemangle::handle_MSVC(QString sString)
 {
     // ??$qbswap@$01@@YAPEAXPEBX_JPEAX@Z
     // ?qHash@@YAIABVQGeoCoordinate@@I@Z
-    // int alpha / ?alpha@@3HA
     SYMBOL result={};
     // All C++ begins with ?
 
@@ -286,13 +305,6 @@ XDemangle::SIGNATURE XDemangle::getSignature(QString sString, QMap<QString, qint
         }
     }
 
-    if(result.nSize==0)
-    {
-    #ifdef QT_DEBUG
-        qDebug(sString.toLatin1().data());
-    #endif
-    }
-
     return result;
 }
 
@@ -315,7 +327,27 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
 
     if(mode==MODE_MSVC)
     {
+        mapResult.insert("X",TYPE_VOID);
+        mapResult.insert("C",TYPE_SCHAR);
+        mapResult.insert("D",TYPE_CHAR);
+        mapResult.insert("E",TYPE_UCHAR);
+        mapResult.insert("F",TYPE_SHORT);
+        mapResult.insert("G",TYPE_USHORT);
         mapResult.insert("H",TYPE_INT);
+        mapResult.insert("I",TYPE_UINT);
+        mapResult.insert("J",TYPE_LONG);
+        mapResult.insert("K",TYPE_ULONG);
+        mapResult.insert("M",TYPE_FLOAT);
+        mapResult.insert("N",TYPE_DOUBLE);
+        mapResult.insert("O",TYPE_LONGDOUBLE);
+        mapResult.insert("Z",TYPE_VARARGS);
+        mapResult.insert("_J",TYPE_INT64);
+        mapResult.insert("_K",TYPE_UINT64);
+        mapResult.insert("_N",TYPE_BOOL);
+        mapResult.insert("_Q",TYPE_CHAR8);
+        mapResult.insert("_S",TYPE_CHAR16);
+        mapResult.insert("_U",TYPE_CHAR32);
+        mapResult.insert("_W",TYPE_WCHAR);
     }
 
     return mapResult;

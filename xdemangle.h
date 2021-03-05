@@ -43,8 +43,27 @@ public:
     enum TYPE
     {
         TYPE_UNKNOWN=0,
+        TYPE_BOOL,
         TYPE_VOID,
-        TYPE_INT
+        TYPE_INT,
+        TYPE_SCHAR,
+        TYPE_CHAR,
+        TYPE_UCHAR,
+        TYPE_SHORT,
+        TYPE_USHORT,
+        TYPE_UINT,
+        TYPE_LONG,
+        TYPE_ULONG,
+        TYPE_FLOAT,
+        TYPE_DOUBLE,
+        TYPE_LONGDOUBLE,
+        TYPE_INT64,
+        TYPE_UINT64,
+        TYPE_CHAR8,
+        TYPE_CHAR16,
+        TYPE_CHAR32,
+        TYPE_WCHAR,
+        TYPE_VARARGS
     };
 
     struct PARAMETER
