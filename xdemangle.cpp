@@ -182,8 +182,6 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
 
 XDemangle::SYMBOL XDemangle::handle_MSVC(QString sString)
 {
-    // ??$qbswap@$01@@YAPEAXPEBX_JPEAX@Z
-    // ?qHash@@YAIABVQGeoCoordinate@@I@Z
     SYMBOL result={};
     // All C++ begins with ?
 
