@@ -50,31 +50,44 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
 
     switch(type)
     {
-        case TYPE_UNKNOWN:      sResult=QString("Unknown");             break; // mb TODO translate
-        case TYPE_VOID:         sResult=QString("void");                break;
-        case TYPE_BOOL:         sResult=QString("bool");                break;
-        case TYPE_INT:          sResult=QString("int");                 break;
-        case TYPE_SCHAR:        sResult=QString("signed char");         break;
-        case TYPE_CHAR:         sResult=QString("char");                break;
-        case TYPE_UCHAR:        sResult=QString("unsigned char");       break;
-        case TYPE_SHORT:        sResult=QString("short");               break;
-        case TYPE_USHORT:       sResult=QString("unsigned short");      break;
-        case TYPE_UINT:         sResult=QString("unsigned int");        break;
-        case TYPE_LONG:         sResult=QString("long");                break;
-        case TYPE_ULONG:        sResult=QString("unsigned long");       break;
-        case TYPE_FLOAT:        sResult=QString("float");               break;
-        case TYPE_DOUBLE:       sResult=QString("double");              break;
-        case TYPE_LONGDOUBLE:   sResult=QString("long double");         break;
-        case TYPE_INT64:        sResult=QString("__int64");             break;
-        case TYPE_UINT64:       sResult=QString("unsigned __int64");    break;
-        case TYPE_CHAR8:        sResult=QString("char");                break;
-        case TYPE_CHAR16:       sResult=QString("char16_t");            break;
-        case TYPE_CHAR32:       sResult=QString("char32_t");            break;
-        case TYPE_WCHAR:        sResult=QString("wchar_t");             break;
-        case TYPE_VARARGS:      sResult=QString("...");                 break;
+        case TYPE_UNKNOWN:          sResult=QString("Unknown");             break; // mb TODO translate
+        case TYPE_VOID:             sResult=QString("void");                break;
+        case TYPE_BOOL:             sResult=QString("bool");                break;
+        case TYPE_INT:              sResult=QString("int");                 break;
+        case TYPE_SCHAR:            sResult=QString("signed char");         break;
+        case TYPE_CHAR:             sResult=QString("char");                break;
+        case TYPE_UCHAR:            sResult=QString("unsigned char");       break;
+        case TYPE_SHORT:            sResult=QString("short");               break;
+        case TYPE_USHORT:           sResult=QString("unsigned short");      break;
+        case TYPE_UINT:             sResult=QString("unsigned int");        break;
+        case TYPE_LONG:             sResult=QString("long");                break;
+        case TYPE_ULONG:            sResult=QString("unsigned long");       break;
+        case TYPE_FLOAT:            sResult=QString("float");               break;
+        case TYPE_DOUBLE:           sResult=QString("double");              break;
+        case TYPE_LONGDOUBLE_64:    sResult=QString("long double");         break;
+        case TYPE_LONGDOUBLE_80:    sResult=QString("long double");         break;
+        case TYPE_INT64:            sResult=QString("__int64");             break;
+        case TYPE_UINT64:           sResult=QString("unsigned __int64");    break;
+        case TYPE_CHAR8:            sResult=QString("char");                break;
+        case TYPE_CHAR16:           sResult=QString("char16_t");            break;
+        case TYPE_CHAR32:           sResult=QString("char32_t");            break;
+        case TYPE_WCHAR:            sResult=QString("wchar_t");             break;
+        case TYPE_VARARGS:          sResult=QString("...");                 break;
     }
 
     return sResult;
+}
+
+XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
+{
+    SYMBOL result={};
+
+    if(mode==MODE_MSVC)
+    {
+        result=handle_MSVC(sString);
+    }
+
+    return result;
 }
 
 QString XDemangle::convert(QString sString, MODE mode)
@@ -83,12 +96,7 @@ QString XDemangle::convert(QString sString, MODE mode)
 
     if(sString!="")
     {
-        SYMBOL symbol={};
-
-        if(mode==MODE_MSVC)
-        {
-            symbol=handle_MSVC(sString);
-        }
+        SYMBOL symbol=getSymbol(sString,mode);
 
         sResult=symbolToString(symbol);
     }
@@ -114,6 +122,22 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
         else if(symbol.storageClass==SC_VOLATILE)
         {
             sResult+=QString("volatile ");
+        }
+        else if(symbol.storageClass==SC_CONSTVOLATILE)
+        {
+            sResult+=QString("const volatile ");
+        }
+        else if(symbol.storageClass==SC_CONSTFAR)
+        {
+            sResult+=QString("const ");
+        }
+        else if(symbol.storageClass==SC_VOLATILEFAR)
+        {
+            sResult+=QString("volatile ");
+        }
+        else if(symbol.storageClass==SC_CONSTVOLATILEFAR)
+        {
+            sResult+=QString("const volatile ");
         }
 
         sResult+=QString("%1 ").arg(typeIdToString(symbol.paramReturn.type,symbol.mode));
@@ -170,6 +194,8 @@ XDemangle::SYMBOL XDemangle::handle_MSVC(QString sString)
         QMap<QString,qint32> mapObjectClasses=getObjectClasses(MODE_MSVC);
         QMap<QString,qint32> mapTypes=getTypes(MODE_MSVC);
         QMap<QString,qint32> mapStorageClasses=getStorageClasses(MODE_MSVC);
+        QMap<QString,qint32> mapFunctionDistances=getFunctionDistances(MODE_MSVC);
+        QMap<QString,qint32> mapFunctionConventions=getFunctionConventions(MODE_MSVC);
 
         sString=sString.mid(1,-1);
 
@@ -195,6 +221,20 @@ XDemangle::SYMBOL XDemangle::handle_MSVC(QString sString)
             SIGNATURE signature=getSignature(sString,&mapObjectClasses);
             result.objectClass=(OC)signature.nValue;
             sString=sString.mid(signature.nSize,-1);
+        }
+
+        if(isSignaturePresent(sString,&mapFunctionDistances))
+        {
+            SIGNATURE signature=getSignature(sString,&mapFunctionDistances);
+            result.functionDistance=(FD)signature.nValue;
+            sString=sString.mid(signature.nSize,-1);
+
+            if(isSignaturePresent(sString,&mapFunctionConventions))
+            {
+                SIGNATURE signature=getSignature(sString,&mapFunctionConventions);
+                result.functionConvention=(FC)signature.nValue;
+                sString=sString.mid(signature.nSize,-1);
+            }
         }
 
         if(isSignaturePresent(sString,&mapTypes))
@@ -234,6 +274,12 @@ XDemangle::SYMBOL XDemangle::handle_MSVC(QString sString)
         {
             result.bValid=true;
         }
+        else
+        {
+        #ifdef QT_DEBUG
+            qDebug(sString.toLatin1().data());
+        #endif
+        }
     }
 
     return result;
@@ -271,13 +317,6 @@ bool XDemangle::isSignaturePresent(QString sString, QMap<QString, qint32> *pMap)
 
             break;
         }
-    }
-
-    if(!bResult)
-    {
-    #ifdef QT_DEBUG
-        qDebug(sString.toLatin1().data());
-    #endif
     }
 
     return bResult;
@@ -339,7 +378,7 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("K",TYPE_ULONG);
         mapResult.insert("M",TYPE_FLOAT);
         mapResult.insert("N",TYPE_DOUBLE);
-        mapResult.insert("O",TYPE_LONGDOUBLE);
+        mapResult.insert("O",TYPE_LONGDOUBLE_64);
         mapResult.insert("Z",TYPE_VARARGS);
         mapResult.insert("_J",TYPE_INT64);
         mapResult.insert("_K",TYPE_UINT64);
@@ -362,6 +401,46 @@ QMap<QString, qint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
         mapResult.insert("A",SC_NEAR);
         mapResult.insert("B",SC_CONST);
         mapResult.insert("C",SC_VOLATILE);
+        mapResult.insert("D",SC_CONSTVOLATILE);
+        mapResult.insert("E",SC_FAR);
+        mapResult.insert("F",SC_CONSTFAR);
+        mapResult.insert("G",SC_VOLATILEFAR);
+        mapResult.insert("H",SC_CONSTVOLATILEFAR);
+        mapResult.insert("I",SC_HUGE);
+//        mapResult.insert("F",SC_UNALIGNED);
+//        mapResult.insert("I",SC_RESTRICT);
+    }
+
+    return mapResult;
+}
+
+QMap<QString, qint32> XDemangle::getFunctionDistances(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(mode==MODE_MSVC)
+    {
+        mapResult.insert("@Y",FD_NEAR);
+        mapResult.insert("@Q",FD_NEAR);
+        mapResult.insert("@Z",FD_FAR);
+        mapResult.insert("@R",FD_FAR);
+    }
+
+    return mapResult;
+}
+
+QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(mode==MODE_MSVC)
+    {
+        mapResult.insert("A",FC_CDECL);
+        mapResult.insert("C",FC_PASCAL);
+        mapResult.insert("E",FC_THISCALL);
+        mapResult.insert("G",FC_STDCALL);
+        mapResult.insert("I",FC_FASTCALL);
+        mapResult.insert("Q",FC_VECTORCALL);
     }
 
     return mapResult;

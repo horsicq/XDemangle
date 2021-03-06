@@ -56,7 +56,8 @@ public:
         TYPE_ULONG,
         TYPE_FLOAT,
         TYPE_DOUBLE,
-        TYPE_LONGDOUBLE,
+        TYPE_LONGDOUBLE_64,
+        TYPE_LONGDOUBLE_80,
         TYPE_INT64,
         TYPE_UINT64,
         TYPE_CHAR8,
@@ -68,6 +69,7 @@ public:
 
     struct PARAMETER
     {
+        bool bIsPointer;
         TYPE type;
     };
 
@@ -83,7 +85,34 @@ public:
         SC_UNKNOWN=0,
         SC_NEAR,
         SC_CONST,
-        SC_VOLATILE
+        SC_VOLATILE,
+        SC_CONSTVOLATILE,
+        SC_FAR,
+        SC_CONSTFAR,
+        SC_VOLATILEFAR,
+        SC_CONSTVOLATILEFAR,
+        SC_HUGE,
+    };
+
+    enum FD
+    {
+        FD_UNKNOWN=0,
+        FD_NEAR,
+        FD_FAR
+    };
+
+    enum FC
+    {
+        FC_UNKNOWN=0,
+        FC_CDECL,
+        FC_PASCAL,
+        FC_FORTRAN,
+        FC_THISCALL,
+        FC_STDCALL,
+        FC_FASTCALL,
+        FC_MSFASTCALL,
+        FC_REGCALL,
+        FC_VECTORCALL
     };
 
     struct SYMBOL
@@ -95,11 +124,14 @@ public:
         QList<PARAMETER> listFunctionArguments;
         OC objectClass;
         SC storageClass;
+        FD functionDistance;
+        FC functionConvention;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
     QString modeIdToString(MODE mode);
     QString typeIdToString(TYPE type,MODE mode);
+    SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
 private:
@@ -125,6 +157,8 @@ private:
     QMap<QString,qint32> getObjectClasses(MODE mode);
     QMap<QString,qint32> getTypes(MODE mode);
     QMap<QString,qint32> getStorageClasses(MODE mode);
+    QMap<QString,qint32> getFunctionDistances(MODE mode);
+    QMap<QString,qint32> getFunctionConventions(MODE mode);
 };
 
 #endif // XDEMANGLE_H
