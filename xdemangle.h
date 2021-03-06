@@ -149,7 +149,7 @@ private:
 
     QString symbolToString(SYMBOL symbol);
     STRING readString(QString sString,MODE mode);
-    SYMBOL handle_MSVC(QString sString);
+    SYMBOL handle_MSVC(QString sString); // TODO rename or remove
     bool _compare(QString sString,QString sSignature);
 
     bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);
