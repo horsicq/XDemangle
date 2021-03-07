@@ -32,7 +32,7 @@ public:
     enum MODE
     {
         MODE_UNKNOWN=0,
-        MODE_MSVC,
+        MODE_MSVC, // TODO MSVC64
         MODE_GCC_2XX,
         MODE_GCC_3XX,
         MODE_BORLAND,
@@ -149,7 +149,7 @@ private:
 
     QString symbolToString(SYMBOL symbol);
     STRING readString(QString sString,MODE mode);
-    SYMBOL handle_MSVC(QString sString); // TODO rename or remove
+    SYMBOL handle_MSVC_family(QString sString); // TODO rename or remove
     bool _compare(QString sString,QString sSignature);
 
     bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);

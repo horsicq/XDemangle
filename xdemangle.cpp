@@ -84,7 +84,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 
     if(mode==MODE_MSVC)
     {
-        result=handle_MSVC(sString);
+        result=handle_MSVC_family(sString);
     }
 
     return result;
@@ -180,7 +180,7 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
     return result;
 }
 
-XDemangle::SYMBOL XDemangle::handle_MSVC(QString sString)
+XDemangle::SYMBOL XDemangle::handle_MSVC_family(QString sString)
 {
     SYMBOL result={};
     // All C++ begins with ?
