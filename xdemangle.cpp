@@ -78,6 +78,80 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
     return sResult;
 }
 
+QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle::MODE mode)
+{
+    Q_UNUSED(mode) // TODO
+
+    QString sResult="Unknown"; // mb TODO translate
+
+    switch(storageClass)
+    {
+        case SC_UNKNOWN:            sResult=QString("Unknown");             break; // mb TODO translate
+        case SC_NEAR:               sResult=QString("");                    break;
+        case SC_CONST:              sResult=QString("const");               break;
+        case SC_VOLATILE:           sResult=QString("volatile");            break;
+        case SC_CONSTVOLATILE:      sResult=QString("const volatile");      break;
+        case SC_FAR:                sResult=QString("");                    break;
+        case SC_CONSTFAR:           sResult=QString("const");               break;
+        case SC_VOLATILEFAR:        sResult=QString("volatile");            break;
+        case SC_CONSTVOLATILEFAR:   sResult=QString("const volatile");      break;
+        case SC_HUGE:               sResult=QString("");                    break;
+    }
+
+    return sResult;
+}
+
+QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
+{
+    Q_UNUSED(mode) // TODO
+
+    QString sResult="Unknown"; // mb TODO translate
+
+    switch(objectClass)
+    {
+        case OC_UNKNOWN:            sResult=QString("Unknown");             break; // mb TODO translate
+        case OC_GLOBALOBJECT:       sResult=QString("");                    break;
+        case OC_STATICCLASSMEMBER:  sResult=QString("static");              break;
+    }
+
+    return sResult;
+}
+
+QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mode)
+{
+    Q_UNUSED(mode) // TODO
+
+    QString sResult="Unknown"; // mb TODO translate
+
+    switch(paramMod)
+    {
+        case PM_NONE:               sResult=QString("");                    break; // mb TODO translate
+        case PM_POINTER:            sResult=QString("*");                   break;
+        case PM_REFERENCE:          sResult=QString("&");                   break;
+    }
+
+    return sResult;
+}
+
+QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention, XDemangle::MODE mode)
+{
+    Q_UNUSED(mode) // TODO
+
+    QString sResult="Unknown"; // mb TODO translate
+
+    switch(functionConvention)
+    {
+        case FC_UNKNOWN:            sResult=QString("Unknown");                    break; // mb TODO translate
+        case FC_CDECL:              sResult=QString("__cdecl");                    break;
+        case FC_THISCALL:           sResult=QString("__thiscall");                 break;
+        case FC_STDCALL:            sResult=QString("__stdcall");                  break;
+        case FC_FASTCALL:           sResult=QString("__fastcall");                 break;
+        case FC_VECTORCALL:         sResult=QString("__vectorcall");               break;
+    }
+
+    return sResult;
+}
+
 XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 {
     SYMBOL result={};
@@ -110,48 +184,40 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
     if(symbol.bValid)
     {
-        if(symbol.objectClass==OC_STATICCLASSMEMBER)
+        if(symbol.symbolType==ST_VARIABLE)
         {
-            sResult+=QString("static ");
-        }
+            QString sObjectClass=objectClassIdToString(symbol.objectClass,symbol.mode);
+            QString sParameter=getStringFromParameter(symbol.paramVariable,symbol.mode);
+            QString sName=getNameFromSymbol(symbol);
 
-        if(symbol.storageClass==SC_CONST)
-        {
-            sResult+=QString("const ");
+            if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
+            if(sParameter!="")      sResult+=QString("%1 ").arg(sParameter);
+            if(sName!="")           sResult+=QString("%1").arg(sName);
         }
-        else if(symbol.storageClass==SC_VOLATILE)
+        else if(symbol.symbolType==ST_FUNCTION)
         {
-            sResult+=QString("volatile ");
-        }
-        else if(symbol.storageClass==SC_CONSTVOLATILE)
-        {
-            sResult+=QString("const volatile ");
-        }
-        else if(symbol.storageClass==SC_CONSTFAR)
-        {
-            sResult+=QString("const ");
-        }
-        else if(symbol.storageClass==SC_VOLATILEFAR)
-        {
-            sResult+=QString("volatile ");
-        }
-        else if(symbol.storageClass==SC_CONSTVOLATILEFAR)
-        {
-            sResult+=QString("const volatile ");
-        }
+            QString sParameterReturn=getStringFromParameter(symbol.paramFunctionReturn,symbol.mode);
+            QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
+            QString sName=getNameFromSymbol(symbol);
 
-        sResult+=QString("%1 ").arg(typeIdToString(symbol.paramReturn.type,symbol.mode));
+            sResult+=QString("%1 ").arg(sParameterReturn);
+            sResult+=QString("%1 ").arg(sFunctionConvention);
+            sResult+=sName;
+            sResult+=QString("(");
 
-        int nNumberOfNames=symbol.listNames.count();
+            int nNumberOfrguments=symbol.listFunctionArguments.count();
 
-        for(int i=nNumberOfNames-1;i>=0;i--)
-        {
-            sResult+=symbol.listNames.at(i);
-
-            if(i)
+            for(int i=0;i<nNumberOfrguments;i++)
             {
-                sResult+="::";
+                sResult+=getStringFromParameter(symbol.listFunctionArguments.at(i),symbol.mode);
+
+                if(i!=nNumberOfrguments-1)
+                {
+                    sResult+=QString(",");;
+                }
             }
+
+            sResult+=QString(")");
         }
     }
 
@@ -189,6 +255,7 @@ XDemangle::SYMBOL XDemangle::handle_MSVC_family(QString sString)
     {
         result.mode=MODE_MSVC;
 
+        QMap<QString,qint32> mapParamMods=getParamMods(MODE_MSVC);
         QMap<QString,qint32> mapObjectClasses=getObjectClasses(MODE_MSVC);
         QMap<QString,qint32> mapTypes=getTypes(MODE_MSVC);
         QMap<QString,qint32> mapStorageClasses=getStorageClasses(MODE_MSVC);
@@ -216,16 +283,34 @@ XDemangle::SYMBOL XDemangle::handle_MSVC_family(QString sString)
 
         if(isSignaturePresent(sString,&mapObjectClasses))
         {
-            SIGNATURE signature=getSignature(sString,&mapObjectClasses);
-            result.objectClass=(OC)signature.nValue;
-            sString=sString.mid(signature.nSize,-1);
-        }
+            result.symbolType=ST_VARIABLE;
 
-        if(isSignaturePresent(sString,&mapFunctionDistances))
+            SIGNATURE signatureOC=getSignature(sString,&mapObjectClasses);
+            result.objectClass=(OC)signatureOC.nValue;
+            sString=sString.mid(signatureOC.nSize,-1);
+
+            if(isSignaturePresent(sString,&mapTypes))
+            {
+                SIGNATURE signature=getSignature(sString,&mapTypes);
+                result.paramVariable.type=(TYPE)signature.nValue;
+                sString=sString.mid(signature.nSize,-1);
+            }
+
+            if(isSignaturePresent(sString,&mapStorageClasses))
+            {
+                SIGNATURE signature=getSignature(sString,&mapStorageClasses);
+                result.paramVariable.storageClass=(SC)signature.nValue;
+                sString=sString.mid(signature.nSize,-1);
+            }
+        }
+        else if(isSignaturePresent(sString,&mapFunctionDistances))
         {
-            SIGNATURE signature=getSignature(sString,&mapFunctionDistances);
-            result.functionDistance=(FD)signature.nValue;
-            sString=sString.mid(signature.nSize,-1);
+            // Function
+            result.symbolType=ST_FUNCTION;
+
+            SIGNATURE signatureFD=getSignature(sString,&mapFunctionDistances);
+            result.functionDistance=(FD)signatureFD.nValue;
+            sString=sString.mid(signatureFD.nSize,-1);
 
             if(isSignaturePresent(sString,&mapFunctionConventions))
             {
@@ -233,39 +318,63 @@ XDemangle::SYMBOL XDemangle::handle_MSVC_family(QString sString)
                 result.functionConvention=(FC)signature.nValue;
                 sString=sString.mid(signature.nSize,-1);
             }
-        }
 
-        if(isSignaturePresent(sString,&mapTypes))
-        {
-            SIGNATURE signature=getSignature(sString,&mapTypes);
-            result.paramReturn.type=(TYPE)signature.nValue;
-            sString=sString.mid(signature.nSize,-1);
-        }
+            int nIndex=0;
 
-        while(sString!="") // TODO Check
-        {
-            SIGNATURE signature=getSignature(sString,&mapTypes);
-
-            if(signature.nSize)
+            while((sString!="")&&(sString!="@Z")) // TODO Check
             {
-                PARAMETER parameter={};
-                parameter.type=(TYPE)signature.nValue;
+                SIGNATURE signatureParamMod={};
+                SIGNATURE signatureStorageClass={};
 
-                result.listFunctionArguments.append(parameter);
+                if(isSignaturePresent(sString,&mapParamMods))
+                {
+                    signatureParamMod=getSignature(sString,&mapParamMods);
+                    sString=sString.mid(signatureParamMod.nSize,-1);
+
+                    signatureStorageClass=getSignature(sString,&mapStorageClasses);
+                    sString=sString.mid(signatureStorageClass.nSize,-1);
+                }
+
+                SIGNATURE signatureType=getSignature(sString,&mapTypes);
+
+                if(signatureType.nSize)
+                {
+                    PARAMETER parameter={};
+                    parameter.type=(TYPE)signatureType.nValue;
+                    parameter.paramMod=(PM)signatureParamMod.nValue;
+
+                    if(signatureStorageClass.nValue)
+                    {
+                        parameter.storageClass=(SC)signatureStorageClass.nValue;
+                    }
+                    else
+                    {
+                        parameter.storageClass=SC_NEAR; // TODO Check
+                    }
+
+                    if(nIndex==0)
+                    {
+                        result.paramFunctionReturn=parameter;
+                    }
+                    else
+                    {
+                        result.listFunctionArguments.append(parameter);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+                sString=sString.mid(signatureType.nSize,-1);
+
+                nIndex++;
             }
-            else
+
+            if(sString=="@Z")
             {
-                break;
+                sString=sString.mid(2,-1);
             }
-
-            sString=sString.mid(signature.nSize,-1);
-        }
-
-        if(isSignaturePresent(sString,&mapStorageClasses))
-        {
-            SIGNATURE signature=getSignature(sString,&mapStorageClasses);
-            result.storageClass=(SC)signature.nValue;
-            sString=sString.mid(signature.nSize,-1);
         }
 
         if(sString=="") // TODO more checks
@@ -390,6 +499,19 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
     return mapResult;
 }
 
+QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(mode==MODE_MSVC)
+    {
+        mapResult.insert("P",PM_POINTER);
+        mapResult.insert("A",PM_REFERENCE);
+    }
+
+    return mapResult;
+}
+
 QMap<QString, qint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
@@ -442,4 +564,38 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
     }
 
     return mapResult;
+}
+
+QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
+{
+    QString sResult;
+
+    int nNumberOfNames=symbol.listNames.count();
+
+    for(int i=nNumberOfNames-1;i>=0;i--)
+    {
+        sResult+=symbol.listNames.at(i);
+
+        if(i)
+        {
+            sResult+="::";
+        }
+    }
+
+    return sResult;
+}
+
+QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE mode)
+{
+    QString sResult;
+
+    QString sStorageClass=storageClassIdToString(parameter.storageClass,mode);
+    QString sType=typeIdToString(parameter.type,mode);
+    QString sParamMod=paramModIdToString(parameter.paramMod,mode);
+
+    if(sStorageClass!="")   sResult+=QString("%1 ").arg(sStorageClass);
+    if(sType!="")           sResult+=QString("%1").arg(sType);
+    if(sParamMod!="")       sResult+=QString(" %1").arg(sParamMod);
+
+    return sResult;
 }

@@ -67,12 +67,6 @@ public:
         TYPE_VARARGS
     };
 
-    struct PARAMETER
-    {
-        bool bIsPointer;
-        TYPE type;
-    };
-
     enum OC
     {
         OC_UNKNOWN=0,
@@ -91,7 +85,7 @@ public:
         SC_CONSTFAR,
         SC_VOLATILEFAR,
         SC_CONSTVOLATILEFAR,
-        SC_HUGE,
+        SC_HUGE
     };
 
     enum FD
@@ -115,15 +109,39 @@ public:
         FC_VECTORCALL
     };
 
+    enum ST
+    {
+        ST_UNKNOWN=0,
+        ST_VARIABLE,
+        ST_FUNCTION
+    };
+
+    enum PM
+    {
+        PM_NONE,
+        PM_POINTER,
+        PM_REFERENCE
+    };
+
+    struct PARAMETER
+    {
+        PM paramMod;
+        SC storageClass;
+        TYPE type;
+    };
+
     struct SYMBOL
     {
         bool bValid;
         MODE mode;
+        ST symbolType;
         QList<QString> listNames;
-        PARAMETER paramReturn;
-        QList<PARAMETER> listFunctionArguments;
+        // Variable
         OC objectClass;
-        SC storageClass;
+        PARAMETER paramVariable;
+        // Function
+        PARAMETER paramFunctionReturn;
+        QList<PARAMETER> listFunctionArguments;
         FD functionDistance;
         FC functionConvention;
     };
@@ -131,6 +149,10 @@ public:
     explicit XDemangle(QObject *pParent=nullptr);
     QString modeIdToString(MODE mode);
     QString typeIdToString(TYPE type,MODE mode);
+    QString storageClassIdToString(SC storageClass,MODE mode);
+    QString objectClassIdToString(OC objectClass,MODE mode);
+    QString paramModIdToString(PM paramMod,MODE mode);
+    QString functionConventionIdToString(FC functionConvention,MODE mode);
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
@@ -156,9 +178,13 @@ private:
     SIGNATURE getSignature(QString sString,QMap<QString,qint32> *pMap);
     QMap<QString,qint32> getObjectClasses(MODE mode);
     QMap<QString,qint32> getTypes(MODE mode);
+    QMap<QString,qint32> getParamMods(MODE mode);
     QMap<QString,qint32> getStorageClasses(MODE mode);
     QMap<QString,qint32> getFunctionDistances(MODE mode);
     QMap<QString,qint32> getFunctionConventions(MODE mode);
+
+    QString getNameFromSymbol(SYMBOL symbol);
+    QString getStringFromParameter(PARAMETER parameter,MODE mode);
 };
 
 #endif // XDEMANGLE_H
