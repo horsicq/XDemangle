@@ -32,7 +32,7 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
     switch(mode)
     {
         case MODE_UNKNOWN:      sResult=QString("Unknown");             break; // mb TODO translate
-        case MODE_MSVC:         sResult=QString("MSVC C++");            break;
+        case MODE_MSVC32:       sResult=QString("MSVC C++ 32");         break;
         case MODE_GCC_2XX:      sResult=QString("GCC 2.XX");            break;
         case MODE_GCC_3XX:      sResult=QString("GCC 3.XX-X.XX");       break;
         case MODE_WATCOM:       sResult=QString("Watcom");              break;
@@ -156,7 +156,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 {
     SYMBOL result={};
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         result=handle_MSVC_family(sString);
     }
@@ -228,7 +228,7 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
 {
     STRING result={};
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         result.sString=sString.section("@",0,0);
 
@@ -253,21 +253,21 @@ XDemangle::SYMBOL XDemangle::handle_MSVC_family(QString sString)
 
     if(_compare(sString,"?"))
     {
-        result.mode=MODE_MSVC;
+        result.mode=MODE_MSVC32;
 
-        QMap<QString,qint32> mapParamMods=getParamMods(MODE_MSVC);
-        QMap<QString,qint32> mapObjectClasses=getObjectClasses(MODE_MSVC);
-        QMap<QString,qint32> mapTypes=getTypes(MODE_MSVC);
-        QMap<QString,qint32> mapStorageClasses=getStorageClasses(MODE_MSVC);
-        QMap<QString,qint32> mapFunctionDistances=getFunctionDistances(MODE_MSVC);
-        QMap<QString,qint32> mapFunctionConventions=getFunctionConventions(MODE_MSVC);
+        QMap<QString,qint32> mapParamMods=getParamMods(MODE_MSVC32);
+        QMap<QString,qint32> mapObjectClasses=getObjectClasses(MODE_MSVC32);
+        QMap<QString,qint32> mapTypes=getTypes(MODE_MSVC32);
+        QMap<QString,qint32> mapStorageClasses=getStorageClasses(MODE_MSVC32);
+        QMap<QString,qint32> mapFunctionDistances=getFunctionDistances(MODE_MSVC32);
+        QMap<QString,qint32> mapFunctionConventions=getFunctionConventions(MODE_MSVC32);
 
         sString=sString.mid(1,-1);
 
         // Name
         while(sString!="")
         {
-            STRING _string=readString(sString,MODE_MSVC);
+            STRING _string=readString(sString,MODE_MSVC32);
 
             if(_string.nSize)
             {
@@ -458,7 +458,7 @@ QMap<QString, qint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         mapResult.insert("@2",OC_STATICCLASSMEMBER);
         mapResult.insert("@3",OC_GLOBALOBJECT);
@@ -471,7 +471,7 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         mapResult.insert("X",TYPE_VOID);
         mapResult.insert("C",TYPE_SCHAR);
@@ -503,7 +503,7 @@ QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         mapResult.insert("P",PM_POINTER);
         mapResult.insert("A",PM_REFERENCE);
@@ -516,7 +516,7 @@ QMap<QString, qint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         mapResult.insert("A",SC_NEAR);
         mapResult.insert("B",SC_CONST);
@@ -538,7 +538,7 @@ QMap<QString, qint32> XDemangle::getFunctionDistances(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         mapResult.insert("@Y",FD_NEAR);
         mapResult.insert("@Q",FD_NEAR);
@@ -553,7 +553,7 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC)
+    if(mode==MODE_MSVC32)
     {
         mapResult.insert("A",FC_CDECL);
         mapResult.insert("C",FC_PASCAL);

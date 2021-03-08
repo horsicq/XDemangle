@@ -32,7 +32,7 @@ public:
     enum MODE
     {
         MODE_UNKNOWN=0,
-        MODE_MSVC, // TODO MSVC64
+        MODE_MSVC32, // TODO MSVC64
         MODE_GCC_2XX,
         MODE_GCC_3XX,
         MODE_BORLAND,
