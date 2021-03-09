@@ -32,9 +32,8 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
     switch(mode)
     {
         case MODE_UNKNOWN:      sResult=QString("Unknown");             break; // mb TODO translate
-        case MODE_MSVC32:       sResult=QString("MSVC C++ 32");         break;
-        case MODE_GCC_2XX:      sResult=QString("GCC 2.XX");            break;
-        case MODE_GCC_3XX:      sResult=QString("GCC 3.XX-X.XX");       break;
+        case MODE_MSVC32:       sResult=QString("MSVC+++ 32");          break;
+        case MODE_GCC:          sResult=QString("GCC");                 break;
         case MODE_WATCOM:       sResult=QString("Watcom");              break;
         case MODE_BORLAND:      sResult=QString("Borland");             break;
     }
