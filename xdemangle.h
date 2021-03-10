@@ -32,6 +32,7 @@ public:
     enum MODE
     {
         MODE_UNKNOWN=0,
+        MODE_AUTO,
         MODE_MSVC32, // TODO MSVC64
         MODE_GCC,
         MODE_BORLAND,
@@ -69,8 +70,11 @@ public:
     enum OC
     {
         OC_UNKNOWN=0,
+        OC_PRIVATESTATICCLASSMEMBER,
+        OC_PROTECTEDSTATICCLASSMEMBER,
+        OC_PUBLICSTATICCLASSMEMBER,
         OC_GLOBALOBJECT,
-        OC_STATICCLASSMEMBER
+        OC_FUNCTIONLOCALSTATIC
     };
 
     enum SC
@@ -84,14 +88,33 @@ public:
         SC_CONSTFAR,
         SC_VOLATILEFAR,
         SC_CONSTVOLATILEFAR,
-        SC_HUGE
+        SC_HUGE,
+        SC_EXECUTABLE
     };
 
-    enum FD
+    enum FM
     {
-        FD_UNKNOWN=0,
-        FD_NEAR,
-        FD_FAR
+        FM_UNKNOWN=0,
+        FM_NEAR,
+        FM_FAR,
+        FM_PUBLIC_NEAR,
+        FM_PUBLIC_FAR,
+        FM_PUBLIC_STATICNEAR,
+        FM_PUBLIC_STATICFAR,
+        FM_PUBLIC_VIRTUALNEAR,
+        FM_PUBLIC_VIRTUALFAR,
+        FM_PROTECTED_NEAR,
+        FM_PROTECTED_FAR,
+        FM_PROTECTED_STATICNEAR,
+        FM_PROTECTED_STATICFAR,
+        FM_PROTECTED_VIRTUALNEAR,
+        FM_PROTECTED_VIRTUALFAR,
+        FM_PRIVATE_NEAR,
+        FM_PRIVATE_FAR,
+        FM_PRIVATE_STATICNEAR,
+        FM_PRIVATE_STATICFAR,
+        FM_PRIVATE_VIRTUALNEAR,
+        FM_PRIVATE_VIRTUALFAR,
     };
 
     enum FC
@@ -112,7 +135,8 @@ public:
     {
         ST_UNKNOWN=0,
         ST_VARIABLE,
-        ST_FUNCTION
+        ST_FUNCTION,
+        ST_CLASSMETHOD
     };
 
     enum PM
@@ -120,6 +144,15 @@ public:
         PM_NONE,
         PM_POINTER,
         PM_REFERENCE
+    };
+
+    enum OP
+    {
+        OP_UNKNOWN=0,
+        OP_CONSTRUCTOR,
+        OP_DESTRUCTOR,
+        OP_SUBS,
+        OP_CALL
     };
 
     struct PARAMETER
@@ -134,6 +167,7 @@ public:
         bool bValid;
         MODE mode;
         ST symbolType;
+        OP _operator;
         QList<QString> listNames;
         // Variable
         OC objectClass;
@@ -141,19 +175,23 @@ public:
         // Function
         PARAMETER paramFunctionReturn;
         QList<PARAMETER> listFunctionArguments;
-        FD functionDistance;
+        FM functionMod;
         FC functionConvention;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
-    QString modeIdToString(MODE mode);
-    QString typeIdToString(TYPE type,MODE mode);
-    QString storageClassIdToString(SC storageClass,MODE mode);
-    QString objectClassIdToString(OC objectClass,MODE mode);
-    QString paramModIdToString(PM paramMod,MODE mode);
-    QString functionConventionIdToString(FC functionConvention,MODE mode);
+    static QString modeIdToString(MODE mode);
+    static QString typeIdToString(TYPE type,MODE mode);
+    static QString storageClassIdToString(SC storageClass,MODE mode);
+    static QString objectClassIdToString(OC objectClass,MODE mode);
+    static QString paramModIdToString(PM paramMod,MODE mode);
+    static QString functionConventionIdToString(FC functionConvention,MODE mode);
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
+
+    MODE detectMode(QString sString);
+
+    static QList<MODE> getAllModes();
 
 private:
     struct STRING
@@ -179,8 +217,9 @@ private:
     QMap<QString,qint32> getTypes(MODE mode);
     QMap<QString,qint32> getParamMods(MODE mode);
     QMap<QString,qint32> getStorageClasses(MODE mode);
-    QMap<QString,qint32> getFunctionDistances(MODE mode);
+    QMap<QString,qint32> getFunctionMods(MODE mode);
     QMap<QString,qint32> getFunctionConventions(MODE mode);
+    QMap<QString,qint32> getOperators(MODE mode);
 
     QString getNameFromSymbol(SYMBOL symbol);
     QString getStringFromParameter(PARAMETER parameter,MODE mode);
