@@ -51,6 +51,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
     switch(type)
     {
         case TYPE_UNKNOWN:          sResult=QString("Unknown");             break; // mb TODO translate
+        case TYPE_EMPTY:            sResult=QString("");                    break;
         case TYPE_VOID:             sResult=QString("void");                break;
         case TYPE_BOOL:             sResult=QString("bool");                break;
         case TYPE_INT:              sResult=QString("int");                 break;
@@ -155,13 +156,243 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
     return sResult;
 }
 
+QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE mode)
+{
+    Q_UNUSED(mode) // TODO
+
+    QString sResult="Unknown"; // mb TODO translate
+
+    switch(_operator)
+    {
+        case OP_UNKNOWN:                sResult=QString("Unknown");             break; // mb TODO translate
+        case OP_CONSTRUCTOR:            sResult=QString("");                    break;
+        case OP_DESTRUCTOR:             sResult=QString("~");                   break;
+        case OP_NEW:                    sResult=QString("operator new");        break;
+        case OP_DELETE:                 sResult=QString("operator delete");     break;
+        case OP_ASSIGN:                 sResult=QString("operator =");          break;
+        case OP_RIGHTSHIFT:             sResult=QString("operator >>");         break;
+        case OP_LEFTSHIFT:              sResult=QString("operator <<");         break;
+        case OP_LOGICALNOT:             sResult=QString("operator !");          break;
+        case OP_EQUALS:                 sResult=QString("operator ==");         break;
+        case OP_NOTEQUALS:              sResult=QString("operator !=");         break;
+        case OP_ARRAYSUBSCRIPT:         sResult=QString("operator []");         break;
+        case OP_POINTER:                sResult=QString("operator ->");         break;
+        case OP_DEREFERENCE:            sResult=QString("operator *");          break;
+        case OP_INCREMENT:              sResult=QString("operator ++");         break;
+        case OP_DECREMENT:              sResult=QString("operator --");         break;
+        case OP_MINUS:                  sResult=QString("operator -");          break;
+        case OP_PLUS:                   sResult=QString("operator +");          break;
+        case OP_BITWISEAND:             sResult=QString("operator &");          break;
+        case OP_MEMBERPOINTER:          sResult=QString("operator ->*");        break;
+        case OP_DIVIDE:                 sResult=QString("operator /");          break;
+        case OP_MODULUS:                sResult=QString("operator %");          break;
+        case OP_LESSTHAN:               sResult=QString("operator <");          break;
+        case OP_LESSTHANEQUAL:          sResult=QString("operator <=");         break;
+        case OP_GREATERTHAN:            sResult=QString("operator >");          break;
+        case OP_GREATERTHANEQUAL:       sResult=QString("operator >=");         break;
+        case OP_COMMA:                  sResult=QString("operator ,");          break;
+        case OP_PARENS:                 sResult=QString("operator ()");         break;
+        case OP_BITWISENOT:             sResult=QString("operator ~");          break;
+        case OP_BITWISEXOR:             sResult=QString("operator ^");          break;
+        case OP_BITWISEOR:              sResult=QString("operator |");          break;
+        case OP_LOGICALAND:             sResult=QString("operator &&");         break;
+        case OP_LOGICALOR:              sResult=QString("operator ||");         break;
+        case OP_TIMESEQUAL:             sResult=QString("operator *=");         break;
+        case OP_PLUSEQUAL:              sResult=QString("operator +=");         break;
+        case OP_MINUSEQUAL:             sResult=QString("operator -=");         break;
+        case OP_DIVEQUAL:               sResult=QString("operator /=");         break;
+        case OP_MODEQUAL:               sResult=QString("operator %=");         break;
+        case OP_RSHEQUAL:               sResult=QString("operator >>=");        break;
+        case OP_LSHEQUAL:               sResult=QString("operator <<=");        break;
+        case OP_BITWISEANDEQUAL:        sResult=QString("operator &=");         break;
+        case OP_BITWISEOREQUAL:         sResult=QString("operator |=");         break;
+        case OP_BITWISEXOREQUAL:        sResult=QString("operator ^=");         break;
+        case OP_ARRAYNEW:               sResult=QString("operator new[]");      break;
+        case OP_ARRAYDELETE:            sResult=QString("operator delete[]");   break;
+    }
+
+    return sResult;
+}
+
 XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 {
     SYMBOL result={};
 
+    result.mode=mode;
+
+    QMap<QString,qint32> mapParamMods=getParamMods(mode);
+    QMap<QString,qint32> mapObjectClasses=getObjectClasses(mode);
+    QMap<QString,qint32> mapTypes=getTypes(mode);
+    QMap<QString,qint32> mapStorageClasses=getStorageClasses(mode);
+    QMap<QString,qint32> mapFunctionMods=getFunctionMods(mode);
+    QMap<QString,qint32> mapFunctionConventions=getFunctionConventions(mode);
+    QMap<QString,qint32> mapOperators=getOperators(mode);
+
     if(mode==MODE_MSVC32)
     {
-        result=handle_MSVC_family(sString);
+        if(_compare(sString,"?"))
+        {
+            sString=sString.mid(1,-1);
+
+            if(isSignaturePresent(sString,&mapOperators))
+            {
+                SIGNATURE signatureOP=getSignature(sString,&mapOperators);
+                result._operator=(OP)signatureOP.nValue;
+                sString=sString.mid(signatureOP.nSize,-1);
+            }
+
+            // Name
+            while(sString!="")
+            {
+                STRING _string=readString(sString,mode);
+
+                if(_string.nSize)
+                {
+                    result.listNames.append(_string.sString);
+                }
+                else
+                {
+                    break;
+                }
+
+                sString=sString.mid(_string.nSize,-1);
+            }
+            // Reverse
+            int nNumberOfRecords=result.listNames.count();
+
+            for(int i=0;i<(nNumberOfRecords/2);i++)
+            {
+                result.listNames.swap(i,nNumberOfRecords-(1+i));
+            }
+
+            if(isSignaturePresent(sString,&mapObjectClasses))
+            {
+                result.symbolType=ST_VARIABLE;
+
+                SIGNATURE signatureOC=getSignature(sString,&mapObjectClasses);
+                result.objectClass=(OC)signatureOC.nValue;
+                sString=sString.mid(signatureOC.nSize,-1);
+            }
+            else if(isSignaturePresent(sString,&mapFunctionMods))
+            {
+                result.symbolType=ST_FUNCTION;
+
+                SIGNATURE signatureFM=getSignature(sString,&mapFunctionMods);
+                result.functionMod=(FM)signatureFM.nValue;
+                sString=sString.mid(signatureFM.nSize,-1);
+
+                if((result.functionMod!=FM_FAR)&&(result.functionMod!=FM_NEAR)) // Class member
+                {
+                    if(isSignaturePresent(sString,&mapStorageClasses))
+                    {
+                        SIGNATURE signatureSC=getSignature(sString,&mapStorageClasses);
+                        result.paramVariable.storageClass=(SC)signatureSC.nValue;
+                        sString=sString.mid(signatureSC.nSize,-1);
+                    }
+                }
+
+                if(isSignaturePresent(sString,&mapFunctionConventions))
+                {
+                    SIGNATURE signature=getSignature(sString,&mapFunctionConventions);
+                    result.functionConvention=(FC)signature.nValue;
+                    sString=sString.mid(signature.nSize,-1);
+                }
+                else
+                {
+                     result.functionConvention=FC_THISCALL; // TODO Check
+                }
+            }
+
+            int nIndex=0;
+
+            while(sString!="")
+            {
+                if((nIndex>0)&&(_compare(sString,"@")))
+                {
+                    sString=sString.mid(1,-1);
+                    break;
+                }
+
+                SIGNATURE signatureParamMod={};
+                SIGNATURE signatureStorageClass={};
+
+                if(isSignaturePresent(sString,&mapParamMods))
+                {
+                    signatureParamMod=getSignature(sString,&mapParamMods);
+                    sString=sString.mid(signatureParamMod.nSize,-1);
+
+                    signatureStorageClass=getSignature(sString,&mapStorageClasses);
+                    sString=sString.mid(signatureStorageClass.nSize,-1);
+                }
+
+                SIGNATURE signatureType=getSignature(sString,&mapTypes);
+
+                if(signatureType.nSize)
+                {
+                    PARAMETER parameter={};
+                    parameter.type=(TYPE)signatureType.nValue;
+                    parameter.paramMod=(PM)signatureParamMod.nValue;
+
+                    if(signatureStorageClass.nValue)
+                    {
+                        parameter.storageClass=(SC)signatureStorageClass.nValue;
+                    }
+                    else
+                    {
+                        parameter.storageClass=SC_NEAR; // TODO Check
+                    }
+
+                    if(nIndex==0)
+                    {
+                        result.paramVariable=parameter;
+                    }
+                    else
+                    {
+                        result.listFunctionArguments.append(parameter);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+                sString=sString.mid(signatureType.nSize,-1);
+
+                if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)) //if func(void)
+                {
+                    if(_compare(sString,"@"))
+                    {
+                        sString=sString.mid(1,-1);
+                    }
+
+                    break;
+                }
+
+                nIndex++;
+            }
+
+            if(isSignaturePresent(sString,&mapStorageClasses))
+            {
+                SIGNATURE signature=getSignature(sString,&mapStorageClasses);
+                if(result.paramVariable.storageClass==SC_UNKNOWN)
+                {
+                    result.paramVariable.storageClass=(SC)signature.nValue;
+                }
+
+                sString=sString.mid(signature.nSize,-1);
+            }
+
+            if((sString=="")&&(result.paramVariable.storageClass!=SC_UNKNOWN)) // TODO more checks
+            {
+                result.bValid=true;
+            }
+            else
+            {
+            #ifdef QT_DEBUG
+                qDebug(sString.toLatin1().data());
+            #endif
+            }
+        }
     }
 
     return result;
@@ -222,9 +453,9 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             if(sParameter!="")      sResult+=QString("%1 ").arg(sParameter);
             if(sName!="")           sResult+=QString("%1").arg(sName);
         }
-        else if((symbol.symbolType==ST_FUNCTION)||(symbol.symbolType==ST_CLASSMETHOD))
+        else if((symbol.symbolType==ST_FUNCTION))
         {
-            QString sParameterReturn=getStringFromParameter(symbol.paramFunctionReturn,symbol.mode);
+            QString sParameterReturn=getStringFromParameter(symbol.paramVariable,symbol.mode);
             QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
             QString sName=getNameFromSymbol(symbol);
 
@@ -268,174 +499,6 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
             {
                 result.nSize++;
             }
-        }
-    }
-
-    return result;
-}
-
-XDemangle::SYMBOL XDemangle::handle_MSVC_family(QString sString)
-{
-    SYMBOL result={};
-    // All C++ begins with ?
-
-    if(_compare(sString,"?"))
-    {
-        sString=sString.mid(1,-1);
-
-        result.mode=MODE_MSVC32;
-
-        QMap<QString,qint32> mapParamMods=getParamMods(MODE_MSVC32);
-        QMap<QString,qint32> mapObjectClasses=getObjectClasses(MODE_MSVC32);
-        QMap<QString,qint32> mapTypes=getTypes(MODE_MSVC32);
-        QMap<QString,qint32> mapStorageClasses=getStorageClasses(MODE_MSVC32);
-        QMap<QString,qint32> mapFunctionMods=getFunctionMods(MODE_MSVC32);
-        QMap<QString,qint32> mapFunctionConventions=getFunctionConventions(MODE_MSVC32);
-        QMap<QString,qint32> mapOperators=getOperators(MODE_MSVC32);
-
-        if(isSignaturePresent(sString,&mapOperators))
-        {
-            SIGNATURE signatureOP=getSignature(sString,&mapTypes);
-            result._operator=(OP)signatureOP.nValue;
-            sString=sString.mid(signatureOP.nSize,-1);
-        }
-
-        // Name
-        while(sString!="")
-        {
-            STRING _string=readString(sString,MODE_MSVC32);
-
-            if(_string.nSize)
-            {
-                result.listNames.append(_string.sString);
-            }
-            else
-            {
-                break;
-            }
-
-            sString=sString.mid(_string.nSize,-1);
-        }
-
-        if(isSignaturePresent(sString,&mapObjectClasses))
-        {
-            result.symbolType=ST_VARIABLE;
-
-            SIGNATURE signatureOC=getSignature(sString,&mapObjectClasses);
-            result.objectClass=(OC)signatureOC.nValue;
-            sString=sString.mid(signatureOC.nSize,-1);
-
-            if(isSignaturePresent(sString,&mapTypes))
-            {
-                SIGNATURE signature=getSignature(sString,&mapTypes);
-                result.paramVariable.type=(TYPE)signature.nValue;
-                sString=sString.mid(signature.nSize,-1);
-            }
-        }
-        else if(isSignaturePresent(sString,&mapFunctionMods))
-        {
-            SIGNATURE signatureFM=getSignature(sString,&mapFunctionMods);
-            result.functionMod=(FM)signatureFM.nValue;
-            sString=sString.mid(signatureFM.nSize,-1);
-
-            if((result.functionMod==FM_FAR)||(result.functionMod==FM_NEAR))
-            {
-                // Function
-                result.symbolType=ST_FUNCTION;
-                // Global function
-                if(isSignaturePresent(sString,&mapFunctionConventions))
-                {
-                    SIGNATURE signature=getSignature(sString,&mapFunctionConventions);
-                    result.functionConvention=(FC)signature.nValue;
-                    sString=sString.mid(signature.nSize,-1);
-                }
-            }
-            else
-            {
-                // Class method
-                result.symbolType=ST_CLASSMETHOD;
-
-            }
-
-            int nIndex=0;
-
-            while(sString!="")
-            {
-                SIGNATURE signatureParamMod={};
-                SIGNATURE signatureStorageClass={};
-
-                if(isSignaturePresent(sString,&mapParamMods))
-                {
-                    signatureParamMod=getSignature(sString,&mapParamMods);
-                    sString=sString.mid(signatureParamMod.nSize,-1);
-
-                    signatureStorageClass=getSignature(sString,&mapStorageClasses);
-                    sString=sString.mid(signatureStorageClass.nSize,-1);
-                }
-
-                SIGNATURE signatureType=getSignature(sString,&mapTypes);
-
-                if(signatureType.nSize)
-                {
-                    PARAMETER parameter={};
-                    parameter.type=(TYPE)signatureType.nValue;
-                    parameter.paramMod=(PM)signatureParamMod.nValue;
-
-                    if(signatureStorageClass.nValue)
-                    {
-                        parameter.storageClass=(SC)signatureStorageClass.nValue;
-                    }
-                    else
-                    {
-                        parameter.storageClass=SC_NEAR; // TODO Check
-                    }
-
-                    if(nIndex==0)
-                    {
-                        result.paramFunctionReturn=parameter;
-                    }
-                    else
-                    {
-                        result.listFunctionArguments.append(parameter);
-                    }
-                }
-                else
-                {
-                    break;
-                }
-
-                sString=sString.mid(signatureType.nSize,-1);
-
-                if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)) //if func(void)
-                {
-                    break;
-                }
-
-                nIndex++;
-            }
-
-            if(_compare(sString,"@"))
-            {
-                sString=sString.mid(1,-1);
-            }
-        }
-
-        if(isSignaturePresent(sString,&mapStorageClasses))
-        {
-            SIGNATURE signature=getSignature(sString,&mapStorageClasses);
-            result.paramVariable.storageClass=(SC)signature.nValue;
-            sString=sString.mid(signature.nSize,-1);
-        }
-
-        if((sString=="")&&(result.paramVariable.storageClass!=SC_UNKNOWN)) // TODO more checks
-        {
-            result.bValid=true;
-        }
-        else
-        {
-        #ifdef QT_DEBUG
-            qDebug(sString.toLatin1().data());
-        #endif
         }
     }
 
@@ -526,6 +589,7 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
 
     if(mode==MODE_MSVC32)
     {
+        mapResult.insert("@",TYPE_EMPTY);
         mapResult.insert("X",TYPE_VOID);
         mapResult.insert("C",TYPE_SCHAR);
         mapResult.insert("D",TYPE_CHAR);
@@ -644,6 +708,48 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
     {
         mapResult.insert("?0",OP_CONSTRUCTOR);
         mapResult.insert("?1",OP_DESTRUCTOR);
+        mapResult.insert("?2",OP_NEW);
+        mapResult.insert("?3",OP_DELETE);
+        mapResult.insert("?4",OP_ASSIGN);
+        mapResult.insert("?5",OP_RIGHTSHIFT);
+        mapResult.insert("?6",OP_LEFTSHIFT);
+        mapResult.insert("?7",OP_LOGICALNOT);
+        mapResult.insert("?8",OP_EQUALS);
+        mapResult.insert("?9",OP_NOTEQUALS);
+        mapResult.insert("?A",OP_ARRAYSUBSCRIPT);
+        mapResult.insert("?C",OP_POINTER);
+        mapResult.insert("?D",OP_DEREFERENCE);
+        mapResult.insert("?E",OP_INCREMENT);
+        mapResult.insert("?F",OP_DECREMENT);
+        mapResult.insert("?G",OP_MINUS);
+        mapResult.insert("?H",OP_PLUS);
+        mapResult.insert("?I",OP_BITWISEAND);
+        mapResult.insert("?J",OP_MEMBERPOINTER);
+        mapResult.insert("?K",OP_DIVIDE);
+        mapResult.insert("?L",OP_MODULUS);
+        mapResult.insert("?M",OP_LESSTHAN);
+        mapResult.insert("?N",OP_LESSTHANEQUAL);
+        mapResult.insert("?O",OP_GREATERTHAN);
+        mapResult.insert("?P",OP_GREATERTHANEQUAL);
+        mapResult.insert("?Q",OP_COMMA);
+        mapResult.insert("?R",OP_PARENS);
+        mapResult.insert("?S",OP_BITWISENOT);
+        mapResult.insert("?T",OP_BITWISEXOR);
+        mapResult.insert("?U",OP_BITWISEOR);
+        mapResult.insert("?V",OP_LOGICALAND);
+        mapResult.insert("?W",OP_LOGICALOR);
+        mapResult.insert("?X",OP_TIMESEQUAL);
+        mapResult.insert("?Y",OP_PLUSEQUAL);
+        mapResult.insert("?Z",OP_MINUSEQUAL);
+        mapResult.insert("?_0",OP_DIVEQUAL);
+        mapResult.insert("?_1",OP_MODEQUAL);
+        mapResult.insert("?_2",OP_RSHEQUAL);
+        mapResult.insert("?_3",OP_LSHEQUAL);
+        mapResult.insert("?_4",OP_BITWISEANDEQUAL);
+        mapResult.insert("?_5",OP_BITWISEOREQUAL);
+        mapResult.insert("?_6",OP_BITWISEXOREQUAL);
+        mapResult.insert("?_U",OP_ARRAYNEW);
+        mapResult.insert("?_V",OP_ARRAYDELETE);
     }
 
     return mapResult;
@@ -655,13 +761,26 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 
     int nNumberOfNames=symbol.listNames.count();
 
-    for(int i=nNumberOfNames-1;i>=0;i--)
+    for(int i=0;i<nNumberOfNames;i++)
     {
         sResult+=symbol.listNames.at(i);
 
-        if(i)
+        if(i!=(nNumberOfNames-1))
         {
             sResult+="::";
+        }
+    }
+
+    if(symbol._operator!=OP_UNKNOWN)
+    {
+        sResult+=QString("::%1").arg(operatorIdToString(symbol._operator,symbol.mode));
+
+        if((symbol._operator==OP_CONSTRUCTOR)||(symbol._operator==OP_DESTRUCTOR))
+        {
+            if(nNumberOfNames)
+            {
+                sResult+=symbol.listNames.at(nNumberOfNames-1);
+            }
         }
     }
 

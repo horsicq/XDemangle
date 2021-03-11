@@ -43,6 +43,7 @@ public:
     enum TYPE
     {
         TYPE_UNKNOWN=0,
+        TYPE_EMPTY, // For Constructors & Destructors
         TYPE_BOOL,
         TYPE_VOID,
         TYPE_INT,
@@ -135,8 +136,7 @@ public:
     {
         ST_UNKNOWN=0,
         ST_VARIABLE,
-        ST_FUNCTION,
-        ST_CLASSMETHOD
+        ST_FUNCTION
     };
 
     enum PM
@@ -151,8 +151,48 @@ public:
         OP_UNKNOWN=0,
         OP_CONSTRUCTOR,
         OP_DESTRUCTOR,
-        OP_SUBS,
-        OP_CALL
+        OP_NEW,
+        OP_DELETE,
+        OP_ASSIGN,
+        OP_RIGHTSHIFT,
+        OP_LEFTSHIFT,
+        OP_LOGICALNOT,
+        OP_EQUALS,
+        OP_NOTEQUALS,
+        OP_ARRAYSUBSCRIPT,
+        OP_POINTER,
+        OP_DEREFERENCE,
+        OP_INCREMENT,
+        OP_DECREMENT,
+        OP_MINUS,
+        OP_PLUS,
+        OP_BITWISEAND,
+        OP_MEMBERPOINTER,
+        OP_DIVIDE,
+        OP_MODULUS,
+        OP_LESSTHAN,
+        OP_LESSTHANEQUAL,
+        OP_GREATERTHAN,
+        OP_GREATERTHANEQUAL,
+        OP_COMMA,
+        OP_PARENS,
+        OP_BITWISENOT,
+        OP_BITWISEXOR,
+        OP_BITWISEOR,
+        OP_LOGICALAND,
+        OP_LOGICALOR,
+        OP_TIMESEQUAL,
+        OP_PLUSEQUAL,
+        OP_MINUSEQUAL,
+        OP_DIVEQUAL,
+        OP_MODEQUAL,
+        OP_RSHEQUAL,
+        OP_LSHEQUAL,
+        OP_BITWISEANDEQUAL,
+        OP_BITWISEOREQUAL,
+        OP_BITWISEXOREQUAL,
+        OP_ARRAYNEW,
+        OP_ARRAYDELETE,
     };
 
     struct PARAMETER
@@ -173,7 +213,6 @@ public:
         OC objectClass;
         PARAMETER paramVariable;
         // Function
-        PARAMETER paramFunctionReturn;
         QList<PARAMETER> listFunctionArguments;
         FM functionMod;
         FC functionConvention;
@@ -186,6 +225,7 @@ public:
     static QString objectClassIdToString(OC objectClass,MODE mode);
     static QString paramModIdToString(PM paramMod,MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
+    static QString operatorIdToString(OP _operator,MODE mode);
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
@@ -208,7 +248,6 @@ private:
 
     QString symbolToString(SYMBOL symbol);
     STRING readString(QString sString,MODE mode);
-    SYMBOL handle_MSVC_family(QString sString); // TODO rename or remove
     bool _compare(QString sString,QString sSignature);
 
     bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);
