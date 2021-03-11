@@ -33,11 +33,22 @@ public:
     {
         MODE_UNKNOWN=0,
         MODE_AUTO,
-        MODE_MSVC32, // TODO MSVC64
+        MODE_MSVC32,
+        MODE_MSVC64,
         MODE_GCC,
-        MODE_BORLAND,
+        MODE_BORLAND32,
+        MODE_BORLAND64,
         MODE_WATCOM
         // TODO more
+    };
+
+    enum SYNTAX
+    {
+        SYNTAX_UNKNOWN=0,
+        SYNTAX_MS,
+        SYNTAX_ITANIUM,
+        SYNTAX_BORLAND,
+        SYNTAX_WATCOM
     };
 
     enum TYPE
@@ -200,6 +211,7 @@ public:
         PM paramMod;
         SC storageClass;
         TYPE type;
+        QList<QString> listNames;
     };
 
     struct SYMBOL
@@ -226,6 +238,9 @@ public:
     static QString paramModIdToString(PM paramMod,MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
+
+    static SYNTAX getSyntaxFromMode(MODE mode);
+
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
@@ -259,6 +274,7 @@ private:
     QMap<QString,qint32> getFunctionMods(MODE mode);
     QMap<QString,qint32> getFunctionConventions(MODE mode);
     QMap<QString,qint32> getOperators(MODE mode);
+    QMap<QString,qint32> getIndexes(MODE mode);
 
     QString getNameFromSymbol(SYMBOL symbol);
     QString getStringFromParameter(PARAMETER parameter,MODE mode);

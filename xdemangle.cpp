@@ -36,7 +36,7 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
         case MODE_MSVC32:       sResult=QString("MSVC+++ 32");          break;
         case MODE_GCC:          sResult=QString("GCC");                 break;
         case MODE_WATCOM:       sResult=QString("Watcom");              break;
-        case MODE_BORLAND:      sResult=QString("Borland");             break;
+        case MODE_BORLAND32:    sResult=QString("Borland");             break;
     }
 
     return sResult;
@@ -214,6 +214,18 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
     return sResult;
 }
 
+XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
+{
+    SYNTAX result=SYNTAX_UNKNOWN;
+
+    if((mode==MODE_MSVC32)||(mode==MODE_MSVC64))
+    {
+        result=SYNTAX_MS;
+    }
+
+    return result;
+}
+
 XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 {
     SYMBOL result={};
@@ -227,8 +239,9 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
     QMap<QString,qint32> mapFunctionMods=getFunctionMods(mode);
     QMap<QString,qint32> mapFunctionConventions=getFunctionConventions(mode);
     QMap<QString,qint32> mapOperators=getOperators(mode);
+    QMap<QString,qint32> mapIndexes=getIndexes(mode);
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         if(_compare(sString,"?"))
         {
@@ -258,7 +271,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 sString=sString.mid(_string.nSize,-1);
             }
             // Reverse
-            int nNumberOfRecords=result.listNames.count();
+            int nNumberOfRecords=result.paramVariable.listNames.count();
 
             for(int i=0;i<(nNumberOfRecords/2);i++)
             {
@@ -305,13 +318,32 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 
             int nIndex=0;
 
+            QMap<QString,qint32> mapArgs;
+
             while(sString!="")
             {
+                qint32 _nPrefixCount=0;
+
                 if((nIndex>0)&&(_compare(sString,"@")))
                 {
                     sString=sString.mid(1,-1);
                     break;
                 }
+
+                if(isSignaturePresent(sString,&mapIndexes))
+                {
+                    SIGNATURE signatureIndex=getSignature(sString,&mapIndexes);
+
+                    QList<QString> list=mapArgs.keys(signatureIndex.nValue);
+
+                    if(list.count()>0)
+                    {
+                        sString=sString.mid(signatureIndex.nSize,-1);
+                        sString.prepend(list.at(0));
+                    }
+                }
+
+                QString _sString=sString;
 
                 SIGNATURE signatureParamMod={};
                 SIGNATURE signatureStorageClass={};
@@ -320,9 +352,11 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 {
                     signatureParamMod=getSignature(sString,&mapParamMods);
                     sString=sString.mid(signatureParamMod.nSize,-1);
+                    _nPrefixCount+=signatureParamMod.nSize;
 
                     signatureStorageClass=getSignature(sString,&mapStorageClasses);
                     sString=sString.mid(signatureStorageClass.nSize,-1);
+                    _nPrefixCount+=signatureStorageClass.nSize;
                 }
 
                 SIGNATURE signatureType=getSignature(sString,&mapTypes);
@@ -357,6 +391,21 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 }
 
                 sString=sString.mid(signatureType.nSize,-1);
+                _nPrefixCount+=signatureType.nSize;
+
+                if(nIndex>0)
+                {
+                    if(_nPrefixCount>1)
+                    {
+                        QString sArg=_sString.left(_nPrefixCount);
+
+                        if(!mapArgs.contains(sArg))
+                        {
+                            int nCount=mapArgs.count();
+                            mapArgs.insert(sArg,nCount);
+                        }
+                    }
+                }
 
                 if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)) //if func(void)
                 {
@@ -416,7 +465,7 @@ XDemangle::MODE XDemangle::detectMode(QString sString)
 {
     MODE result=MODE_UNKNOWN;
 
-    if(_compare(sString,"?"))
+    if(_compare(sString,"?")&&(sString.contains("@")))
     {
         result=MODE_MSVC32;
     }
@@ -431,7 +480,7 @@ QList<XDemangle::MODE> XDemangle::getAllModes()
     listResult.append(MODE_AUTO);
     listResult.append(MODE_MSVC32);
     listResult.append(MODE_GCC);
-    listResult.append(MODE_BORLAND);
+    listResult.append(MODE_BORLAND32);
     listResult.append(MODE_WATCOM);
 
     return listResult;
@@ -487,7 +536,7 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
 {
     STRING result={};
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         result.sString=sString.section("@",0,0);
 
@@ -571,7 +620,7 @@ QMap<QString, qint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("@0",OC_PRIVATESTATICCLASSMEMBER);
         mapResult.insert("@1",OC_PROTECTEDSTATICCLASSMEMBER);
@@ -587,7 +636,7 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("@",TYPE_EMPTY);
         mapResult.insert("X",TYPE_VOID);
@@ -620,7 +669,7 @@ QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("P",PM_POINTER);
         mapResult.insert("A",PM_REFERENCE);
@@ -633,7 +682,7 @@ QMap<QString, qint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("A",SC_NEAR);
         mapResult.insert("B",SC_CONST);
@@ -656,7 +705,7 @@ QMap<QString, qint32> XDemangle::getFunctionMods(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("@A",FM_PRIVATE_NEAR);
         mapResult.insert("@B",FM_PRIVATE_FAR);
@@ -687,7 +736,7 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("A",FC_CDECL);
         mapResult.insert("C",FC_PASCAL);
@@ -704,7 +753,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(mode==MODE_MSVC32)
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("?0",OP_CONSTRUCTOR);
         mapResult.insert("?1",OP_DESTRUCTOR);
@@ -750,6 +799,27 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("?_6",OP_BITWISEXOREQUAL);
         mapResult.insert("?_U",OP_ARRAYNEW);
         mapResult.insert("?_V",OP_ARRAYDELETE);
+    }
+
+    return mapResult;
+}
+
+QMap<QString, qint32> XDemangle::getIndexes(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    {
+        mapResult.insert("0",0);
+        mapResult.insert("1",1);
+        mapResult.insert("2",2);
+        mapResult.insert("3",3);
+        mapResult.insert("4",4);
+        mapResult.insert("5",5);
+        mapResult.insert("6",6);
+        mapResult.insert("7",7);
+        mapResult.insert("8",8);
+        mapResult.insert("9",9);
     }
 
     return mapResult;
