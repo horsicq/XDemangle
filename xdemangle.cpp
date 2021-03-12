@@ -446,7 +446,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
             if(bAddToRecord)
             {
-                sRecord+=sString.left(signatureParamMod.nSize);
+                sRecord+=sString.leftRef(signatureParamMod.nSize);
                 nResult+=signatureParamMod.nSize;
             }
 
@@ -456,7 +456,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
             if(bAddToRecord)
             {
-                sRecord+=sString.left(signatureStorageClass.nSize);
+                sRecord+=sString.leftRef(signatureStorageClass.nSize);
                 nResult+=signatureStorageClass.nSize;
             }
 
@@ -472,7 +472,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
             if(bAddToRecord)
             {
-                sRecord+=sString.left(signatureType.nSize);
+                sRecord+=sString.leftRef(signatureType.nSize);
                 nResult+=signatureType.nSize;
             }
 
