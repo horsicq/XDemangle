@@ -346,7 +346,14 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 }
             }
 
-            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),&_listNames);
+            qint32 nLimit=0;
+
+            if(result.symbolType==ST_VARIABLE)
+            {
+                nLimit=1;
+            }
+
+            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listNames);
 
             sString=sString.mid(nSize,-1);
 
@@ -391,7 +398,7 @@ QString XDemangle::convert(QString sString, MODE mode)
     return sResult;
 }
 
-qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStrings)
+qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStrings)
 {
     qint32 nResult=0;
 
@@ -401,6 +408,11 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
     while(sString!="")
     {
+        if((nLimit)&&(nIndex>=nLimit))
+        {
+            break;
+        }
+
         if((nIndex>0)&&(_compare(sString,"@")))
         {
             nResult++;
@@ -472,7 +484,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
             if(bAddToRecord)
             {
-                sRecord+=sString.left(signatureType.nSize);
+                sRecord+=sString.leftRef(signatureType.nSize);
                 nResult+=signatureType.nSize;
             }
 
@@ -521,7 +533,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
                 if(bAddToRecord&&bAddToPrefix)
                 {
-                    sRecord+=sString.left(_string.nSize);
+                    sRecord+=sString.leftRef(_string.nSize);
                     nResult+=_string.nSize;
                 }
 

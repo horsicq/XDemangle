@@ -238,12 +238,12 @@ public:
         ST symbolType;
         OP _operator;
         QList<QString> listNames;
+        QList<PARAMETER> listParameters; // 0 - return
         // Variable
         OC objectClass;
         SC storageClass;
         // Function
         SC classStorageClass;
-        QList<PARAMETER> listParameters; // 0 - return
         FM functionMod;
         FC functionConvention;
     };
@@ -263,7 +263,7 @@ public:
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
-    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStrings);
+    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStrings);
 
     MODE detectMode(QString sString);
 
