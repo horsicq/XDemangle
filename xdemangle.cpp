@@ -415,7 +415,6 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
         if((nIndex>0)&&(_compare(sString,"@")))
         {
-            nResult++;
             break;
         }
 
