@@ -76,7 +76,11 @@ public:
         TYPE_CHAR16,
         TYPE_CHAR32,
         TYPE_WCHAR,
-        TYPE_VARARGS
+        TYPE_VARARGS,
+        TYPE_CLASS,
+        TYPE_UNION,
+        TYPE_STRUCT,
+        TYPE_ENUM
     };
 
     enum OC
@@ -214,6 +218,19 @@ public:
         QList<QString> listNames;
     };
 
+    struct HDATA
+    {
+        QMap<QString,qint32> mapParamMods;
+        QMap<QString,qint32> mapObjectClasses;
+        QMap<QString,qint32> mapTypes;
+        QMap<QString,qint32> mapNameTypes;
+        QMap<QString,qint32> mapStorageClasses;
+        QMap<QString,qint32> mapFunctionMods;
+        QMap<QString,qint32> mapFunctionConventions;
+        QMap<QString,qint32> mapOperators;
+        QMap<QString,qint32> mapIndexes;
+    };
+
     struct SYMBOL
     {
         bool bValid;
@@ -223,9 +240,10 @@ public:
         QList<QString> listNames;
         // Variable
         OC objectClass;
-        PARAMETER paramVariable;
+        SC storageClass;
         // Function
-        QList<PARAMETER> listFunctionArguments;
+        SC classStorageClass;
+        QList<PARAMETER> listParameters; // 0 - return
         FM functionMod;
         FC functionConvention;
     };
@@ -236,6 +254,7 @@ public:
     static QString storageClassIdToString(SC storageClass,MODE mode);
     static QString objectClassIdToString(OC objectClass,MODE mode);
     static QString paramModIdToString(PM paramMod,MODE mode);
+    static QString functionModIdToString(FM functionMod,MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
 
@@ -244,9 +263,14 @@ public:
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
+    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStrings);
+
     MODE detectMode(QString sString);
 
     static QList<MODE> getAllModes();
+    static void reverseList(QList<QString> *pList);
+
+    HDATA getHdata(MODE mode);
 
 private:
     struct STRING
@@ -269,6 +293,7 @@ private:
     SIGNATURE getSignature(QString sString,QMap<QString,qint32> *pMap);
     QMap<QString,qint32> getObjectClasses(MODE mode);
     QMap<QString,qint32> getTypes(MODE mode);
+    QMap<QString,qint32> getNameTypes(MODE mode);
     QMap<QString,qint32> getParamMods(MODE mode);
     QMap<QString,qint32> getStorageClasses(MODE mode);
     QMap<QString,qint32> getFunctionMods(MODE mode);
@@ -277,6 +302,7 @@ private:
     QMap<QString,qint32> getIndexes(MODE mode);
 
     QString getNameFromSymbol(SYMBOL symbol);
+    QString getNameFromList(QList<QString> *pList,MODE mode);
     QString getStringFromParameter(PARAMETER parameter,MODE mode);
 };
 

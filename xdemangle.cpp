@@ -74,6 +74,9 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_CHAR32:           sResult=QString("char32_t");            break;
         case TYPE_WCHAR:            sResult=QString("wchar_t");             break;
         case TYPE_VARARGS:          sResult=QString("...");                 break;
+        case TYPE_CLASS:            sResult=QString("class");               break;
+        case TYPE_UNION:            sResult=QString("union");               break;
+        case TYPE_STRUCT:           sResult=QString("struct");              break;
     }
 
     return sResult;
@@ -132,6 +135,40 @@ QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mo
         case PM_NONE:               sResult=QString("");                    break; // mb TODO translate
         case PM_POINTER:            sResult=QString("*");                   break;
         case PM_REFERENCE:          sResult=QString("&");                   break;
+    }
+
+    return sResult;
+}
+
+QString XDemangle::functionModIdToString(XDemangle::FM functionMod, XDemangle::MODE mode)
+{
+    Q_UNUSED(mode) // TODO
+
+    QString sResult="Unknown"; // mb TODO translate
+
+    switch(functionMod)
+    {
+        case FM_UNKNOWN:                sResult=QString("Unknown");             break; // mb TODO translate
+        case FM_NEAR:                   sResult=QString("");                    break;
+        case FM_FAR:                    sResult=QString("");                    break;
+        case FM_PUBLIC_NEAR:            sResult=QString("public");              break;
+        case FM_PUBLIC_FAR:             sResult=QString("public");              break;
+        case FM_PUBLIC_STATICNEAR:      sResult=QString("public static");       break;
+        case FM_PUBLIC_STATICFAR:       sResult=QString("public static");       break;
+        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public virtual");      break;
+        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public virtual");      break;
+        case FM_PROTECTED_NEAR:         sResult=QString("protected");           break;
+        case FM_PROTECTED_FAR:          sResult=QString("protected");           break;
+        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected static");    break;
+        case FM_PROTECTED_STATICFAR:    sResult=QString("protected static");    break;
+        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected virtual");   break;
+        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected virtual");   break;
+        case FM_PRIVATE_NEAR:           sResult=QString("private");             break;
+        case FM_PRIVATE_FAR:            sResult=QString("private");             break;
+        case FM_PRIVATE_STATICNEAR:     sResult=QString("private static");      break;
+        case FM_PRIVATE_STATICFAR:      sResult=QString("private static");      break;
+        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private virtual");     break;
+        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private virtual");     break;
     }
 
     return sResult;
@@ -228,28 +265,25 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
 
 XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 {
+    QString ssString=sString;
+
     SYMBOL result={};
 
     result.mode=mode;
 
-    QMap<QString,qint32> mapParamMods=getParamMods(mode);
-    QMap<QString,qint32> mapObjectClasses=getObjectClasses(mode);
-    QMap<QString,qint32> mapTypes=getTypes(mode);
-    QMap<QString,qint32> mapStorageClasses=getStorageClasses(mode);
-    QMap<QString,qint32> mapFunctionMods=getFunctionMods(mode);
-    QMap<QString,qint32> mapFunctionConventions=getFunctionConventions(mode);
-    QMap<QString,qint32> mapOperators=getOperators(mode);
-    QMap<QString,qint32> mapIndexes=getIndexes(mode);
+    HDATA hdata=getHdata(mode);
 
     if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         if(_compare(sString,"?"))
         {
+            QList<QString> _listNames;
+
             sString=sString.mid(1,-1);
 
-            if(isSignaturePresent(sString,&mapOperators))
+            if(isSignaturePresent(sString,&hdata.mapOperators))
             {
-                SIGNATURE signatureOP=getSignature(sString,&mapOperators);
+                SIGNATURE signatureOP=getSignature(sString,&hdata.mapOperators);
                 result._operator=(OP)signatureOP.nValue;
                 sString=sString.mid(signatureOP.nSize,-1);
             }
@@ -262,6 +296,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 if(_string.nSize)
                 {
                     result.listNames.append(_string.sString);
+                    _listNames.append(_string.sString);
                 }
                 else
                 {
@@ -271,42 +306,37 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 sString=sString.mid(_string.nSize,-1);
             }
             // Reverse
-            int nNumberOfRecords=result.paramVariable.listNames.count();
+            reverseList(&(result.listNames));
 
-            for(int i=0;i<(nNumberOfRecords/2);i++)
-            {
-                result.listNames.swap(i,nNumberOfRecords-(1+i));
-            }
-
-            if(isSignaturePresent(sString,&mapObjectClasses))
+            if(isSignaturePresent(sString,&hdata.mapObjectClasses))
             {
                 result.symbolType=ST_VARIABLE;
 
-                SIGNATURE signatureOC=getSignature(sString,&mapObjectClasses);
+                SIGNATURE signatureOC=getSignature(sString,&hdata.mapObjectClasses);
                 result.objectClass=(OC)signatureOC.nValue;
                 sString=sString.mid(signatureOC.nSize,-1);
             }
-            else if(isSignaturePresent(sString,&mapFunctionMods))
+            else if(isSignaturePresent(sString,&hdata.mapFunctionMods))
             {
                 result.symbolType=ST_FUNCTION;
 
-                SIGNATURE signatureFM=getSignature(sString,&mapFunctionMods);
+                SIGNATURE signatureFM=getSignature(sString,&hdata.mapFunctionMods);
                 result.functionMod=(FM)signatureFM.nValue;
                 sString=sString.mid(signatureFM.nSize,-1);
 
                 if((result.functionMod!=FM_FAR)&&(result.functionMod!=FM_NEAR)) // Class member
                 {
-                    if(isSignaturePresent(sString,&mapStorageClasses))
+                    if(isSignaturePresent(sString,&hdata.mapStorageClasses))
                     {
-                        SIGNATURE signatureSC=getSignature(sString,&mapStorageClasses);
-                        result.paramVariable.storageClass=(SC)signatureSC.nValue;
+                        SIGNATURE signatureSC=getSignature(sString,&hdata.mapStorageClasses);
+                        result.classStorageClass=(SC)signatureSC.nValue;
                         sString=sString.mid(signatureSC.nSize,-1);
                     }
                 }
 
-                if(isSignaturePresent(sString,&mapFunctionConventions))
+                if(isSignaturePresent(sString,&hdata.mapFunctionConventions))
                 {
-                    SIGNATURE signature=getSignature(sString,&mapFunctionConventions);
+                    SIGNATURE signature=getSignature(sString,&hdata.mapFunctionConventions);
                     result.functionConvention=(FC)signature.nValue;
                     sString=sString.mid(signature.nSize,-1);
                 }
@@ -316,122 +346,22 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 }
             }
 
-            int nIndex=0;
+            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),&_listNames);
 
-            QMap<QString,qint32> mapArgs;
+            sString=sString.mid(nSize,-1);
 
-            while(sString!="")
+            if(isSignaturePresent(sString,&hdata.mapStorageClasses))
             {
-                qint32 _nPrefixCount=0;
-
-                if((nIndex>0)&&(_compare(sString,"@")))
+                SIGNATURE signature=getSignature(sString,&hdata.mapStorageClasses);
+                if(result.storageClass==SC_UNKNOWN)
                 {
-                    sString=sString.mid(1,-1);
-                    break;
-                }
-
-                if(isSignaturePresent(sString,&mapIndexes))
-                {
-                    SIGNATURE signatureIndex=getSignature(sString,&mapIndexes);
-
-                    QList<QString> list=mapArgs.keys(signatureIndex.nValue);
-
-                    if(list.count()>0)
-                    {
-                        sString=sString.mid(signatureIndex.nSize,-1);
-                        sString.prepend(list.at(0));
-                    }
-                }
-
-                QString _sString=sString;
-
-                SIGNATURE signatureParamMod={};
-                SIGNATURE signatureStorageClass={};
-
-                if(isSignaturePresent(sString,&mapParamMods))
-                {
-                    signatureParamMod=getSignature(sString,&mapParamMods);
-                    sString=sString.mid(signatureParamMod.nSize,-1);
-                    _nPrefixCount+=signatureParamMod.nSize;
-
-                    signatureStorageClass=getSignature(sString,&mapStorageClasses);
-                    sString=sString.mid(signatureStorageClass.nSize,-1);
-                    _nPrefixCount+=signatureStorageClass.nSize;
-                }
-
-                SIGNATURE signatureType=getSignature(sString,&mapTypes);
-
-                if(signatureType.nSize)
-                {
-                    PARAMETER parameter={};
-                    parameter.type=(TYPE)signatureType.nValue;
-                    parameter.paramMod=(PM)signatureParamMod.nValue;
-
-                    if(signatureStorageClass.nValue)
-                    {
-                        parameter.storageClass=(SC)signatureStorageClass.nValue;
-                    }
-                    else
-                    {
-                        parameter.storageClass=SC_NEAR; // TODO Check
-                    }
-
-                    if(nIndex==0)
-                    {
-                        result.paramVariable=parameter;
-                    }
-                    else
-                    {
-                        result.listFunctionArguments.append(parameter);
-                    }
-                }
-                else
-                {
-                    break;
-                }
-
-                sString=sString.mid(signatureType.nSize,-1);
-                _nPrefixCount+=signatureType.nSize;
-
-                if(nIndex>0)
-                {
-                    if(_nPrefixCount>1)
-                    {
-                        QString sArg=_sString.left(_nPrefixCount);
-
-                        if(!mapArgs.contains(sArg))
-                        {
-                            int nCount=mapArgs.count();
-                            mapArgs.insert(sArg,nCount);
-                        }
-                    }
-                }
-
-                if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)) //if func(void)
-                {
-                    if(_compare(sString,"@"))
-                    {
-                        sString=sString.mid(1,-1);
-                    }
-
-                    break;
-                }
-
-                nIndex++;
-            }
-
-            if(isSignaturePresent(sString,&mapStorageClasses))
-            {
-                SIGNATURE signature=getSignature(sString,&mapStorageClasses);
-                if(result.paramVariable.storageClass==SC_UNKNOWN)
-                {
-                    result.paramVariable.storageClass=(SC)signature.nValue;
+                    result.storageClass=(SC)signature.nValue;
                 }
 
                 sString=sString.mid(signature.nSize,-1);
             }
 
-            if((sString=="")&&(result.paramVariable.storageClass!=SC_UNKNOWN)) // TODO more checks
+            if((sString=="")&&(result.storageClass!=SC_UNKNOWN)) // TODO more checks
             {
                 result.bValid=true;
             }
@@ -461,6 +391,211 @@ QString XDemangle::convert(QString sString, MODE mode)
     return sResult;
 }
 
+qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStrings)
+{
+    qint32 nResult=0;
+
+    int nIndex=0;
+
+    QMap<QString,qint32> mapArgs;
+
+    while(sString!="")
+    {
+        if((nIndex>0)&&(_compare(sString,"@")))
+        {
+            nResult++;
+            break;
+        }
+
+        QString sRecord;
+        bool bAddToRecord=true;
+
+        if(isSignaturePresent(sString,&(pHdata->mapIndexes)))
+        {
+            SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapIndexes));
+
+            QList<QString> list=mapArgs.keys(signatureIndex.nValue);
+
+            if(list.count()>0)
+            {
+                sRecord=list.at(0);
+                sString=sString.replace(0,signatureIndex.nSize,sRecord);
+                bAddToRecord=false;
+                nResult++;
+            }
+        }
+
+        SIGNATURE signatureParamMod={};
+        SIGNATURE signatureStorageClass={};
+
+        if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+        {
+            signatureParamMod=getSignature(sString,&(pHdata->mapParamMods));
+
+            if(bAddToRecord)
+            {
+                sRecord+=sString.left(signatureParamMod.nSize);
+                nResult+=signatureParamMod.nSize;
+            }
+
+            sString=sString.mid(signatureParamMod.nSize,-1);
+
+            signatureStorageClass=getSignature(sString,&(pHdata->mapStorageClasses));
+
+            if(bAddToRecord)
+            {
+                sRecord+=sString.left(signatureStorageClass.nSize);
+                nResult+=signatureStorageClass.nSize;
+            }
+
+            sString=sString.mid(signatureStorageClass.nSize,-1);
+        }
+
+        SIGNATURE signatureType={};
+        QList<QString> listNames;
+
+        if(isSignaturePresent(sString,&(pHdata->mapTypes)))
+        {
+            signatureType=getSignature(sString,&(pHdata->mapTypes));
+
+            if(bAddToRecord)
+            {
+                sRecord+=sString.left(signatureType.nSize);
+                nResult+=signatureType.nSize;
+            }
+
+            sString=sString.mid(signatureType.nSize,-1);
+        }
+        else if(isSignaturePresent(sString,&(pHdata->mapNameTypes)))
+        {
+            signatureType=getSignature(sString,&(pHdata->mapNameTypes));
+
+            if(bAddToRecord)
+            {
+                sRecord+=sString.left(signatureType.nSize);
+                nResult+=signatureType.nSize;
+            }
+
+            sString=sString.mid(signatureType.nSize,-1);
+
+            // Name
+            while(sString!="")
+            {
+                bool bAddToList=true;
+                bool bAddToPrefix=true;
+
+                if(isSignaturePresent(sString,&(pHdata->mapIndexes)))
+                {
+                    SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapIndexes));
+
+                    if(signatureIndex.nValue<pListStrings->count())
+                    {                        
+                        sString=sString.replace(0,signatureIndex.nSize,pListStrings->at(signatureIndex.nValue)+"@");
+
+                        if(bAddToRecord)
+                        {
+                            sRecord+=pListStrings->at(signatureIndex.nValue)+"@";
+                            nResult+=signatureIndex.nSize;
+                        }
+
+                        bAddToList=false;
+                        bAddToPrefix=false;
+                    }
+                }
+
+                STRING _string=readString(sString,mode);
+
+                if(_string.nSize)
+                {
+                    listNames.append(_string.sString);
+
+                    if(bAddToList)
+                    {
+                        pListStrings->append(_string.sString);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+
+                if(bAddToRecord&&bAddToPrefix)
+                {
+                    sRecord+=sString.left(_string.nSize);
+                    nResult+=_string.nSize;
+                }
+
+                sString=sString.mid(_string.nSize,-1);
+            }
+            // Reverse
+            reverseList(&listNames);
+
+            if(_compare(sString,"@"))
+            {
+                if(bAddToRecord)
+                {
+                    sRecord+="@";
+                    nResult++;
+                }
+
+                sString=sString.mid(1,-1);
+            }
+        }
+
+        if(signatureType.nSize)
+        {
+            PARAMETER parameter={};
+            parameter.type=(TYPE)signatureType.nValue;
+            parameter.paramMod=(PM)signatureParamMod.nValue;
+            parameter.listNames=listNames;
+
+            if(signatureStorageClass.nValue)
+            {
+                parameter.storageClass=(SC)signatureStorageClass.nValue;
+            }
+            else
+            {
+                parameter.storageClass=SC_NEAR; // TODO Check
+            }
+
+            pListParameters->append(parameter);
+        }
+        else
+        {
+            break;
+        }
+
+        if(nIndex>0)
+        {
+            if(sRecord.count()>1)
+            {
+                QString sArg=sRecord;
+
+                if(!mapArgs.contains(sArg))
+                {
+                    int nCount=mapArgs.count();
+                    mapArgs.insert(sArg,nCount);
+                }
+            }
+        }
+
+        if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)) //if func(void)
+        {
+            if(_compare(sString,"@"))
+            {
+                sString=sString.mid(1,-1);
+                nResult++;
+            }
+
+            break;
+        }
+
+        nIndex++;
+    }
+
+    return nResult;
+}
+
 XDemangle::MODE XDemangle::detectMode(QString sString)
 {
     MODE result=MODE_UNKNOWN;
@@ -486,6 +621,33 @@ QList<XDemangle::MODE> XDemangle::getAllModes()
     return listResult;
 }
 
+void XDemangle::reverseList(QList<QString> *pList)
+{
+    int nNumberOfRecords=pList->count();
+
+    for(int i=0;i<(nNumberOfRecords/2);i++)
+    {
+        pList->swap(i,nNumberOfRecords-(1+i));
+    }
+}
+
+XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
+{
+    XDemangle::HDATA result={};
+
+    result.mapParamMods=getParamMods(mode);
+    result.mapObjectClasses=getObjectClasses(mode);
+    result.mapTypes=getTypes(mode);
+    result.mapNameTypes=getNameTypes(mode);
+    result.mapStorageClasses=getStorageClasses(mode);
+    result.mapFunctionMods=getFunctionMods(mode);
+    result.mapFunctionConventions=getFunctionConventions(mode);
+    result.mapOperators=getOperators(mode);
+    result.mapIndexes=getIndexes(mode);
+
+    return result;
+}
+
 QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 {
     QString sResult;
@@ -495,7 +657,13 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
         if(symbol.symbolType==ST_VARIABLE)
         {
             QString sObjectClass=objectClassIdToString(symbol.objectClass,symbol.mode);
-            QString sParameter=getStringFromParameter(symbol.paramVariable,symbol.mode);
+            QString sParameter;
+
+            if(symbol.listParameters.count())
+            {
+                sParameter=getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
+            }
+
             QString sName=getNameFromSymbol(symbol);
 
             if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
@@ -504,20 +672,28 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
         }
         else if((symbol.symbolType==ST_FUNCTION))
         {
-            QString sParameterReturn=getStringFromParameter(symbol.paramVariable,symbol.mode);
+            QString sFuncMod=functionModIdToString(symbol.functionMod,symbol.mode);
+            QString sParameterReturn;
+
+            if(symbol.listParameters.count())
+            {
+                sParameterReturn=getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
+            }
+
             QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
             QString sName=getNameFromSymbol(symbol);
 
+            if(sFuncMod!="")        sResult+=QString("%1 ").arg(sFuncMod);
             sResult+=QString("%1 ").arg(sParameterReturn);
             sResult+=QString("%1 ").arg(sFunctionConvention);
             sResult+=sName;
             sResult+=QString("(");
 
-            int nNumberOfrguments=symbol.listFunctionArguments.count();
+            int nNumberOfrguments=symbol.listParameters.count();
 
-            for(int i=0;i<nNumberOfrguments;i++)
+            for(int i=1;i<nNumberOfrguments;i++)
             {
-                sResult+=getStringFromParameter(symbol.listFunctionArguments.at(i),symbol.mode);
+                sResult+=getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
 
                 if(i!=nNumberOfrguments-1)
                 {
@@ -665,12 +841,28 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
     return mapResult;
 }
 
+QMap<QString, qint32> XDemangle::getNameTypes(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    {
+        mapResult.insert("T",TYPE_UNION);
+        mapResult.insert("U",TYPE_STRUCT);
+        mapResult.insert("V",TYPE_CLASS);
+        mapResult.insert("W4",TYPE_ENUM);
+    }
+
+    return mapResult;
+}
+
 QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
+        mapResult.insert("?",PM_NONE); // For classes return
         mapResult.insert("P",PM_POINTER);
         mapResult.insert("A",PM_REFERENCE);
     }
@@ -827,19 +1019,7 @@ QMap<QString, qint32> XDemangle::getIndexes(XDemangle::MODE mode)
 
 QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 {
-    QString sResult;
-
-    int nNumberOfNames=symbol.listNames.count();
-
-    for(int i=0;i<nNumberOfNames;i++)
-    {
-        sResult+=symbol.listNames.at(i);
-
-        if(i!=(nNumberOfNames-1))
-        {
-            sResult+="::";
-        }
-    }
+    QString sResult=getNameFromList(&(symbol.listNames),symbol.mode);
 
     if(symbol._operator!=OP_UNKNOWN)
     {
@@ -847,10 +1027,31 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 
         if((symbol._operator==OP_CONSTRUCTOR)||(symbol._operator==OP_DESTRUCTOR))
         {
+            int nNumberOfNames=symbol.listNames.count();
+
             if(nNumberOfNames)
             {
                 sResult+=symbol.listNames.at(nNumberOfNames-1);
             }
+        }
+    }
+
+    return sResult;
+}
+
+QString XDemangle::getNameFromList(QList<QString> *pList, XDemangle::MODE mode)
+{
+     QString sResult;
+
+    int nNumberOfNames=pList->count();
+
+    for(int i=0;i<nNumberOfNames;i++)
+    {
+        sResult+=pList->at(i);
+
+        if(i!=(nNumberOfNames-1))
+        {
+            sResult+="::";
         }
     }
 
@@ -864,9 +1065,11 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
     QString sStorageClass=storageClassIdToString(parameter.storageClass,mode);
     QString sType=typeIdToString(parameter.type,mode);
     QString sParamMod=paramModIdToString(parameter.paramMod,mode);
+    QString sName=getNameFromList(&(parameter.listNames),mode);
 
     if(sStorageClass!="")   sResult+=QString("%1 ").arg(sStorageClass);
     if(sType!="")           sResult+=QString("%1").arg(sType);
+    if(sName!="")           sResult+=QString(" %1").arg(sName);
     if(sParamMod!="")       sResult+=QString(" %1").arg(sParamMod);
 
     return sResult;
