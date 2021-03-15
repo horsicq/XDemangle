@@ -279,6 +279,12 @@ private:
         QString sString;
     };
 
+    struct NUMBER
+    {
+        qint32 nSize;
+        quint64 nValue;
+    };
+
     struct SIGNATURE
     {
         qint32 nSize;
@@ -287,6 +293,7 @@ private:
 
     QString symbolToString(SYMBOL symbol);
     STRING readString(QString sString,MODE mode);
+    NUMBER readNumber(QString sString,MODE mode);
     bool _compare(QString sString,QString sSignature);
 
     bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);
@@ -299,7 +306,8 @@ private:
     QMap<QString,qint32> getFunctionMods(MODE mode);
     QMap<QString,qint32> getFunctionConventions(MODE mode);
     QMap<QString,qint32> getOperators(MODE mode);
-    QMap<QString,qint32> getIndexes(MODE mode);
+    QMap<QString,qint32> getNumbers(MODE mode);
+    QMap<QString,qint32> getHexNumbers(MODE mode);
 
     QString getNameFromSymbol(SYMBOL symbol);
     QString getNameFromList(QList<QString> *pList,MODE mode);

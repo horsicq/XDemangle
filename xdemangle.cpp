@@ -655,7 +655,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapFunctionMods=getFunctionMods(mode);
     result.mapFunctionConventions=getFunctionConventions(mode);
     result.mapOperators=getOperators(mode);
-    result.mapIndexes=getIndexes(mode);
+    result.mapIndexes=getNumbers(mode);
 
     return result;
 }
@@ -736,6 +736,23 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
             {
                 result.nSize++;
             }
+        }
+    }
+
+    return result;
+}
+
+XDemangle::NUMBER XDemangle::readNumber(QString sString, XDemangle::MODE mode)
+{
+    NUMBER result={};
+
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    {
+        if(_compare(sString,"0"))
+        {
+            sString=sString.mid(1,-1);
+
+
         }
     }
 
@@ -1008,7 +1025,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getIndexes(XDemangle::MODE mode)
+QMap<QString, qint32> XDemangle::getNumbers(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
@@ -1024,6 +1041,33 @@ QMap<QString, qint32> XDemangle::getIndexes(XDemangle::MODE mode)
         mapResult.insert("7",7);
         mapResult.insert("8",8);
         mapResult.insert("9",9);
+    }
+
+    return mapResult;
+}
+
+QMap<QString, qint32> XDemangle::getHexNumbers(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    {
+        mapResult.insert("A",0);
+        mapResult.insert("B",1);
+        mapResult.insert("C",2);
+        mapResult.insert("D",3);
+        mapResult.insert("E",4);
+        mapResult.insert("F",5);
+        mapResult.insert("G",6);
+        mapResult.insert("H",7);
+        mapResult.insert("I",8);
+        mapResult.insert("J",9);
+        mapResult.insert("K",10);
+        mapResult.insert("L",11);
+        mapResult.insert("M",12);
+        mapResult.insert("N",13);
+        mapResult.insert("O",14);
+        mapResult.insert("P",15);
     }
 
     return mapResult;
