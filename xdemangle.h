@@ -216,6 +216,7 @@ public:
         SC storageClass;
         TYPE type;
         QList<QString> listNames;
+        QList<qint64> listIndexes;
     };
 
     struct HDATA
@@ -228,7 +229,8 @@ public:
         QMap<QString,qint32> mapFunctionMods;
         QMap<QString,qint32> mapFunctionConventions;
         QMap<QString,qint32> mapOperators;
-        QMap<QString,qint32> mapIndexes;
+        QMap<QString,qint32> mapNumbers;
+        QMap<QString,qint32> mapHexNumbers;
     };
 
     struct SYMBOL
@@ -282,7 +284,7 @@ private:
     struct NUMBER
     {
         qint32 nSize;
-        quint64 nValue;
+        qint64 nValue;
     };
 
     struct SIGNATURE
@@ -293,7 +295,7 @@ private:
 
     QString symbolToString(SYMBOL symbol);
     STRING readString(QString sString,MODE mode);
-    NUMBER readNumber(QString sString,MODE mode);
+    NUMBER readNumber(HDATA *pHdata,QString sString,MODE mode);
     bool _compare(QString sString,QString sSignature);
 
     bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);

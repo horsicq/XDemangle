@@ -422,9 +422,9 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
         QString sRecord;
         bool bAddToRecord=true;
 
-        if(isSignaturePresent(sString,&(pHdata->mapIndexes)))
+        if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
         {
-            SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapIndexes));
+            SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapNumbers));
 
             QList<QString> list=mapArgs.keys(signatureIndex.nValue);
 
@@ -436,6 +436,8 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
                 nResult++;
             }
         }
+
+        QList<qint64> listIndexes;
 
         SIGNATURE signatureParamMod={};
         SIGNATURE signatureStorageClass={};
@@ -461,6 +463,40 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
             }
 
             sString=sString.mid(signatureStorageClass.nSize,-1);
+
+            if(_compare(sString,"Y"))
+            {
+                // Array
+                sString=sString.mid(1,-1);
+
+                if(bAddToRecord)
+                {
+                    sRecord+=sString.leftRef(1);
+                    nResult++;
+                }
+
+                while(true)
+                {
+                    NUMBER number=readNumber(pHdata,sString,mode);
+
+                    if(number.nSize)
+                    {
+                        listIndexes.append(number.nValue);
+
+                        sString=sString.mid(number.nSize,-1);
+
+                        if(bAddToRecord)
+                        {
+                            sRecord+=sString.leftRef(number.nSize);
+                            nResult+=number.nSize;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
         }
 
         SIGNATURE signatureType={};
@@ -496,9 +532,9 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
                 bool bAddToList=true;
                 bool bAddToPrefix=true;
 
-                if(isSignaturePresent(sString,&(pHdata->mapIndexes)))
+                if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
                 {
-                    SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapIndexes));
+                    SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapNumbers));
 
                     if(signatureIndex.nValue<pListStrings->count())
                     {                        
@@ -655,7 +691,8 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapFunctionMods=getFunctionMods(mode);
     result.mapFunctionConventions=getFunctionConventions(mode);
     result.mapOperators=getOperators(mode);
-    result.mapIndexes=getNumbers(mode);
+    result.mapNumbers=getNumbers(mode);
+    result.mapHexNumbers=getHexNumbers(mode);
 
     return result;
 }
@@ -681,6 +718,8 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
             if(sParameter!="")      sResult+=QString("%1 ").arg(sParameter);
             if(sName!="")           sResult+=QString("%1").arg(sName);
+
+            // TODO
         }
         else if((symbol.symbolType==ST_FUNCTION))
         {
@@ -742,17 +781,48 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
     return result;
 }
 
-XDemangle::NUMBER XDemangle::readNumber(QString sString, XDemangle::MODE mode)
+XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangle::MODE mode)
 {
     NUMBER result={};
 
     if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
-        if(_compare(sString,"0"))
+        if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
         {
-            sString=sString.mid(1,-1);
+            SIGNATURE signature=getSignature(sString,&(pHdata->mapNumbers));
+            result.nValue=signature.nValue+1;
+            result.nSize=1;
+        }
+        else if(isSignaturePresent(sString,&(pHdata->mapHexNumbers)))
+        {
+            while((sString!="")&&(!_compare(sString,"@")))
+            {
+                result.nValue*=16;
 
+                SIGNATURE signature=getSignature(sString,&(pHdata->mapHexNumbers));
 
+                if(signature.nSize)
+                {
+                    sString=sString.mid(signature.nSize,-1);
+                    result.nSize+=signature.nSize;
+
+                    result.nValue+=signature.nValue;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if(_compare(sString,"@"))
+            {
+                sString=sString.mid(1,-1);
+                result.nSize++;
+            }
+            else
+            {
+                result.nSize=0;
+            }
         }
     }
 
