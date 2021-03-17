@@ -217,6 +217,7 @@ public:
         TYPE type;
         QList<QString> listNames;
         QList<qint64> listIndexes;
+        QString sRecord;
     };
 
     struct HDATA

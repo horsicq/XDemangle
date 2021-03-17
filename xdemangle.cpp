@@ -408,6 +408,9 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
 
     while(sString!="")
     {
+        QString _sString=sString;
+        qint32 nStringSize=nResult;
+
         if((nLimit)&&(nIndex>=nLimit))
         {
             break;
@@ -596,6 +599,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
             parameter.type=(TYPE)signatureType.nValue;
             parameter.paramMod=(PM)signatureParamMod.nValue;
             parameter.listNames=listNames;
+            parameter.sRecord=_sString.left(nResult-nStringSize);
 
             if(signatureStorageClass.nValue)
             {
