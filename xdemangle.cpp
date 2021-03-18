@@ -77,6 +77,8 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_CLASS:            sResult=QString("class");               break;
         case TYPE_UNION:            sResult=QString("union");               break;
         case TYPE_STRUCT:           sResult=QString("struct");              break;
+        case TYPE_ENUM:             sResult=QString("enum");                break;
+        case TYPE_POINTERTOFUNCTION:sResult=QString("");                    break;
     }
 
     return sResult;
@@ -135,6 +137,7 @@ QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mo
         case PM_NONE:               sResult=QString("");                    break; // mb TODO translate
         case PM_POINTER:            sResult=QString("*");                   break;
         case PM_REFERENCE:          sResult=QString("&");                   break;
+        case PM_CONST:              sResult=QString("const");               break;
     }
 
     return sResult;
@@ -244,6 +247,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_BITWISEANDEQUAL:        sResult=QString("operator &=");         break;
         case OP_BITWISEOREQUAL:         sResult=QString("operator |=");         break;
         case OP_BITWISEXOREQUAL:        sResult=QString("operator ^=");         break;
+        case OP_VIRTUALTABLE:           sResult=QString("`vftable");            break;
         case OP_ARRAYNEW:               sResult=QString("operator new[]");      break;
         case OP_ARRAYDELETE:            sResult=QString("operator delete[]");   break;
     }
@@ -353,7 +357,9 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 nLimit=1;
             }
 
-            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listNames);
+            QList<QString> listArgs;
+
+            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listNames,&listArgs);
 
             sString=sString.mid(nSize,-1);
 
@@ -398,16 +404,16 @@ QString XDemangle::convert(QString sString, MODE mode)
     return sResult;
 }
 
-qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStrings)
+qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStrings,QList<QString> *pListArgs)
 {
     qint32 nResult=0;
 
     int nIndex=0;
 
-    QMap<QString,qint32> mapArgs;
-
     while(sString!="")
     {
+        PARAMETER parameter={};
+
         QString _sString=sString;
         qint32 nStringSize=nResult;
 
@@ -429,217 +435,260 @@ qint32 XDemangle::handleParams(HDATA *pHdata,QString sString, XDemangle::MODE mo
         {
             SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapNumbers));
 
-            QList<QString> list=mapArgs.keys(signatureIndex.nValue);
-
-            if(list.count()>0)
+            if(signatureIndex.nValue<pListArgs->count())
             {
-                sRecord=list.at(0);
+                sRecord=pListArgs->at(signatureIndex.nValue);
                 sString=sString.replace(0,signatureIndex.nSize,sRecord);
                 bAddToRecord=false;
                 nResult++;
             }
         }
 
-        QList<qint64> listIndexes;
-
-        SIGNATURE signatureParamMod={};
-        SIGNATURE signatureStorageClass={};
-
-        if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+        if(_compare(sString,"P6A")) // Pointer to a function
         {
-            signatureParamMod=getSignature(sString,&(pHdata->mapParamMods));
+            parameter.type=TYPE_POINTERTOFUNCTION;
 
             if(bAddToRecord)
             {
-                sRecord+=sString.leftRef(signatureParamMod.nSize);
-                nResult+=signatureParamMod.nSize;
+                sRecord+=sString.leftRef(3);
+                nResult+=3;
             }
 
-            sString=sString.mid(signatureParamMod.nSize,-1);
+            sString=sString.mid(3,-1);
 
-            signatureStorageClass=getSignature(sString,&(pHdata->mapStorageClasses));
+            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listParameters),nLimit,pListStrings,pListArgs);
 
             if(bAddToRecord)
             {
-                sRecord+=sString.leftRef(signatureStorageClass.nSize);
-                nResult+=signatureStorageClass.nSize;
+                sRecord+=sString.leftRef(nPSize);
+                nResult+=nPSize;
             }
 
-            sString=sString.mid(signatureStorageClass.nSize,-1);
+            sString=sString.mid(nPSize,-1);
 
-            if(_compare(sString,"Y"))
+            if(_compare(sString,"Z"))
             {
-                // Array
-                sString=sString.mid(1,-1);
-
                 if(bAddToRecord)
                 {
                     sRecord+=sString.leftRef(1);
                     nResult++;
                 }
 
-                while(true)
+                sString=sString.mid(1,-1);
+            }
+        }
+        else
+        {
+            bool bMod=false;
+
+            while(sString!="")
+            {
+                if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
                 {
-                    NUMBER number=readNumber(pHdata,sString,mode);
+                    SIGNATURE signatureParamMod=getSignature(sString,&(pHdata->mapParamMods));
 
-                    if(number.nSize)
+                    if(bAddToRecord)
                     {
-                        listIndexes.append(number.nValue);
+                        sRecord+=sString.leftRef(signatureParamMod.nSize);
+                        nResult+=signatureParamMod.nSize;
+                    }
 
-                        sString=sString.mid(number.nSize,-1);
+                    sString=sString.mid(signatureParamMod.nSize,-1);
 
-                        if(bAddToRecord)
+                    SIGNATURE signatureStorageClass=getSignature(sString,&(pHdata->mapStorageClasses));
+
+                    if(bAddToRecord)
+                    {
+                        sRecord+=sString.leftRef(signatureStorageClass.nSize);
+                        nResult+=signatureStorageClass.nSize;
+                    }
+
+                    sString=sString.mid(signatureStorageClass.nSize,-1);
+
+                    MOD mod={};
+                    mod.paramMod=(PM)signatureParamMod.nValue;
+                    mod.storageClass=(SC)signatureStorageClass.nValue;
+
+                    parameter.listMods.append(mod);
+
+                    bMod=true;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            if(!bMod)
+            {
+                MOD mod={};
+                mod.storageClass=SC_NEAR;
+
+                parameter.listMods.append(mod);
+            }
+
+            if(bMod)
+            {
+                if(_compare(sString,"Y"))
+                {
+                    // Array
+                    sString=sString.mid(1,-1);
+
+                    if(bAddToRecord)
+                    {
+                        sRecord+=sString.leftRef(1);
+                        nResult++;
+                    }
+
+                    while(true)
+                    {
+                        NUMBER number=readNumber(pHdata,sString,mode);
+
+                        if(number.nSize)
                         {
-                            sRecord+=sString.leftRef(number.nSize);
-                            nResult+=number.nSize;
+                            parameter.listIndexes.append(number.nValue);
+
+                            sString=sString.mid(number.nSize,-1);
+
+                            if(bAddToRecord)
+                            {
+                                sRecord+=sString.leftRef(number.nSize);
+                                nResult+=number.nSize;
+                            }
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            SIGNATURE signatureType={};
+
+            if(isSignaturePresent(sString,&(pHdata->mapTypes)))
+            {
+                signatureType=getSignature(sString,&(pHdata->mapTypes));
+
+                if(bAddToRecord)
+                {
+                    sRecord+=sString.leftRef(signatureType.nSize);
+                    nResult+=signatureType.nSize;
+                }
+
+                sString=sString.mid(signatureType.nSize,-1);
+            }
+            else if(isSignaturePresent(sString,&(pHdata->mapNameTypes)))
+            {
+                signatureType=getSignature(sString,&(pHdata->mapNameTypes));
+
+                if(bAddToRecord)
+                {
+                    sRecord+=sString.leftRef(signatureType.nSize);
+                    nResult+=signatureType.nSize;
+                }
+
+                sString=sString.mid(signatureType.nSize,-1);
+
+                // Name
+                while(sString!="")
+                {
+                    bool bAddToList=true;
+                    bool bAddToPrefix=true;
+
+                    if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
+                    {
+                        SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapNumbers));
+
+                        if(signatureIndex.nValue<pListStrings->count())
+                        {
+                            sString=sString.replace(0,signatureIndex.nSize,pListStrings->at(signatureIndex.nValue)+"@");
+
+                            if(bAddToRecord)
+                            {
+                                sRecord+=pListStrings->at(signatureIndex.nValue)+"@";
+                                nResult+=signatureIndex.nSize;
+                            }
+
+                            bAddToList=false;
+                            bAddToPrefix=false;
+                        }
+                    }
+
+                    STRING _string=readString(sString,mode);
+
+                    if(_string.nSize)
+                    {
+                        parameter.listNames.append(_string.sString);
+
+                        if(bAddToList)
+                        {
+                            pListStrings->append(_string.sString);
                         }
                     }
                     else
                     {
                         break;
                     }
-                }
-            }
-        }
 
-        SIGNATURE signatureType={};
-        QList<QString> listNames;
-
-        if(isSignaturePresent(sString,&(pHdata->mapTypes)))
-        {
-            signatureType=getSignature(sString,&(pHdata->mapTypes));
-
-            if(bAddToRecord)
-            {
-                sRecord+=sString.leftRef(signatureType.nSize);
-                nResult+=signatureType.nSize;
-            }
-
-            sString=sString.mid(signatureType.nSize,-1);
-        }
-        else if(isSignaturePresent(sString,&(pHdata->mapNameTypes)))
-        {
-            signatureType=getSignature(sString,&(pHdata->mapNameTypes));
-
-            if(bAddToRecord)
-            {
-                sRecord+=sString.leftRef(signatureType.nSize);
-                nResult+=signatureType.nSize;
-            }
-
-            sString=sString.mid(signatureType.nSize,-1);
-
-            // Name
-            while(sString!="")
-            {
-                bool bAddToList=true;
-                bool bAddToPrefix=true;
-
-                if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
-                {
-                    SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapNumbers));
-
-                    if(signatureIndex.nValue<pListStrings->count())
-                    {                        
-                        sString=sString.replace(0,signatureIndex.nSize,pListStrings->at(signatureIndex.nValue)+"@");
-
-                        if(bAddToRecord)
-                        {
-                            sRecord+=pListStrings->at(signatureIndex.nValue)+"@";
-                            nResult+=signatureIndex.nSize;
-                        }
-
-                        bAddToList=false;
-                        bAddToPrefix=false;
-                    }
-                }
-
-                STRING _string=readString(sString,mode);
-
-                if(_string.nSize)
-                {
-                    listNames.append(_string.sString);
-
-                    if(bAddToList)
+                    if(bAddToRecord&&bAddToPrefix)
                     {
-                        pListStrings->append(_string.sString);
+                        sRecord+=sString.leftRef(_string.nSize);
+                        nResult+=_string.nSize;
                     }
-                }
-                else
-                {
-                    break;
-                }
 
-                if(bAddToRecord&&bAddToPrefix)
-                {
-                    sRecord+=sString.leftRef(_string.nSize);
-                    nResult+=_string.nSize;
+                    sString=sString.mid(_string.nSize,-1);
                 }
+                // Reverse
+                reverseList(&(parameter.listNames));
 
-                sString=sString.mid(_string.nSize,-1);
+                if(_compare(sString,"@"))
+                {
+                    if(bAddToRecord)
+                    {
+                        sRecord+="@";
+                        nResult++;
+                    }
+
+                    sString=sString.mid(1,-1);
+                }
             }
-            // Reverse
-            reverseList(&listNames);
 
-            if(_compare(sString,"@"))
-            {
-                if(bAddToRecord)
-                {
-                    sRecord+="@";
-                    nResult++;
-                }
-
-                sString=sString.mid(1,-1);
-            }
-        }
-
-        if(signatureType.nSize)
-        {
-            PARAMETER parameter={};
             parameter.type=(TYPE)signatureType.nValue;
-            parameter.paramMod=(PM)signatureParamMod.nValue;
-            parameter.listNames=listNames;
             parameter.sRecord=_sString.left(nResult-nStringSize);
 
-            if(signatureStorageClass.nValue)
+            if(signatureType.nSize)
             {
-                parameter.storageClass=(SC)signatureStorageClass.nValue;
+                pListParameters->append(parameter);
             }
             else
             {
-                parameter.storageClass=SC_NEAR; // TODO Check
+                break;
             }
 
-            pListParameters->append(parameter);
-        }
-        else
-        {
-            break;
+            if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)) //if func(void) TODO Check!
+            {
+                if(_compare(sString,"@"))
+                {
+                    sString=sString.mid(1,-1);
+                    nResult++;
+
+                    break;
+                }
+            }
         }
 
-        if(nIndex>0)
+        if(nIndex>0) // No return types!
         {
             if(sRecord.count()>1)
             {
                 QString sArg=sRecord;
 
-                if(!mapArgs.contains(sArg))
+                if(!(pListArgs->contains(sArg)))
                 {
-                    int nCount=mapArgs.count();
-                    mapArgs.insert(sArg,nCount);
+                    pListArgs->append(sArg);
                 }
             }
-        }
-
-        if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)) //if func(void)
-        {
-            if(_compare(sString,"@"))
-            {
-                sString=sString.mid(1,-1);
-                nResult++;
-            }
-
-            break;
         }
 
         nIndex++;
@@ -793,9 +842,19 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
     {
         if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
         {
+            if(_compare(sString,"0"))
+            {
+                sString=sString.mid(1,-1);
+                result.nSize++;
+            }
+
             SIGNATURE signature=getSignature(sString,&(pHdata->mapNumbers));
-            result.nValue=signature.nValue+1;
-            result.nSize=1;
+
+            if(signature.nSize)
+            {
+                result.nValue=signature.nValue+1;
+                result.nSize++;
+            }
         }
         else if(isSignaturePresent(sString,&(pHdata->mapHexNumbers)))
         {
@@ -818,7 +877,11 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
                 }
             }
 
-            if(_compare(sString,"@"))
+            if(_compare(sString,"@Z")) // End of function
+            {
+                result.nSize=0;
+            }
+            else if(_compare(sString,"@"))
             {
                 sString=sString.mid(1,-1);
                 result.nSize++;
@@ -968,6 +1031,7 @@ QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
         mapResult.insert("?",PM_NONE); // For classes return
         mapResult.insert("P",PM_POINTER);
         mapResult.insert("A",PM_REFERENCE);
+        mapResult.insert("Q",PM_CONST);
     }
 
     return mapResult;
@@ -1092,8 +1156,10 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("?_4",OP_BITWISEANDEQUAL);
         mapResult.insert("?_5",OP_BITWISEOREQUAL);
         mapResult.insert("?_6",OP_BITWISEXOREQUAL);
+        mapResult.insert("?_7",OP_VIRTUALTABLE);
         mapResult.insert("?_U",OP_ARRAYNEW);
         mapResult.insert("?_V",OP_ARRAYDELETE);
+
     }
 
     return mapResult;
@@ -1192,9 +1258,9 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 {
     QString sResult;
 
-    QString sStorageClass=storageClassIdToString(parameter.storageClass,mode);
+    QString sStorageClass=storageClassIdToString(parameter.listMods.at(0).storageClass,mode); // TODO !!!
     QString sType=typeIdToString(parameter.type,mode);
-    QString sParamMod=paramModIdToString(parameter.paramMod,mode);
+    QString sParamMod=paramModIdToString(parameter.listMods.at(0).paramMod,mode); // TODO !!!
     QString sName=getNameFromList(&(parameter.listNames),mode);
 
     if(sStorageClass!="")   sResult+=QString("%1 ").arg(sStorageClass);

@@ -80,7 +80,8 @@ public:
         TYPE_CLASS,
         TYPE_UNION,
         TYPE_STRUCT,
-        TYPE_ENUM
+        TYPE_ENUM,
+        TYPE_POINTERTOFUNCTION
     };
 
     enum OC
@@ -158,7 +159,8 @@ public:
     {
         PM_NONE,
         PM_POINTER,
-        PM_REFERENCE
+        PM_REFERENCE,
+        PM_CONST // Check
     };
 
     enum OP
@@ -208,16 +210,23 @@ public:
         OP_BITWISEXOREQUAL,
         OP_ARRAYNEW,
         OP_ARRAYDELETE,
+        OP_VIRTUALTABLE
+    };
+
+    struct MOD
+    {
+        PM paramMod;
+        SC storageClass;
     };
 
     struct PARAMETER
     {
-        PM paramMod;
-        SC storageClass;
+        QList<MOD> listMods;
         TYPE type;
         QList<QString> listNames;
         QList<qint64> listIndexes;
         QString sRecord;
+        QList<PARAMETER> listParameters; // if pointer to a function
     };
 
     struct HDATA
@@ -266,7 +275,7 @@ public:
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
-    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStrings);
+    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStrings,QList<QString> *pListArgs);
 
     MODE detectMode(QString sString);
 
