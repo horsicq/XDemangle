@@ -160,7 +160,10 @@ public:
         PM_NONE,
         PM_POINTER,
         PM_REFERENCE,
-        PM_CONST // Check
+        PM_POINTERCONST, // Check
+        PM_POINTERVOLATILE,
+        PM_POINTERCONSTVOLATILE,
+        PM_DOUBLEREFERENCE
     };
 
     enum OP
@@ -275,7 +278,8 @@ public:
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
-    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStrings,QList<QString> *pListArgs);
+    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *pListArgRefs);
+    qint32 handleNames(HDATA *pHdata,QString sString,MODE mode,QList<QString> *pListNames,QList<QString> *pListStringRefs);
 
     MODE detectMode(QString sString);
 
