@@ -81,7 +81,8 @@ public:
         TYPE_UNION,
         TYPE_STRUCT,
         TYPE_ENUM,
-        TYPE_POINTERTOFUNCTION
+        TYPE_POINTERTOFUNCTION,
+        TYPE_NULLPTR
     };
 
     enum OC
@@ -91,7 +92,8 @@ public:
         OC_PROTECTEDSTATICCLASSMEMBER,
         OC_PUBLICSTATICCLASSMEMBER,
         OC_GLOBALOBJECT,
-        OC_FUNCTIONLOCALSTATIC
+        OC_FUNCTIONLOCALSTATIC,
+        OC_VFTABLE
     };
 
     enum SC
@@ -152,7 +154,8 @@ public:
     {
         ST_UNKNOWN=0,
         ST_VARIABLE,
-        ST_FUNCTION
+        ST_FUNCTION,
+        ST_VFTABLE
     };
 
     enum PM
@@ -224,12 +227,13 @@ public:
 
     struct PARAMETER
     {
+        QString sRecord;
         QList<MOD> listMods;
         TYPE type;
         QList<QString> listNames;
-        QList<qint64> listIndexes;
-        QString sRecord;
-        QList<PARAMETER> listParameters; // if pointer to a function
+        QList<qint64> listIndexes; // For var[x][y]
+        QList<PARAMETER> listTemplateParameters; // Template mb TODO flags;
+        QList<PARAMETER> listFunctionParameters; // if pointer to a function
     };
 
     struct HDATA
@@ -252,7 +256,7 @@ public:
         MODE mode;
         ST symbolType;
         OP _operator;
-        QList<QString> listNames;
+        PARAMETER paramMain;
         QList<PARAMETER> listParameters; // 0 - return
         // Variable
         OC objectClass;
@@ -279,7 +283,7 @@ public:
     QString convert(QString sString,MODE mode);
 
     qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *pListArgRefs);
-    qint32 handleNames(HDATA *pHdata,QString sString,MODE mode,QList<QString> *pListNames,QList<QString> *pListStringRefs);
+    qint32 handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *pListArgRefs);
 
     MODE detectMode(QString sString);
 
@@ -326,7 +330,7 @@ private:
     QMap<QString,qint32> getHexNumbers(MODE mode);
 
     QString getNameFromSymbol(SYMBOL symbol);
-    QString getNameFromList(QList<QString> *pList,MODE mode);
+    QString getNameFromParameter(PARAMETER *pParameter, MODE mode);
     QString getStringFromParameter(PARAMETER parameter,MODE mode);
 };
 

@@ -79,6 +79,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_STRUCT:           sResult=QString("struct");              break;
         case TYPE_ENUM:             sResult=QString("enum");                break;
         case TYPE_POINTERTOFUNCTION:sResult=QString("");                    break;
+        case TYPE_NULLPTR:          sResult=QString("std::nullptr_t");      break; // TODO Check !!!
     }
 
     return sResult;
@@ -282,7 +283,8 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
     {
         if(_compare(sString,"?"))
         {
-            QList<QString> _listRefs;
+            QList<QString> _listStringRefs;
+            QList<QString> _listArgRefs;
 
             sString=sString.mid(1,-1);
 
@@ -294,14 +296,14 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
             }
 
             // Name
-            qint32 nNamesSize=handleNames(&hdata,sString,mode,&(result.listNames),&_listRefs);
+            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs,&_listArgRefs);
 
             sString=sString.mid(nNamesSize,-1);
 
-            if(_compare(sString,"@@@")) // TODO Check !!! Templates params
-            {
-                sString=sString.mid(2,-1);
-            }
+//            if(_compare(sString,"@@@")) // TODO Check !!! Templates params
+//            {
+//                sString=sString.mid(2,-1);
+//            }
 
             if(isSignaturePresent(sString,&hdata.mapObjectClasses))
             {
@@ -340,6 +342,11 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                      result.functionConvention=FC_THISCALL; // TODO Check
                 }
             }
+            else if(_compare(sString,"6")) // VFTABLE
+            {
+                result.symbolType=ST_VFTABLE;
+                sString=sString.mid(1,-1);
+            }
 
             qint32 nLimit=0;
 
@@ -348,9 +355,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 nLimit=1;
             }
 
-            QList<QString> listArgs;
-
-            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listRefs,&listArgs);
+            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listStringRefs,&_listArgRefs);
 
             sString=sString.mid(nSize,-1);
 
@@ -368,6 +373,14 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 }
 
                 sString=sString.mid(signature.nSize,-1);
+            }
+
+            if(result.symbolType==ST_VFTABLE)
+            {
+                if(_compare(sString,"@"))
+                {
+                    sString=sString.mid(1,-1);
+                }
             }
 
             if((sString=="")&&(result.storageClass!=SC_UNKNOWN)) // TODO more checks
@@ -410,6 +423,8 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
     {
         PARAMETER parameter={};
 
+        bool bBreak=false;
+
         QString _sString=sString;
         qint32 nStringSize=nResult;
 
@@ -449,7 +464,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             sString=sString.mid(3,-1);
 
-            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listParameters),nLimit,pListStringRefs,pListArgRefs);
+            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),nLimit,pListStringRefs,pListArgRefs);
 
             if(bAddToRecord)
             {
@@ -585,7 +600,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
                 sString=sString.mid(signatureType.nSize,-1);
 
-                qint32 nNamesSize=handleNames(pHdata,sString,mode,&(parameter.listNames),pListStringRefs);
+                qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,pListArgRefs);
 
                 if(bAddToRecord)
                 {
@@ -604,7 +619,12 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             if((nIndex>0)&&(signatureType.nValue==(TYPE)TYPE_VOID)&&(!bMod)) //if func(void) TODO Check! Check void *
             {
-                break;
+                bBreak=true;
+            }
+
+            if(signatureType.nValue==(TYPE)TYPE_VARARGS)
+            {
+                bBreak=true;
             }
         }
 
@@ -635,19 +655,25 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
             }
         }
 
+        if(bBreak)
+        {
+            break;
+        }
+
         nIndex++;
     }
 
     return nResult;
 }
 
-qint32 XDemangle::handleNames(HDATA *pHdata, QString sString, MODE mode, QList<QString> *pListNames, QList<QString> *pListStringRefs)
+qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, PARAMETER *pParameter, QList<QString> *pListStringRefs, QList<QString> *pListArgRefs)
 {
     qint32 nResult=0;
 
     while(sString!="")
     {
         bool bAddToList=true;
+        bool bTemplate=false;
 
         if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
         {
@@ -663,11 +689,19 @@ qint32 XDemangle::handleNames(HDATA *pHdata, QString sString, MODE mode, QList<Q
             }
         }
 
+        if(_compare(sString,"?$"))
+        {
+            // Template
+            nResult+=2;
+            sString=sString.mid(2,-1);
+            bTemplate=true;
+        }
+
         STRING _string=readString(sString,mode);
 
         if(_string.nSize)
         {
-            pListNames->append(_string.sString);
+            pParameter->listNames.append(_string.sString);
 
             if(bAddToList)
             {
@@ -685,6 +719,24 @@ qint32 XDemangle::handleNames(HDATA *pHdata, QString sString, MODE mode, QList<Q
         }
 
         sString=sString.mid(_string.nSize,-1);
+
+        if(bTemplate)
+        {
+            qint32 nPSize=handleParams(pHdata,sString,mode,&(pParameter->listTemplateParameters),0,pListStringRefs,pListArgRefs);
+
+            if(bAddToList)
+            {
+                nResult+=nPSize;
+            }
+
+            sString=sString.mid(nPSize,-1);
+
+            if(_compare(sString,"@"))
+            {
+                nResult++;
+                sString=sString.mid(1,-1);
+            }
+        }
     }
 
     if(_compare(sString,"@"))
@@ -694,7 +746,7 @@ qint32 XDemangle::handleNames(HDATA *pHdata, QString sString, MODE mode, QList<Q
     }
 
     // Reverse
-    reverseList(pListNames);
+    reverseList(&(pParameter->listNames));
 
     return nResult;
 }
@@ -808,6 +860,12 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             }
 
             sResult+=QString(")");
+        }
+        else if((symbol.symbolType==ST_VFTABLE))
+        {
+            sResult="VFTABLE";
+
+            // TODO !!!
         }
     }
 
@@ -1004,6 +1062,7 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("_S",TYPE_CHAR16);
         mapResult.insert("_U",TYPE_CHAR32);
         mapResult.insert("_W",TYPE_WCHAR);
+        mapResult.insert("$$T",TYPE_NULLPTR);
     }
 
     return mapResult;
@@ -1220,7 +1279,7 @@ QMap<QString, qint32> XDemangle::getHexNumbers(XDemangle::MODE mode)
 
 QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 {
-    QString sResult=getNameFromList(&(symbol.listNames),symbol.mode);
+    QString sResult=getNameFromParameter(&(symbol.paramMain),symbol.mode);
 
     if(symbol._operator!=OP_UNKNOWN)
     {
@@ -1228,11 +1287,11 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 
         if((symbol._operator==OP_CONSTRUCTOR)||(symbol._operator==OP_DESTRUCTOR))
         {
-            int nNumberOfNames=symbol.listNames.count();
+            int nNumberOfNames=symbol.paramMain.listNames.count();
 
             if(nNumberOfNames)
             {
-                sResult+=symbol.listNames.at(nNumberOfNames-1);
+                sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1);
             }
         }
     }
@@ -1240,15 +1299,15 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
     return sResult;
 }
 
-QString XDemangle::getNameFromList(QList<QString> *pList, XDemangle::MODE mode)
+QString XDemangle::getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE mode)
 {
      QString sResult;
 
-    int nNumberOfNames=pList->count();
+    int nNumberOfNames=pParameter->listNames.count();
 
     for(int i=0;i<nNumberOfNames;i++)
     {
-        sResult+=pList->at(i);
+        sResult+=pParameter->listNames.at(i);
 
         if(i!=(nNumberOfNames-1))
         {
@@ -1266,14 +1325,14 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
     QString sStorageClass;
     QString sParamMod;
 
-    if(parameter.listMods.count())
+    if(parameter.listMods.count()) // TODO !!!
     {
         storageClassIdToString(parameter.listMods.at(0).storageClass,mode); // TODO !!!
         sParamMod=paramModIdToString(parameter.listMods.at(0).paramMod,mode); // TODO !!!
     }
 
     QString sType=typeIdToString(parameter.type,mode);
-    QString sName=getNameFromList(&(parameter.listNames),mode);
+    QString sName=getNameFromParameter(&(parameter),mode);
 
     if(sStorageClass!="")   sResult+=QString("%1 ").arg(sStorageClass);
     if(sType!="")           sResult+=QString("%1").arg(sType);
