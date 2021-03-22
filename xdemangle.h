@@ -33,6 +33,7 @@ public:
     {
         MODE_UNKNOWN=0,
         MODE_AUTO,
+        MODE_MSVC,
         MODE_MSVC32,
         MODE_MSVC64,
         MODE_GCC,
@@ -288,6 +289,7 @@ public:
     MODE detectMode(QString sString);
 
     static QList<MODE> getAllModes();
+    static QList<MODE> getSupportedModes();
     static void reverseList(QList<QString> *pList);
 
     HDATA getHdata(MODE mode);

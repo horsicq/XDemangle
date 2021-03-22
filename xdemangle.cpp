@@ -33,8 +33,9 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
     {
         case MODE_UNKNOWN:      sResult=tr("Unknown");                  break;
         case MODE_AUTO:         sResult=tr("Automatic");                break;
+        case MODE_MSVC:         sResult=QString("MSVC+++");             break;
         case MODE_MSVC32:       sResult=QString("MSVC+++ 32");          break;
-        case MODE_GCC:          sResult=QString("GCC");                 break;
+        case MODE_GCC:          sResult=QString("GNU C++");             break;
         case MODE_WATCOM:       sResult=QString("Watcom");              break;
         case MODE_BORLAND32:    sResult=QString("Borland");             break;
     }
@@ -772,6 +773,15 @@ QList<XDemangle::MODE> XDemangle::getAllModes()
     listResult.append(MODE_GCC);
     listResult.append(MODE_BORLAND32);
     listResult.append(MODE_WATCOM);
+
+    return listResult;
+}
+
+QList<XDemangle::MODE> XDemangle::getSupportedModes()
+{
+    QList<MODE> listResult;
+
+    listResult.append(MODE_AUTO);
 
     return listResult;
 }
