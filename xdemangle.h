@@ -148,6 +148,9 @@ public:
         FC_FASTCALL,
         FC_MSFASTCALL,
         FC_REGCALL,
+        FC_CLRCALL,
+        FC_EABI,
+        FC_SWIFT,
         FC_VECTORCALL
     };
 
@@ -332,8 +335,8 @@ private:
     QMap<QString,qint32> getHexNumbers(MODE mode);
 
     QString getNameFromSymbol(SYMBOL symbol);
-    QString getNameFromParameter(PARAMETER *pParameter, MODE mode);
-    QString getStringFromParameter(PARAMETER parameter,MODE mode);
+    QString getNameFromParameter(PARAMETER *pParameter,MODE mode);
+    QString getStringFromParameter(PARAMETER parameter, MODE mode, QString sName="", bool bFuncRet=false);
 };
 
 #endif // XDEMANGLE_H

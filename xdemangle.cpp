@@ -120,9 +120,9 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
     {
         case OC_UNKNOWN:                    sResult=QString("Unknown");             break; // mb TODO translate
         case OC_GLOBALOBJECT:               sResult=QString("");                    break;
-        case OC_PRIVATESTATICCLASSMEMBER:   sResult=QString("private static");      break;
-        case OC_PROTECTEDSTATICCLASSMEMBER: sResult=QString("protected static");    break;
-        case OC_PUBLICSTATICCLASSMEMBER:    sResult=QString("public static");       break;
+        case OC_PRIVATESTATICCLASSMEMBER:   sResult=QString("private: static");     break;
+        case OC_PROTECTEDSTATICCLASSMEMBER: sResult=QString("protected: static");   break;
+        case OC_PUBLICSTATICCLASSMEMBER:    sResult=QString("public: static");      break;
     }
 
     return sResult;
@@ -139,9 +139,9 @@ QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mo
         case PM_NONE:                   sResult=QString("");                    break; // mb TODO translate
         case PM_POINTER:                sResult=QString("*");                   break;
         case PM_REFERENCE:              sResult=QString("&");                   break;
-        case PM_POINTERCONST:           sResult=QString("* const");             break;
-        case PM_POINTERVOLATILE:        sResult=QString("* volatile");          break;
-        case PM_POINTERCONSTVOLATILE:   sResult=QString("* const volatile");    break;
+        case PM_POINTERCONST:           sResult=QString("*const");              break;
+        case PM_POINTERVOLATILE:        sResult=QString("*volatile");           break;
+        case PM_POINTERCONSTVOLATILE:   sResult=QString("*const volatile");     break;
         case PM_DOUBLEREFERENCE:        sResult=QString("&&");                  break;
     }
 
@@ -190,12 +190,13 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
 
     switch(functionConvention)
     {
-        case FC_UNKNOWN:            sResult=QString("Unknown");                    break; // mb TODO translate
-        case FC_CDECL:              sResult=QString("__cdecl");                    break;
-        case FC_THISCALL:           sResult=QString("__thiscall");                 break;
-        case FC_STDCALL:            sResult=QString("__stdcall");                  break;
-        case FC_FASTCALL:           sResult=QString("__fastcall");                 break;
-        case FC_VECTORCALL:         sResult=QString("__vectorcall");               break;
+        case FC_UNKNOWN:            sResult=QString("Unknown");                     break; // mb TODO translate
+        case FC_CDECL:              sResult=QString("__cdecl");                     break;
+        case FC_THISCALL:           sResult=QString("__thiscall");                  break;
+        case FC_STDCALL:            sResult=QString("__stdcall");                   break;
+        case FC_FASTCALL:           sResult=QString("__fastcall");                  break;
+        case FC_CLRCALL:            sResult=QString("__clrcall");                   break;
+        case FC_VECTORCALL:         sResult=QString("__vectorcall");                break;
     }
 
     return sResult;
@@ -375,9 +376,15 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
             if(isSignaturePresent(sString,&hdata.mapStorageClasses))
             {
                 SIGNATURE signature=getSignature(sString,&hdata.mapStorageClasses);
-                if(result.storageClass==SC_UNKNOWN)
+
+                result.storageClass=(SC)signature.nValue;
+
+                if(result.symbolType==ST_VARIABLE)
                 {
-                    result.storageClass=(SC)signature.nValue;
+                    if((result.listParameters.count()==1)&&(result.listParameters.at(0).listMods.count()==1))
+                    {
+                        result.listParameters[0].listMods[0].storageClass=result.storageClass;
+                    }
                 }
 
                 sString=sString.mid(signature.nSize,-1);
@@ -832,51 +839,53 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             QString sObjectClass=objectClassIdToString(symbol.objectClass,symbol.mode);
             QString sParameter;
 
-            if(symbol.listParameters.count())
-            {
-                sParameter=getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
-            }
-
             QString sName=getNameFromSymbol(symbol);
 
-            if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
-            if(sParameter!="")      sResult+=QString("%1 ").arg(sParameter);
-            if(sName!="")           sResult+=QString("%1").arg(sName);
+            if(symbol.listParameters.count())
+            {
+                sParameter=getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sName);
+            }
 
-            // TODO
+            if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
+            if(sParameter!="")      sResult+=QString("%1").arg(sParameter);
         }
         else if((symbol.symbolType==ST_FUNCTION))
         {
-            QString sFuncMod=functionModIdToString(symbol.functionMod,symbol.mode);
-            QString sParameterReturn;
+            int nNumberOfArguments=symbol.listParameters.count();
 
-            if(symbol.listParameters.count())
+            if(nNumberOfArguments)
             {
-                sParameterReturn=getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
-            }
+                QString sClassStorage=storageClassIdToString(symbol.classStorageClass,symbol.mode);
+                QString sFuncMod=functionModIdToString(symbol.functionMod,symbol.mode);
+                QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
+                QString sFunctionName=getNameFromSymbol(symbol);
 
-            QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
-            QString sName=getNameFromSymbol(symbol);
+                QString sFunction=QString("%1 %2").arg(sFunctionConvention).arg(sFunctionName);
 
-            if(sFuncMod!="")            sResult+=QString("%1 ").arg(sFuncMod);
-            if(sParameterReturn!="")    sResult+=QString("%1 ").arg(sParameterReturn);
-            sResult+=QString("%1 ").arg(sFunctionConvention);
-            sResult+=sName;
-            sResult+=QString("(");
+                sFunction+=QString("(");
 
-            int nNumberOfrguments=symbol.listParameters.count();
-
-            for(int i=1;i<nNumberOfrguments;i++)
-            {
-                sResult+=getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
-
-                if(i!=nNumberOfrguments-1)
+                for(int i=1;i<nNumberOfArguments;i++)
                 {
-                    sResult+=QString(",");;
+                    sFunction+=getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
+
+                    if(i!=nNumberOfArguments-1)
+                    {
+                        sFunction+=QString(", ");;
+                    }
+                }
+
+                sFunction+=QString(")");
+
+                QString sParameterReturn=getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sFunction,true);
+
+                if(sFuncMod!="")            sResult+=QString("%1 ").arg(sFuncMod);
+                if(sParameterReturn!="")    sResult+=QString("%1").arg(sParameterReturn);
+
+                if(symbol.classStorageClass!=SC_UNKNOWN)
+                {
+                    if(sClassStorage!="")       sResult+=QString(" %1").arg(sClassStorage);
                 }
             }
-
-            sResult+=QString(")");
         }
         else if((symbol.symbolType==ST_VFTABLE))
         {
@@ -919,12 +928,6 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
     {
         if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
         {
-            if(_compare(sString,"0"))
-            {
-                sString=sString.mid(1,-1);
-                result.nSize++;
-            }
-
             SIGNATURE signature=getSignature(sString,&(pHdata->mapNumbers));
 
             if(signature.nSize)
@@ -1179,11 +1182,21 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
     if(getSyntaxFromMode(mode)==SYNTAX_MS)
     {
         mapResult.insert("A",FC_CDECL);
+        mapResult.insert("B",FC_CDECL);
         mapResult.insert("C",FC_PASCAL);
+        mapResult.insert("D",FC_PASCAL);
         mapResult.insert("E",FC_THISCALL);
+        mapResult.insert("F",FC_THISCALL);
         mapResult.insert("G",FC_STDCALL);
+        mapResult.insert("H",FC_STDCALL);
         mapResult.insert("I",FC_FASTCALL);
+        mapResult.insert("J",FC_FASTCALL);
+        mapResult.insert("M",FC_CLRCALL);
+        mapResult.insert("N",FC_CLRCALL);
+        mapResult.insert("O",FC_EABI);
+        mapResult.insert("P",FC_EABI);
         mapResult.insert("Q",FC_VECTORCALL);
+        mapResult.insert("S",FC_SWIFT);
     }
 
     return mapResult;
@@ -1335,26 +1348,108 @@ QString XDemangle::getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE m
     return sResult;
 }
 
-QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE mode)
+QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE mode, QString sName, bool bFuncRet)
 {
     QString sResult;
 
-    QString sStorageClass;
-    QString sParamMod;
+    int nNumberOfFunctionParameters=parameter.listFunctionParameters.count();
 
-    if(parameter.listMods.count()) // TODO !!!
+    if(nNumberOfFunctionParameters)
     {
-        storageClassIdToString(parameter.listMods.at(0).storageClass,mode); // TODO !!!
-        sParamMod=paramModIdToString(parameter.listMods.at(0).paramMod,mode); // TODO !!!
+        QString sFunction=QString("(__cdecl *");
+        if(sName!="")   sFunction+=QString(" %1").arg(sName);
+        sFunction+=")";
+
+        QString sReturn=getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
+
+        sResult=sReturn;
+
+        sResult+="(";
+
+        for(int i=1;i<nNumberOfFunctionParameters;i++)
+        {
+            sResult+=getStringFromParameter(parameter.listFunctionParameters.at(i),mode);
+
+            if(i!=nNumberOfFunctionParameters-1)
+            {
+                sResult+=QString(", ");
+            }
+        }
+
+        sResult+=")";
     }
+    else
+    {
+        int nNumberOfIndexes=parameter.listIndexes.count();
+        int nNumberOfMods=parameter.listMods.count();
 
-    QString sType=typeIdToString(parameter.type,mode);
-    QString sName=getNameFromParameter(&(parameter),mode);
+        QString sMod;
+        bool bStorageClass=false;
+        bool bParamMod=false;
 
-    if(sStorageClass!="")   sResult+=QString("%1 ").arg(sStorageClass);
-    if(sType!="")           sResult+=QString("%1").arg(sType);
-    if(sName!="")           sResult+=QString(" %1").arg(sName);
-    if(sParamMod!="")       sResult+=QString(" %1").arg(sParamMod);
+        for(int i=0;i<nNumberOfMods;i++)
+        {
+            QString sStorageClass=storageClassIdToString(parameter.listMods.at(i).storageClass,mode);
+            QString sParamMod=paramModIdToString(parameter.listMods.at(i).paramMod,mode);
+
+            bStorageClass=(sStorageClass!="");
+            bParamMod=(sParamMod!="");
+
+            sMod+=QString("%1").arg(sStorageClass);
+
+            if(sParamMod!="")
+            {
+                if(sStorageClass!="")   sMod+=" ";
+                sMod+=QString("%1").arg(sParamMod);
+            }
+        }
+
+        QString sType=typeIdToString(parameter.type,mode);
+        QString sTypeName=getNameFromParameter(&(parameter),mode);
+
+        if(sType!="")           sResult+=QString("%1").arg(sType);
+
+        if(sTypeName!="")
+        {
+            if(sResult!="")        sResult+=" ";
+
+            sResult+=QString("%1").arg(sTypeName);
+        }
+
+        if(sMod!="")
+        {
+            if(sResult!="")        sResult+=" ";
+        }
+
+        if(nNumberOfIndexes>1)  sResult+="(";
+
+        if(sMod!="")            sResult+=QString("%1").arg(sMod);
+
+        if(bFuncRet)
+        {
+            if(bParamMod)       sResult+=" ";
+        }
+
+        if(sName!="")
+        {
+            if(!bParamMod)
+            {
+                if(sType!="")
+                {
+                    sResult+=" ";
+                }
+            }
+
+            sResult+=QString("%1").arg(sName);
+        }
+
+        if(nNumberOfIndexes>1)  sResult+=")";
+
+        for(int i=1;i<nNumberOfIndexes;i++)
+        {
+            sResult+=QString("[%1]").arg(parameter.listIndexes.at(i));
+        }
+    }
 
     return sResult;
 }
