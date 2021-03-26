@@ -33,10 +33,10 @@ public:
     {
         MODE_UNKNOWN=0,
         MODE_AUTO,
-        MODE_MSVC,
+        MODE_MSVC, // Generic
         MODE_MSVC32,
         MODE_MSVC64,
-        MODE_GCC,
+        MODE_GCC, // Generic
         MODE_BORLAND32,
         MODE_BORLAND64,
         MODE_WATCOM
@@ -46,7 +46,7 @@ public:
     enum SYNTAX
     {
         SYNTAX_UNKNOWN=0,
-        SYNTAX_MS,
+        SYNTAX_MICROSOFT,
         SYNTAX_ITANIUM,
         SYNTAX_BORLAND,
         SYNTAX_WATCOM

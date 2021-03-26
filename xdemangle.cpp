@@ -253,7 +253,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_BITWISEANDEQUAL:        sResult=QString("operator&=");          break;
         case OP_BITWISEOREQUAL:         sResult=QString("operator|=");          break;
         case OP_BITWISEXOREQUAL:        sResult=QString("operator^=");          break;
-        case OP_VIRTUALTABLE:           sResult=QString("`vftable");            break;
+        case OP_VIRTUALTABLE:           sResult=QString("`vftable'");            break;
         case OP_ARRAYNEW:               sResult=QString("operator new[]");      break;
         case OP_ARRAYDELETE:            sResult=QString("operator delete[]");   break;
     }
@@ -267,7 +267,7 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
 
     if((mode==MODE_MSVC32)||(mode==MODE_MSVC64))
     {
-        result=SYNTAX_MS;
+        result=SYNTAX_MICROSOFT;
     }
 
     return result;
@@ -281,7 +281,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 
     HDATA hdata=getHdata(mode);
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         if(_compare(sString,"?"))
         {
@@ -889,9 +889,15 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
         }
         else if((symbol.symbolType==ST_VFTABLE))
         {
-            sResult="VFTABLE";
+            QString sStorage=storageClassIdToString(symbol.storageClass,symbol.mode);
+            QString sName=getNameFromSymbol(symbol);
 
-            // TODO !!!
+            if(symbol.storageClass!=SC_UNKNOWN)
+            {
+                if(sStorage!="")       sResult+=QString("%1 ").arg(sStorage);
+            }
+
+            sResult+=sName;
         }
     }
 
@@ -902,7 +908,7 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
 {
     STRING result={};
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         result.sString=sString.section("@",0,0);
 
@@ -924,7 +930,7 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
 {
     NUMBER result={};
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
         {
@@ -1042,7 +1048,7 @@ QMap<QString, qint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("0",OC_PRIVATESTATICCLASSMEMBER);
         mapResult.insert("1",OC_PROTECTEDSTATICCLASSMEMBER);
@@ -1058,7 +1064,7 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("@",TYPE_EMPTY);
         mapResult.insert("X",TYPE_VOID);
@@ -1092,7 +1098,7 @@ QMap<QString, qint32> XDemangle::getNameTypes(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("T",TYPE_UNION);
         mapResult.insert("U",TYPE_STRUCT);
@@ -1107,7 +1113,7 @@ QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("?",PM_NONE); // For classes return
         mapResult.insert("P",PM_POINTER);
@@ -1125,7 +1131,7 @@ QMap<QString, qint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("A",SC_NEAR);
         mapResult.insert("B",SC_CONST);
@@ -1148,7 +1154,7 @@ QMap<QString, qint32> XDemangle::getFunctionMods(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("A",FM_PRIVATE_NEAR);
         mapResult.insert("B",FM_PRIVATE_FAR);
@@ -1179,7 +1185,7 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("A",FC_CDECL);
         mapResult.insert("B",FC_CDECL);
@@ -1206,7 +1212,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("?0",OP_CONSTRUCTOR);
         mapResult.insert("?1",OP_DESTRUCTOR);
@@ -1263,7 +1269,7 @@ QMap<QString, qint32> XDemangle::getNumbers(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("0",0);
         mapResult.insert("1",1);
@@ -1284,7 +1290,7 @@ QMap<QString, qint32> XDemangle::getHexNumbers(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MS)
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         mapResult.insert("A",0);
         mapResult.insert("B",1);
@@ -1313,7 +1319,12 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 
     if(symbol._operator!=OP_UNKNOWN)
     {
-        sResult+=QString("::%1").arg(operatorIdToString(symbol._operator,symbol.mode));
+        if(sResult!="")
+        {
+            sResult+="::";
+        }
+
+        sResult+=operatorIdToString(symbol._operator,symbol.mode);
 
         if((symbol._operator==OP_CONSTRUCTOR)||(symbol._operator==OP_DESTRUCTOR))
         {
