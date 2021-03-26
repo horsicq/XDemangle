@@ -159,24 +159,24 @@ QString XDemangle::functionModIdToString(XDemangle::FM functionMod, XDemangle::M
         case FM_UNKNOWN:                sResult=QString("Unknown");             break; // mb TODO translate
         case FM_NEAR:                   sResult=QString("");                    break;
         case FM_FAR:                    sResult=QString("");                    break;
-        case FM_PUBLIC_NEAR:            sResult=QString("public");              break;
-        case FM_PUBLIC_FAR:             sResult=QString("public");              break;
-        case FM_PUBLIC_STATICNEAR:      sResult=QString("public static");       break;
-        case FM_PUBLIC_STATICFAR:       sResult=QString("public static");       break;
-        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public virtual");      break;
-        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public virtual");      break;
-        case FM_PROTECTED_NEAR:         sResult=QString("protected");           break;
-        case FM_PROTECTED_FAR:          sResult=QString("protected");           break;
-        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected static");    break;
-        case FM_PROTECTED_STATICFAR:    sResult=QString("protected static");    break;
-        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected virtual");   break;
-        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected virtual");   break;
-        case FM_PRIVATE_NEAR:           sResult=QString("private");             break;
-        case FM_PRIVATE_FAR:            sResult=QString("private");             break;
-        case FM_PRIVATE_STATICNEAR:     sResult=QString("private static");      break;
-        case FM_PRIVATE_STATICFAR:      sResult=QString("private static");      break;
-        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private virtual");     break;
-        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private virtual");     break;
+        case FM_PUBLIC_NEAR:            sResult=QString("public:");              break;
+        case FM_PUBLIC_FAR:             sResult=QString("public:");              break;
+        case FM_PUBLIC_STATICNEAR:      sResult=QString("public: static");       break;
+        case FM_PUBLIC_STATICFAR:       sResult=QString("public: static");       break;
+        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public: virtual");      break;
+        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public: virtual");      break;
+        case FM_PROTECTED_NEAR:         sResult=QString("protected:");           break;
+        case FM_PROTECTED_FAR:          sResult=QString("protected:");           break;
+        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected: static");    break;
+        case FM_PROTECTED_STATICFAR:    sResult=QString("protected: static");    break;
+        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected: virtual");   break;
+        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected: virtual");   break;
+        case FM_PRIVATE_NEAR:           sResult=QString("private:");             break;
+        case FM_PRIVATE_FAR:            sResult=QString("private:");             break;
+        case FM_PRIVATE_STATICNEAR:     sResult=QString("private: static");      break;
+        case FM_PRIVATE_STATICFAR:      sResult=QString("private: static");      break;
+        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private: virtual");     break;
+        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private: virtual");     break;
     }
 
     return sResult;
@@ -214,44 +214,44 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_DESTRUCTOR:             sResult=QString("~");                   break;
         case OP_NEW:                    sResult=QString("operator new");        break;
         case OP_DELETE:                 sResult=QString("operator delete");     break;
-        case OP_ASSIGN:                 sResult=QString("operator =");          break;
-        case OP_RIGHTSHIFT:             sResult=QString("operator >>");         break;
-        case OP_LEFTSHIFT:              sResult=QString("operator <<");         break;
-        case OP_LOGICALNOT:             sResult=QString("operator !");          break;
-        case OP_EQUALS:                 sResult=QString("operator ==");         break;
-        case OP_NOTEQUALS:              sResult=QString("operator !=");         break;
-        case OP_ARRAYSUBSCRIPT:         sResult=QString("operator []");         break;
-        case OP_POINTER:                sResult=QString("operator ->");         break;
-        case OP_DEREFERENCE:            sResult=QString("operator *");          break;
-        case OP_INCREMENT:              sResult=QString("operator ++");         break;
-        case OP_DECREMENT:              sResult=QString("operator --");         break;
-        case OP_MINUS:                  sResult=QString("operator -");          break;
-        case OP_PLUS:                   sResult=QString("operator +");          break;
-        case OP_BITWISEAND:             sResult=QString("operator &");          break;
-        case OP_MEMBERPOINTER:          sResult=QString("operator ->*");        break;
-        case OP_DIVIDE:                 sResult=QString("operator /");          break;
-        case OP_MODULUS:                sResult=QString("operator %");          break;
-        case OP_LESSTHAN:               sResult=QString("operator <");          break;
-        case OP_LESSTHANEQUAL:          sResult=QString("operator <=");         break;
-        case OP_GREATERTHAN:            sResult=QString("operator >");          break;
-        case OP_GREATERTHANEQUAL:       sResult=QString("operator >=");         break;
-        case OP_COMMA:                  sResult=QString("operator ,");          break;
-        case OP_PARENS:                 sResult=QString("operator ()");         break;
-        case OP_BITWISENOT:             sResult=QString("operator ~");          break;
-        case OP_BITWISEXOR:             sResult=QString("operator ^");          break;
-        case OP_BITWISEOR:              sResult=QString("operator |");          break;
-        case OP_LOGICALAND:             sResult=QString("operator &&");         break;
-        case OP_LOGICALOR:              sResult=QString("operator ||");         break;
-        case OP_TIMESEQUAL:             sResult=QString("operator *=");         break;
-        case OP_PLUSEQUAL:              sResult=QString("operator +=");         break;
-        case OP_MINUSEQUAL:             sResult=QString("operator -=");         break;
-        case OP_DIVEQUAL:               sResult=QString("operator /=");         break;
-        case OP_MODEQUAL:               sResult=QString("operator %=");         break;
-        case OP_RSHEQUAL:               sResult=QString("operator >>=");        break;
-        case OP_LSHEQUAL:               sResult=QString("operator <<=");        break;
-        case OP_BITWISEANDEQUAL:        sResult=QString("operator &=");         break;
-        case OP_BITWISEOREQUAL:         sResult=QString("operator |=");         break;
-        case OP_BITWISEXOREQUAL:        sResult=QString("operator ^=");         break;
+        case OP_ASSIGN:                 sResult=QString("operator=");           break;
+        case OP_RIGHTSHIFT:             sResult=QString("operator>>");          break;
+        case OP_LEFTSHIFT:              sResult=QString("operator<<");          break;
+        case OP_LOGICALNOT:             sResult=QString("operator!");           break;
+        case OP_EQUALS:                 sResult=QString("operator==");          break;
+        case OP_NOTEQUALS:              sResult=QString("operator!=");          break;
+        case OP_ARRAYSUBSCRIPT:         sResult=QString("operator[]");          break;
+        case OP_POINTER:                sResult=QString("operator->");          break;
+        case OP_DEREFERENCE:            sResult=QString("operator*");           break;
+        case OP_INCREMENT:              sResult=QString("operator++");          break;
+        case OP_DECREMENT:              sResult=QString("operator--");          break;
+        case OP_MINUS:                  sResult=QString("operator-");           break;
+        case OP_PLUS:                   sResult=QString("operator+");           break;
+        case OP_BITWISEAND:             sResult=QString("operator&");           break;
+        case OP_MEMBERPOINTER:          sResult=QString("operator->*");         break;
+        case OP_DIVIDE:                 sResult=QString("operator/");           break;
+        case OP_MODULUS:                sResult=QString("operator%");           break;
+        case OP_LESSTHAN:               sResult=QString("operator<");           break;
+        case OP_LESSTHANEQUAL:          sResult=QString("operator<=");          break;
+        case OP_GREATERTHAN:            sResult=QString("operator>");           break;
+        case OP_GREATERTHANEQUAL:       sResult=QString("operator>=");          break;
+        case OP_COMMA:                  sResult=QString("operator,");           break;
+        case OP_PARENS:                 sResult=QString("operator()");          break;
+        case OP_BITWISENOT:             sResult=QString("operator~");           break;
+        case OP_BITWISEXOR:             sResult=QString("operator^");           break;
+        case OP_BITWISEOR:              sResult=QString("operator|");           break;
+        case OP_LOGICALAND:             sResult=QString("operator&&");          break;
+        case OP_LOGICALOR:              sResult=QString("operator||");          break;
+        case OP_TIMESEQUAL:             sResult=QString("operator*=");          break;
+        case OP_PLUSEQUAL:              sResult=QString("operator+=");          break;
+        case OP_MINUSEQUAL:             sResult=QString("operator-=");          break;
+        case OP_DIVEQUAL:               sResult=QString("operator/=");          break;
+        case OP_MODEQUAL:               sResult=QString("operator%=");          break;
+        case OP_RSHEQUAL:               sResult=QString("operator>>=");         break;
+        case OP_LSHEQUAL:               sResult=QString("operator<<=");         break;
+        case OP_BITWISEANDEQUAL:        sResult=QString("operator&=");          break;
+        case OP_BITWISEOREQUAL:         sResult=QString("operator|=");          break;
+        case OP_BITWISEXOREQUAL:        sResult=QString("operator^=");          break;
         case OP_VIRTUALTABLE:           sResult=QString("`vftable");            break;
         case OP_ARRAYNEW:               sResult=QString("operator new[]");      break;
         case OP_ARRAYDELETE:            sResult=QString("operator delete[]");   break;
@@ -322,7 +322,14 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 result.functionMod=(FM)signatureFM.nValue;
                 sString=sString.mid(signatureFM.nSize,-1);
 
-                if((result.functionMod!=FM_FAR)&&(result.functionMod!=FM_NEAR)) // Class member
+                if( (result.functionMod!=FM_FAR)&&
+                    (result.functionMod!=FM_NEAR)&&
+                    (result.functionMod!=FM_PUBLIC_STATICNEAR)&&
+                    (result.functionMod!=FM_PUBLIC_STATICFAR)&&
+                    (result.functionMod!=FM_PROTECTED_STATICNEAR)&&
+                    (result.functionMod!=FM_PROTECTED_STATICFAR)&&
+                    (result.functionMod!=FM_PRIVATE_STATICNEAR)&&
+                    (result.functionMod!=FM_PRIVATE_STATICFAR))
                 {
                     if(isSignaturePresent(sString,&hdata.mapStorageClasses))
                     {
@@ -851,8 +858,8 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
             QString sName=getNameFromSymbol(symbol);
 
-            if(sFuncMod!="")        sResult+=QString("%1 ").arg(sFuncMod);
-            sResult+=QString("%1 ").arg(sParameterReturn);
+            if(sFuncMod!="")            sResult+=QString("%1 ").arg(sFuncMod);
+            if(sParameterReturn!="")    sResult+=QString("%1 ").arg(sParameterReturn);
             sResult+=QString("%1 ").arg(sFunctionConvention);
             sResult+=sName;
             sResult+=QString("(");
