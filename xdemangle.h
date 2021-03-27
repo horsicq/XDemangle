@@ -220,7 +220,8 @@ public:
         OP_BITWISEXOREQUAL,
         OP_ARRAYNEW,
         OP_ARRAYDELETE,
-        OP_VIRTUALTABLE
+        OP_VIRTUALTABLE,
+        OP_DEFAULTCTORCLOSURE
     };
 
     struct MOD
@@ -236,7 +237,7 @@ public:
         TYPE type;
         QList<QString> listNames;
         QList<qint64> listIndexes; // For var[x][y]
-        QList<PARAMETER> listTemplateParameters; // Template mb TODO flags;
+        QList<QList<PARAMETER>> listListTemplateParameters; // Template mb TODO flags;
         QList<PARAMETER> listFunctionParameters; // if pointer to a function
     };
 
@@ -294,6 +295,8 @@ public:
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
     static void reverseList(QList<QString> *pList);
+    static void reverseList(QList<MOD> *pList);
+    static void reverseList(QList<QList<PARAMETER>> *pListList);
 
     HDATA getHdata(MODE mode);
 
@@ -336,7 +339,8 @@ private:
 
     QString getNameFromSymbol(SYMBOL symbol);
     QString getNameFromParameter(PARAMETER *pParameter,MODE mode);
-    QString getStringFromParameter(PARAMETER parameter, MODE mode, QString sName="", bool bFuncRet=false);
+    QString getTemplatesFromParameters(QList<PARAMETER> *pListParameters,MODE mode);
+    QString getStringFromParameter(PARAMETER parameter,MODE mode,QString sName="",bool bFuncRet=false);
 };
 
 #endif // XDEMANGLE_H
