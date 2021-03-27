@@ -469,6 +469,8 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
             }
         }
 
+        // TODO Consts
+
         if(_compare(sString,"P6A")) // Pointer to a function
         {
             parameter.type=TYPE_POINTERTOFUNCTION;
