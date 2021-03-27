@@ -714,7 +714,11 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
         if(_compare(sString,"?$"))
         {
             // Template
-            nResult+=2;
+            if(bAddToList)
+            {
+                nResult+=2;
+            }
+
             sString=sString.mid(2,-1);
             bTemplate=true;
             sRecord+="?$";
@@ -757,7 +761,12 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
             if(_compare(sString,"@"))
             {
                 sRecord+="@";
-                nResult++;
+
+                if(bAddToList)
+                {
+                    nResult++;
+                }
+
                 sString=sString.mid(1,-1);
             }
         }
