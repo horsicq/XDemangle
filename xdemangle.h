@@ -222,7 +222,8 @@ public:
         OP_ARRAYNEW,
         OP_ARRAYDELETE,
         OP_VIRTUALTABLE,
-        OP_DEFAULTCTORCLOSURE
+        OP_DEFAULTCTORCLOSURE,
+        OP_TYPE
     };
 
     struct MOD

@@ -257,6 +257,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_DEFAULTCTORCLOSURE:     sResult=QString("`default ctor closure'");  break;
         case OP_ARRAYNEW:               sResult=QString("operator new[]");          break;
         case OP_ARRAYDELETE:            sResult=QString("operator delete[]");       break;
+        case OP_TYPE:                   sResult=QString("");                        break;
     }
 
     return sResult;
@@ -1307,6 +1308,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("?8",OP_EQUALS);
         mapResult.insert("?9",OP_NOTEQUALS);
         mapResult.insert("?A",OP_ARRAYSUBSCRIPT);
+        mapResult.insert("?B",OP_TYPE);
         mapResult.insert("?C",OP_POINTER);
         mapResult.insert("?D",OP_DEREFERENCE);
         mapResult.insert("?E",OP_INCREMENT);
