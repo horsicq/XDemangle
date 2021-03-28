@@ -952,7 +952,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
                 if(symbol.classStorageClass!=SC_UNKNOWN)
                 {
-                    if(sClassStorage!="")       sResult+=QString(" %1").arg(sClassStorage);
+                    if(sClassStorage!="") sResult+=QString(" %1").arg(sClassStorage);
                 }
             }
         }
@@ -963,7 +963,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
             if(symbol.storageClass!=SC_UNKNOWN)
             {
-                if(sStorage!="")       sResult+=QString("%1 ").arg(sStorage);
+                if(sStorage!="") sResult+=QString("%1 ").arg(sStorage);
             }
 
             sResult+=sName;
