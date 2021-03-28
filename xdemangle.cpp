@@ -1416,7 +1416,8 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 
             if(nNumberOfNames)
             {
-                sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1);
+                QList<PARAMETER> listTemplates=symbol.paramMain.listListTemplateParameters.at(nNumberOfNames-1);
+                sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1)+getTemplatesFromParameters(&listTemplates,symbol.mode);
             }
         }
         else if(symbol._operator==OP_TYPE)
