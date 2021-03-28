@@ -257,7 +257,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_DEFAULTCTORCLOSURE:     sResult=QString("`default ctor closure'");  break;
         case OP_ARRAYNEW:               sResult=QString("operator new[]");          break;
         case OP_ARRAYDELETE:            sResult=QString("operator delete[]");       break;
-        case OP_TYPE:                   sResult=QString("");                        break;
+        case OP_TYPE:                   sResult=QString("operator ");               break;
     }
 
     return sResult;
@@ -1417,6 +1417,15 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
             if(nNumberOfNames)
             {
                 sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1);
+            }
+        }
+        else if(symbol._operator==OP_TYPE)
+        {
+            int nNumberOfTypes=symbol.listParameters.count();
+
+            if(nNumberOfTypes)
+            {
+                sResult+=getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
             }
         }
     }
