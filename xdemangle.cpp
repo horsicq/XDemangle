@@ -469,8 +469,6 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
             }
         }
 
-        // TODO Consts
-
         if(_compare(sString,"P6A")) // Pointer to a function
         {
             parameter.type=TYPE_POINTERTOFUNCTION;
@@ -510,6 +508,28 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
                 sString=sString.mid(1,-1);
             }
+        }
+        else if(_compare(sString,"$0")) // const
+        {
+            parameter.type=TYPE_CONST;
+
+            if(bAddToRecord)
+            {
+                nResult+=2;
+            }
+
+            sString=sString.mid(2,-1);
+
+            NUMBER number=readNumber(pHdata,sString,mode);
+
+            parameter.nConst=number.nValue;
+
+            if(bAddToRecord)
+            {
+                nResult+=number.nSize;
+            }
+
+            sString=sString.mid(number.nSize,-1);
         }
         else
         {
@@ -980,6 +1000,14 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
+        bool bNeg=false;
+
+        if(_compare(sString,"?"))
+        {
+            sString=sString.mid(1,-1);
+            bNeg=true;
+        }
+
         if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
         {
             SIGNATURE signature=getSignature(sString,&(pHdata->mapNumbers));
@@ -987,7 +1015,7 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
             if(signature.nSize)
             {
                 result.nValue=signature.nValue+1;
-                result.nSize++;
+                result.nSize=1;
             }
         }
         else if(isSignaturePresent(sString,&(pHdata->mapHexNumbers)))
@@ -1024,6 +1052,12 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
             {
                 result.nSize=0;
             }
+        }
+
+        if((bNeg)&&(result.nSize))
+        {
+            result.nSize++;
+            result.nValue=-(result.nValue);
         }
     }
 
@@ -1466,6 +1500,10 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
         }
 
         sResult+=")";
+    }
+    else if(parameter.type==TYPE_CONST)
+    {
+        sResult=QString::number(parameter.nConst);
     }
     else
     {

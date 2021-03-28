@@ -83,7 +83,8 @@ public:
         TYPE_STRUCT,
         TYPE_ENUM,
         TYPE_POINTERTOFUNCTION,
-        TYPE_NULLPTR
+        TYPE_NULLPTR,
+        TYPE_CONST
     };
 
     enum OC
@@ -239,6 +240,7 @@ public:
         QList<qint64> listIndexes; // For var[x][y]
         QList<QList<PARAMETER>> listListTemplateParameters; // Template mb TODO flags;
         QList<PARAMETER> listFunctionParameters; // if pointer to a function
+        qint64 nConst;
     };
 
     struct HDATA
