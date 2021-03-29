@@ -37,7 +37,8 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
         case MODE_MSVC32:       sResult=QString("MSVC+++ 32");          break;
         case MODE_GCC:          sResult=QString("GNU C++");             break;
         case MODE_WATCOM:       sResult=QString("Watcom");              break;
-        case MODE_BORLAND32:    sResult=QString("Borland");             break;
+        case MODE_BORLAND32:    sResult=QString("Borland 32");          break;
+        case MODE_BORLAND64:    sResult=QString("Borland 64");          break;
     }
 
     return sResult;

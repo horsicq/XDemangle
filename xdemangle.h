@@ -48,7 +48,8 @@ public:
         SYNTAX_UNKNOWN=0,
         SYNTAX_MICROSOFT,
         SYNTAX_ITANIUM,
-        SYNTAX_BORLAND,
+        SYNTAX_BORLAND32,
+        SYNTAX_BORLAND64,
         SYNTAX_WATCOM
     };
 
