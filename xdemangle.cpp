@@ -771,15 +771,18 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
 
         sString=sString.mid(_string.nSize,-1);
 
+        QString sTemplate;
+
         QList<PARAMETER> listTemplateParameters;
 
         if(bTemplate)
         {
-//            QList<QString> _pListStringRefs;
-//            QList<QString> _pListArgRefs;
+            sTemplate=sString;
+            QList<QString> _pListStringRefs=*pListStringRefs;
+            QList<QString> _pListArgRefs=*pListArgRefs;
 
-//            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,&_pListStringRefs,&_pListArgRefs);
-            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,pListStringRefs,pListArgRefs);
+            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,&_pListStringRefs,&_pListArgRefs);
+//            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,pListStringRefs,pListArgRefs);
 
             sRecord+=sString.leftRef(nPSize);
 
@@ -808,6 +811,11 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
         if(bAddToList)
         {
             pListStringRefs->append(sRecord);
+
+            if(bTemplate)
+            {
+                handleParams(pHdata,sString,mode,&listTemplateParameters,0,pListStringRefs,pListArgRefs);
+            }
         }
     }
 
