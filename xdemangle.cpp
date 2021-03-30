@@ -800,8 +800,10 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
 
         QString sTemplate;
 
-        QList<QString> _listStringRefs=*pListStringRefs;
+//        QList<QString> _listStringRefs=*pListStringRefs;
         QList<QString> _listArgRefs=*plistArgRefs;
+        QList<QString> _listStringRefs;
+//        QList<QString> _listArgRefs;
 
         QList<PARAMETER> listTemplateParameters;
 
@@ -809,6 +811,7 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
         {
             sTemplate=sString;
             
+            _listStringRefs.append(sString);
             qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,&_listStringRefs,&_listArgRefs);
 //            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,pListStringRefs,pListArgRefs);
 
@@ -840,21 +843,21 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
         {
             pListStringRefs->append(sRecord);
 
-            if(bTemplate)
-            {
-                int nStringSize=(_listStringRefs.size())-(pListStringRefs->size());
-                int nArgSize=(_listArgRefs.size())-(plistArgRefs->size());
+//            if(bTemplate)
+//            {
+//                int nStringSize=(_listStringRefs.size())-(pListStringRefs->size());
+//                int nArgSize=(_listArgRefs.size())-(plistArgRefs->size());
 
-                if(nStringSize)
-                {
-                    pListStringRefs->append(_listStringRefs.mid(pListStringRefs->size()));
-                }
+//                if(nStringSize)
+//                {
+//                    pListStringRefs->append(_listStringRefs.mid(pListStringRefs->size()));
+//                }
 
-                if(nArgSize)
-                {
-                    plistArgRefs->append(_listArgRefs.mid(plistArgRefs->size()));
-                }
-            }
+//                if(nArgSize)
+//                {
+//                    plistArgRefs->append(_listArgRefs.mid(plistArgRefs->size()));
+//                }
+//            }
         }
     }
 
