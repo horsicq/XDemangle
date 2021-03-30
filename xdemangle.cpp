@@ -326,17 +326,6 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 result.functionMod=(FM)signatureFM.nValue;
                 sString=sString.mid(signatureFM.nSize,-1);
 
-                if(_compare(sString,"G"))
-                {
-                    result.bRef=true;
-                    sString=sString.mid(1,-1);
-                }
-                else if(_compare(sString,"H")) // TODO
-                {
-                    result.bDoubleRef=true;
-                    sString=sString.mid(1,-1);
-                }
-
                 if( (result.functionMod!=FM_FAR)&&
                     (result.functionMod!=FM_NEAR)&&
                     (result.functionMod!=FM_PUBLIC_STATICNEAR)&&
@@ -346,6 +335,17 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                     (result.functionMod!=FM_PRIVATE_STATICNEAR)&&
                     (result.functionMod!=FM_PRIVATE_STATICFAR))
                 {
+                    if(_compare(sString,"G"))
+                    {
+                        result.bRef=true;
+                        sString=sString.mid(1,-1);
+                    }
+                    else if(_compare(sString,"H"))
+                    {
+                        result.bDoubleRef=true;
+                        sString=sString.mid(1,-1);
+                    }
+
                     if(isSignaturePresent(sString,&hdata.mapStorageClasses))
                     {
                         SIGNATURE signatureSC=getSignature(sString,&hdata.mapStorageClasses);
@@ -1697,7 +1697,11 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
         if(sName!="")
         {
-            if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
+            if( (_getStringEnd(sResult)!=QChar(' '))&&
+                (_getStringEnd(sResult)!=QChar('*')))
+            {
+                sResult+=" ";
+            }
 
             sResult+=QString("%1").arg(sName);
         }
