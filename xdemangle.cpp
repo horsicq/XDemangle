@@ -289,6 +289,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
         if(_compare(sString,"?"))
         {
             QList<QString> _listStringRefs;
+            QList<QString> _listArgRefs;
 
             sString=sString.mid(1,-1);
 
@@ -300,7 +301,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
             }
 
             // Name
-            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs);
+            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs,&_listArgRefs);
 
             sString=sString.mid(nNamesSize,-1);
 
@@ -324,6 +325,17 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 SIGNATURE signatureFM=getSignature(sString,&hdata.mapFunctionMods);
                 result.functionMod=(FM)signatureFM.nValue;
                 sString=sString.mid(signatureFM.nSize,-1);
+
+                if(_compare(sString,"G"))
+                {
+                    result.bRef=true;
+                    sString=sString.mid(1,-1);
+                }
+                else if(_compare(sString,"H")) // TODO
+                {
+                    result.bDoubleRef=true;
+                    sString=sString.mid(1,-1);
+                }
 
                 if( (result.functionMod!=FM_FAR)&&
                     (result.functionMod!=FM_NEAR)&&
@@ -366,7 +378,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 nLimit=1;
             }
 
-            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listStringRefs);
+            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listStringRefs,&_listArgRefs);
 
             sString=sString.mid(nSize,-1);
 
@@ -430,11 +442,9 @@ QString XDemangle::convert(QString sString, MODE mode)
     return sResult;
 }
 
-qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStringRefs)
+qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStringRefs,QList<QString> *plistArgRefs)
 {
     qint32 nResult=0;
-
-    QList<QString> _listArgRefs;
 
     int nIndex=0;
 
@@ -463,14 +473,16 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
         {
             SIGNATURE signatureIndex=getSignature(sString,&(pHdata->mapNumbers));
 
-            if(signatureIndex.nValue<_listArgRefs.count())
+            if(signatureIndex.nValue<plistArgRefs->count())
             {
-                QString sRecord=_listArgRefs.at(signatureIndex.nValue);
+                QString sRecord=plistArgRefs->at(signatureIndex.nValue);
                 sString=sString.replace(0,signatureIndex.nSize,sRecord);
                 bAddToRecord=false;
                 nResult++;
             }
         }
+
+        bool bFunction=false;
 
         if(_compare(sString,"P6A")) // Pointer to a function
         {
@@ -483,11 +495,25 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             sString=sString.mid(3,-1);
 
-//            QList<QString> _pListStringRefs;
-//            QList<QString> _pListArgRefs;
+            bFunction=true;
+        }
+        if(_compare(sString,"$$A6A")) // Function
+        {
+            parameter.type=TYPE_FUNCTION;
 
-//            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),nLimit,&_pListStringRefs,&_pListArgRefs);
-            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),nLimit,pListStringRefs);
+            if(bAddToRecord)
+            {
+                nResult+=5;
+            }
+
+            sString=sString.mid(5,-1);
+
+            bFunction=true;
+        }
+
+        if(bFunction) // Pointer to a function
+        {
+            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),nLimit,pListStringRefs,plistArgRefs);
 
             if(bAddToRecord)
             {
@@ -650,7 +676,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
                 sString=sString.mid(signatureType.nSize,-1);
 
-                qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs);
+                qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs);
 
                 if(bAddToRecord)
                 {
@@ -697,9 +723,9 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                 {
                     QString sArg=parameter.sRecord;
 
-                    if(!(_listArgRefs.contains(sArg)))
+                    if(!(plistArgRefs->contains(sArg)))
                     {
-                        _listArgRefs.append(sArg);
+                        plistArgRefs->append(sArg);
                     }
                 }
             }
@@ -716,7 +742,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
     return nResult;
 }
 
-qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, PARAMETER *pParameter, QList<QString> *pListStringRefs)
+qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, PARAMETER *pParameter, QList<QString> *pListStringRefs, QList<QString> *plistArgRefs)
 {
     qint32 nResult=0;
 
@@ -774,14 +800,16 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
 
         QString sTemplate;
 
+        QList<QString> _listStringRefs=*pListStringRefs;
+        QList<QString> _listArgRefs=*plistArgRefs;
+
         QList<PARAMETER> listTemplateParameters;
 
         if(bTemplate)
         {
             sTemplate=sString;
-            QList<QString> _pListStringRefs=*pListStringRefs;
-
-            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,&_pListStringRefs);
+            
+            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,&_listStringRefs,&_listArgRefs);
 //            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,pListStringRefs,pListArgRefs);
 
             sRecord+=sString.leftRef(nPSize);
@@ -814,7 +842,18 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
 
             if(bTemplate)
             {
-                handleParams(pHdata,sString,mode,&listTemplateParameters,0,pListStringRefs);
+                int nStringSize=(_listStringRefs.size())-(pListStringRefs->size());
+                int nArgSize=(_listArgRefs.size())-(plistArgRefs->size());
+
+                if(nStringSize)
+                {
+                    pListStringRefs->append(_listStringRefs.mid(pListStringRefs->size()));
+                }
+
+                if(nArgSize)
+                {
+                    plistArgRefs->append(_listArgRefs.mid(plistArgRefs->size()));
+                }
             }
         }
     }
@@ -962,15 +1001,24 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
                 sFunction+=QString(")");
 
+                if(symbol.classStorageClass!=SC_UNKNOWN)
+                {
+                    if(sClassStorage!="") sFunction+=QString(" %1").arg(sClassStorage);
+                }
+
+                if(symbol.bRef)
+                {
+                    sFunction+=QString(" &");
+                }
+                else if(symbol.bDoubleRef)
+                {
+                    sFunction+=QString(" &&");
+                }
+
                 QString sParameterReturn=getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sFunction,true);
 
                 if(sFuncMod!="")            sResult+=QString("%1 ").arg(sFuncMod);
                 if(sParameterReturn!="")    sResult+=QString("%1").arg(sParameterReturn);
-
-                if(symbol.classStorageClass!=SC_UNKNOWN)
-                {
-                    if(sClassStorage!="") sResult+=QString(" %1").arg(sClassStorage);
-                }
             }
         }
         else if((symbol.symbolType==ST_VFTABLE))
@@ -1096,6 +1144,28 @@ bool XDemangle::_compare(QString sString, QString sSignature)
     }
 
     return bResult;
+}
+
+QChar XDemangle::_getStringEnd(QString sString)
+{
+    QChar cResult=QChar(' ');
+
+    if(sString!="")
+    {
+        cResult=sString.at(sString.size()-1);
+    }
+
+    return cResult;
+}
+
+QString XDemangle::_removeLastSymbol(QString sString)
+{
+    if(sString!="")
+    {
+        sString.resize(sString.size()-1);
+    }
+
+    return sString;
 }
 
 bool XDemangle::isSignaturePresent(QString sString, QMap<QString, qint32> *pMap)
@@ -1508,9 +1578,19 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
     if(nNumberOfFunctionParameters)
     {
-        QString sFunction=QString("(__cdecl *");
-        if(sName!="") sFunction+=QString(" %1").arg(sName);
-        sFunction+=")";
+        QString sFunction;
+
+        if(parameter.type==TYPE_POINTERTOFUNCTION)
+        {
+            sFunction=QString("(__cdecl *");
+
+            if(sName!="") sFunction+=QString(" %1").arg(sName);
+            sFunction+=")";
+        }
+        else if(parameter.type==TYPE_FUNCTION)
+        {
+            sFunction=QString("__cdecl");
+        }
 
         QString sReturn=getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
 
@@ -1542,21 +1622,31 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
         QString sMod;
         bool bStorageClass=false;
         bool bParamMod=false;
+        bool bPointer=false;
 
         for(int i=0;i<nNumberOfMods;i++)
         {
             QString sStorageClass=storageClassIdToString(parameter.listMods.at(i).storageClass,mode);
             QString sParamMod=paramModIdToString(parameter.listMods.at(i).paramMod,mode);
 
+            if(parameter.listMods.at(i).paramMod==PM_POINTER)
+            {
+                bPointer=true;
+            }
+
             bStorageClass=(sStorageClass!="");
             bParamMod=(sParamMod!="");
 
-            sMod+=QString("%1").arg(sStorageClass);
+            if(sStorageClass!="")
+            {
+                if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
+                sMod+=QString("%1").arg(sStorageClass);
+            }
 
             if(sParamMod!="")
             {
-                if(sStorageClass!="") sMod+=" ";
-                sMod+=QString("%1").arg(sParamMod);
+                if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
+                sMod+=QString("%1 ").arg(sParamMod);
             }
         }
 
@@ -1567,19 +1657,34 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
         if(sTypeName!="")
         {
-            if(sResult!="") sResult+=" ";
+            if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
 
             sResult+=QString("%1").arg(sTypeName);
         }
 
+//        if( ((sMod!="")&&(parameter.type!=TYPE_STRUCT))||
+//            (bStorageClass)||
+//            ((sMod!="")&&(!bPointer)&&(parameter.type==TYPE_STRUCT)))
+//        {
+//            if(sResult!="") sResult+=" ";
+//        }
+
         if(sMod!="")
         {
-            if(sResult!="") sResult+=" ";
+            if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
         }
 
         if(nNumberOfIndexes>1) sResult+="(";
 
         if(sMod!="") sResult+=QString("%1").arg(sMod);
+
+        if(sResult!="")
+        {
+            if(_getStringEnd(sResult)==QChar(' '))
+            {
+                sResult=_removeLastSymbol(sResult);
+            }
+        }
 
         if(bFuncRet)
         {
@@ -1588,13 +1693,7 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
         if(sName!="")
         {
-            if(!bParamMod)
-            {
-                if(sType!="")
-                {
-                    sResult+=" ";
-                }
-            }
+            if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
 
             sResult+=QString("%1").arg(sName);
         }

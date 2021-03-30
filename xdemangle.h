@@ -84,6 +84,7 @@ public:
         TYPE_STRUCT,
         TYPE_ENUM,
         TYPE_POINTERTOFUNCTION,
+        TYPE_FUNCTION,
         TYPE_NULLPTR,
         TYPE_CONST
     };
@@ -274,6 +275,8 @@ public:
         SC classStorageClass;
         FM functionMod;
         FC functionConvention;
+        bool bRef;
+        bool bDoubleRef;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
@@ -291,8 +294,8 @@ public:
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
-    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs);
-    qint32 handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs);
+    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
+    qint32 handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
 
     MODE detectMode(QString sString);
 
@@ -327,6 +330,8 @@ private:
     STRING readString(QString sString,MODE mode);
     NUMBER readNumber(HDATA *pHdata,QString sString,MODE mode);
     bool _compare(QString sString,QString sSignature);
+    QChar _getStringEnd(QString sString);
+    QString _removeLastSymbol(QString sString);
 
     bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);
     SIGNATURE getSignature(QString sString,QMap<QString,qint32> *pMap);
