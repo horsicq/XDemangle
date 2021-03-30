@@ -1645,8 +1645,12 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
             if(sParamMod!="")
             {
-                if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
-                sMod+=QString("%1 ").arg(sParamMod);
+                if( (_getStringEnd(sMod)!=QChar(' '))&&
+                    (_getStringEnd(sMod)!=QChar('*')))
+                {
+                    sMod+=" ";
+                }
+                sMod+=QString("%1").arg(sParamMod);
             }
         }
 
