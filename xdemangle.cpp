@@ -1642,8 +1642,11 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
             if(sStorageClass!="")
             {
-                if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
-                sMod+=QString("%1").arg(sStorageClass);
+                if((sMod!="*const")&&(sStorageClass!="const"))
+                {
+                    if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
+                    sMod+=QString("%1").arg(sStorageClass);
+                }
             }
 
             if(sParamMod!="")
