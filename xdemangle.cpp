@@ -288,6 +288,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
     {
         if(_compare(sString,"?"))
         {
+            bool bFirst=true;
             QList<QString> _listStringRefs;
             QList<QString> _listArgRefs;
 
@@ -298,10 +299,11 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 SIGNATURE signatureOP=getSignature(sString,&hdata.mapOperators);
                 result._operator=(OP)signatureOP.nValue;
                 sString=sString.mid(signatureOP.nSize,-1);
+                bFirst=false;
             }
 
             // Name
-            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs,&_listArgRefs,true);
+            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs,&_listArgRefs,bFirst);
 
             sString=sString.mid(nNamesSize,-1);
 
@@ -870,8 +872,6 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
         }
 
         pParameter->listListTemplateParameters.append(listTemplateParameters);
-
-
 
         if(bAddToList)
         {
