@@ -84,6 +84,7 @@ public:
         TYPE_STRUCT,
         TYPE_ENUM,
         TYPE_POINTERTOFUNCTION,
+        TYPE_MEMBER,
         TYPE_FUNCTION,
         TYPE_NULLPTR,
         TYPE_CONST

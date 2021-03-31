@@ -480,6 +480,10 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                 bAddToRecord=false;
                 nResult++;
             }
+            else
+            {
+                qDebug("ERROR ArgRefs");
+            }
         }
 
         bool bFunction=false;
@@ -487,6 +491,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
         if(_compare(sString,"P6A")) // Pointer to a function
         {
             parameter.type=TYPE_POINTERTOFUNCTION;
+            bFunction=true;
 
             if(bAddToRecord)
             {
@@ -494,12 +499,11 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
             }
 
             sString=sString.mid(3,-1);
-
-            bFunction=true;
         }
         if(_compare(sString,"$$A6A")) // Function
         {
             parameter.type=TYPE_FUNCTION;
+            bFunction=true;
 
             if(bAddToRecord)
             {
@@ -507,8 +511,30 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
             }
 
             sString=sString.mid(5,-1);
-
+        }
+        if(_compare(sString,"P8")) // Member
+        {
+            parameter.type=TYPE_MEMBER;
             bFunction=true;
+
+            if(bAddToRecord)
+            {
+                nResult+=2;
+            }
+
+            sString=sString.mid(2,-1);
+
+//            QList<QString> _ListStringRefs;
+//            QList<QString> _ListArgRefs;
+//            qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,&_ListStringRefs,&_ListArgRefs);
+            qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs);
+
+            if(bAddToRecord)
+            {
+                nResult+=nNamesSize;
+            }
+
+            sString=sString.mid(nNamesSize,-1);
         }
 
         if(bFunction) // Pointer to a function
@@ -763,6 +789,10 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
                 nResult+=signatureIndex.nSize;
 
                 bAddToList=false;
+            }
+            else
+            {
+                qDebug("ERROR Strings");
             }
         }
 
@@ -1594,6 +1624,10 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
         {
             sFunction=QString("__cdecl");
         }
+        else if(parameter.type==TYPE_MEMBER)
+        {
+            sFunction=QString("(__thiscall %1::*)").arg(getNameFromParameter(&parameter,mode));
+        }
 
         QString sReturn=getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
 
@@ -1632,21 +1666,18 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
             QString sStorageClass=storageClassIdToString(parameter.listMods.at(i).storageClass,mode);
             QString sParamMod=paramModIdToString(parameter.listMods.at(i).paramMod,mode);
 
-            if(parameter.listMods.at(i).paramMod==PM_POINTER)
-            {
-                bPointer=true;
-            }
-
             bStorageClass=(sStorageClass!="");
             bParamMod=(sParamMod!="");
 
             if(sStorageClass!="")
             {
-                if((sMod!="*const")&&(sStorageClass!="const"))
-                {
-                    if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
-                    sMod+=QString("%1").arg(sStorageClass);
-                }
+//                if((sMod!="*const")&&(sStorageClass!="const"))
+//                {
+//                    if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
+//                    sMod+=QString("%1").arg(sStorageClass);
+//                }
+                if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
+                sMod+=QString("%1").arg(sStorageClass);
             }
 
             if(sParamMod!="")
@@ -1681,7 +1712,14 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
         if(sMod!="")
         {
-            if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
+            if(_getStringEnd(sResult)!=QChar(' '))
+            {
+//                if(parameter.type!=TYPE_STRUCT)
+//                {
+//                    sResult+=" ";
+//                }
+                 sResult+=" ";
+            }
         }
 
         if(nNumberOfIndexes>1) sResult+="(";
@@ -1698,7 +1736,17 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
         if(bFuncRet)
         {
-            if(bParamMod) sResult+=" ";
+            if(bParamMod)
+            {
+                if(sResult=="void &")
+                {
+                    sResult=_removeLastSymbol(sResult);
+                }
+                else
+                {
+                    sResult+=" ";
+                }
+            }
         }
 
         if(sName!="")
