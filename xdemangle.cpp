@@ -301,7 +301,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
             }
 
             // Name
-            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs,&_listArgRefs);
+            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs,&_listArgRefs,true);
 
             sString=sString.mid(nNamesSize,-1);
 
@@ -527,7 +527,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 //            QList<QString> _ListStringRefs;
 //            QList<QString> _ListArgRefs;
 //            qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,&_ListStringRefs,&_ListArgRefs);
-            qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs);
+            qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
 
             if(bAddToRecord)
             {
@@ -702,7 +702,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
                 sString=sString.mid(signatureType.nSize,-1);
 
-                qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs);
+                qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
 
                 if(bAddToRecord)
                 {
@@ -768,9 +768,11 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
     return nResult;
 }
 
-qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, PARAMETER *pParameter, QList<QString> *pListStringRefs, QList<QString> *plistArgRefs)
+qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, PARAMETER *pParameter, QList<QString> *pListStringRefs, QList<QString> *plistArgRefs, bool bFirst)
 {
     qint32 nResult=0;
+
+    qint32 nIndex=0;
 
     while(sString!="")
     {
@@ -869,9 +871,15 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
 
         pParameter->listListTemplateParameters.append(listTemplateParameters);
 
+
+
         if(bAddToList)
         {
-            pListStringRefs->append(sRecord);
+            if((!bFirst)||nIndex)
+            {
+                pListStringRefs->append(sRecord);
+            }
+
 
 //            if(bTemplate)
 //            {
@@ -889,6 +897,8 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
 //                }
 //            }
         }
+
+        nIndex++;
     }
 
     if(_compare(sString,"@"))
