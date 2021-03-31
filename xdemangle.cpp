@@ -875,7 +875,7 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
 
         if(bAddToList)
         {
-            if((!bFirst)||nIndex)
+            if((!bFirst)||(nIndex)||(!bTemplate))
             {
                 pListStringRefs->append(sRecord);
             }
