@@ -1728,7 +1728,7 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 //                {
 //                    sResult+=" ";
 //                }
-                 sResult+=" ";
+                sResult+=" ";
             }
         }
 
