@@ -619,7 +619,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
                     sString=sString.mid(signatureStorageClass.nSize,-1);
 
-                    MOD mod={};
+                    PARAMETER mod={};
                     mod.paramMod=(PM)signatureParamMod.nValue;
                     mod.storageClass=(SC)signatureStorageClass.nValue;
 
@@ -638,13 +638,13 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                 reverseList(&(parameter.listMods));
             }
 
-            if(!bMod)
-            {
-                MOD mod={};
-                mod.storageClass=SC_NEAR;
+//            if(!bMod)
+//            {
+//                MOD mod={};
+//                mod.storageClass=SC_NEAR;
 
-                parameter.listMods.append(mod);
-            }
+//                parameter.listMods.append(mod);
+//            }
 
             if(bMod)
             {
@@ -973,7 +973,7 @@ void XDemangle::reverseList(QList<QString> *pList)
     }
 }
 
-void XDemangle::reverseList(QList<XDemangle::MOD> *pList)
+void XDemangle::reverseList(QList<XDemangle::PARAMETER> *pList)
 {
     int nNumberOfRecords=pList->count();
 
@@ -982,6 +982,16 @@ void XDemangle::reverseList(QList<XDemangle::MOD> *pList)
         pList->swap(i,nNumberOfRecords-(1+i));
     }
 }
+
+//void XDemangle::reverseList(QList<XDemangle::MOD> *pList)
+//{
+//    int nNumberOfRecords=pList->count();
+
+//    for(int i=0;i<(nNumberOfRecords/2);i++)
+//    {
+//        pList->swap(i,nNumberOfRecords-(1+i));
+//    }
+//}
 
 void XDemangle::reverseList(QList<QList<XDemangle::PARAMETER> > *pListList)
 {

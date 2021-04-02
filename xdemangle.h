@@ -229,18 +229,14 @@ public:
         OP_TYPE
     };
 
-    struct MOD
-    {
-        PM paramMod;
-        SC storageClass;
-    };
-
     struct PARAMETER
     {
         QString sRecord;
-        QList<MOD> listMods;
         TYPE type;
+        PM paramMod;
+        SC storageClass;
         QList<QString> listNames;
+        QList<PARAMETER> listMods;
         QList<qint64> listIndexes; // For var[x][y]
         QList<QList<PARAMETER>> listListTemplateParameters; // Template mb TODO flags;
         QList<PARAMETER> listFunctionParameters; // if pointer to a function
@@ -303,7 +299,8 @@ public:
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
     static void reverseList(QList<QString> *pList);
-    static void reverseList(QList<MOD> *pList);
+//    static void reverseList(QList<MOD> *pList);
+    static void reverseList(QList<PARAMETER> *pList);
     static void reverseList(QList<QList<PARAMETER>> *pListList);
 
     HDATA getHdata(MODE mode);
