@@ -69,8 +69,8 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_DOUBLE:           sResult=QString("double");              break;
         case TYPE_LONGDOUBLE_64:    sResult=QString("long double");         break;
         case TYPE_LONGDOUBLE_80:    sResult=QString("long double");         break;
-        case TYPE_INT64:            sResult=QString("__int64");             break;
-        case TYPE_UINT64:           sResult=QString("unsigned __int64");    break;
+        case TYPE_INT64:            sResult=QString("__int64");             break; // TODO Check !!!
+        case TYPE_UINT64:           sResult=QString("unsigned __int64");    break; // TODO Check !!!
         case TYPE_CHAR8:            sResult=QString("char");                break;
         case TYPE_CHAR16:           sResult=QString("char16_t");            break;
         case TYPE_CHAR32:           sResult=QString("char32_t");            break;
