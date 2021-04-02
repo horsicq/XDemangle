@@ -484,7 +484,9 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
             }
             else
             {
+            #ifdef QT_DEBUG
                 qDebug("ERROR ArgRefs");
+            #endif
             }
         }
 
@@ -811,7 +813,9 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
             }
             else
             {
+            #ifdef QT_DEBUG
                 qDebug("ERROR Strings");
+            #endif
             }
         }
 
