@@ -598,6 +598,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             while(sString!="")
             {
+                // TODO names
                 if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
                 {
                     SIGNATURE signatureParamMod=getSignature(sString,&(pHdata->mapParamMods));
@@ -647,6 +648,20 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             if(bMod)
             {
+//                if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
+//                {
+//                    // TODO Check
+
+//                    qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
+
+//                    if(bAddToRecord)
+//                    {
+//                        nResult+=nNamesSize;
+//                    }
+
+//                    sString=sString.mid(nNamesSize,-1);
+//                }
+
                 if(_compare(sString,"Y"))
                 {
                     // Array
