@@ -395,13 +395,13 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 
                 result.storageClass=(SC)signature.nValue;
 
-//                if(result.symbolType==ST_VARIABLE)
-//                {
-//                    if((result.listParameters.count()==1)&&(result.listParameters.at(0).listMods.count()==1))
-//                    {
-//                        result.listParameters[0].listMods[0].storageClass=result.storageClass;
-//                    }
-//                }
+                if(result.symbolType==ST_VARIABLE)
+                {
+                    if((result.listParameters.count()==1)&&(result.listParameters.at(0).listMods.count()==1)) // TODO Check
+                    {
+                        result.listParameters[0].listMods[0].storageClass=result.storageClass;
+                    }
+                }
 
                 sString=sString.mid(signature.nSize,-1);
             }
@@ -640,13 +640,13 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                 reverseList(&(parameter.listMods));
             }
 
-//            if(!bMod)
-//            {
-//                MOD mod={};
-//                mod.storageClass=SC_NEAR;
+            if(!bMod)
+            {
+                PARAMETER mod={};
+                mod.storageClass=SC_NEAR;
 
-//                parameter.listMods.append(mod);
-//            }
+                parameter.listMods.append(mod);
+            }
 
             if(bMod)
             {
