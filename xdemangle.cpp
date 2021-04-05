@@ -95,7 +95,7 @@ QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle:
 
     switch(storageClass)
     {
-        case SC_UNKNOWN:            sResult=QString("Unknown");             break; // mb TODO translate
+        case SC_UNKNOWN:            sResult=QString("");                    break;
         case SC_NEAR:               sResult=QString("");                    break;
         case SC_CONST:              sResult=QString("const");               break;
         case SC_VOLATILE:           sResult=QString("volatile");            break;
@@ -255,6 +255,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_BITWISEOREQUAL:         sResult=QString("operator|=");              break;
         case OP_BITWISEXOREQUAL:        sResult=QString("operator^=");              break;
         case OP_VIRTUALTABLE:           sResult=QString("`vftable'");               break;
+        case OP_VBTABLE:                sResult=QString("`vbtable'");               break;
         case OP_DEFAULTCTORCLOSURE:     sResult=QString("`default ctor closure'");  break;
         case OP_ARRAYNEW:               sResult=QString("operator new[]");          break;
         case OP_ARRAYDELETE:            sResult=QString("operator delete[]");       break;
@@ -367,9 +368,9 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                      result.functionConvention=FC_THISCALL; // TODO Check
                 }
             }
-            else if(_compare(sString,"6")) // VFTABLE
+            else if(_compare(sString,"6")||_compare(sString,"7")) // VFTABLE VBTABLE
             {
-                result.symbolType=ST_VFTABLE;
+                result.symbolType=ST_VTABLE;
                 sString=sString.mid(1,-1);
             }
 
@@ -406,7 +407,7 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
                 sString=sString.mid(signature.nSize,-1);
             }
 
-            if(result.symbolType==ST_VFTABLE)
+            if(result.symbolType==ST_VTABLE)
             {
                 if(_compare(sString,"@"))
                 {
@@ -492,29 +493,29 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
         bool bFunction=false;
 
-        if(_compare(sString,"P6A")) // Pointer to a function
+        if(_compare(sString,"P6")) // Pointer to a function
         {
             parameter.type=TYPE_POINTERTOFUNCTION;
             bFunction=true;
 
             if(bAddToRecord)
             {
-                nResult+=3;
+                nResult+=2;
             }
 
-            sString=sString.mid(3,-1);
+            sString=sString.mid(2,-1);
         }
-        if(_compare(sString,"$$A6A")) // Function
+        if(_compare(sString,"$$A6")) // Function
         {
             parameter.type=TYPE_FUNCTION;
             bFunction=true;
 
             if(bAddToRecord)
             {
-                nResult+=5;
+                nResult+=4;
             }
 
-            sString=sString.mid(5,-1);
+            sString=sString.mid(4,-1);
         }
         if(_compare(sString,"P8")) // Member
         {
@@ -543,7 +544,27 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
         if(bFunction) // Pointer to a function
         {
-            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),nLimit,pListStringRefs,plistArgRefs);
+            if((parameter.type==TYPE_POINTERTOFUNCTION)||(parameter.type==TYPE_FUNCTION))
+            {
+                if(isSignaturePresent(sString,&(pHdata->mapFunctionConventions)))
+                {
+                    SIGNATURE signature=getSignature(sString,&(pHdata->mapFunctionConventions));
+                    parameter.functionConvention=(FC)signature.nValue;
+
+                    if(bAddToRecord)
+                    {
+                        nResult+=signature.nSize;
+                    }
+
+                    sString=sString.mid(signature.nSize,-1);
+                }
+            }
+            else if(parameter.type==TYPE_MEMBER)
+            {
+                parameter.functionConvention=FC_THISCALL; // TODO Check
+            }
+
+            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),0,pListStringRefs,plistArgRefs);
 
             if(bAddToRecord)
             {
@@ -625,6 +646,19 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                     mod.paramMod=(PM)signatureParamMod.nValue;
                     mod.storageClass=(SC)signatureStorageClass.nValue;
 
+                    if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
+                    {
+                        // TODO Check
+                        qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&mod,pListStringRefs,plistArgRefs,false);
+
+                        if(bAddToRecord)
+                        {
+                            nResult+=nNamesSize;
+                        }
+
+                        sString=sString.mid(nNamesSize,-1);
+                    }
+
                     parameter.listMods.append(mod);
 
                     bMod=true;
@@ -650,20 +684,6 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             if(bMod)
             {
-//                if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
-//                {
-//                    // TODO Check
-
-//                    qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
-
-//                    if(bAddToRecord)
-//                    {
-//                        nResult+=nNamesSize;
-//                    }
-
-//                    sString=sString.mid(nNamesSize,-1);
-//                }
-
                 if(_compare(sString,"Y"))
                 {
                     // Array
@@ -1093,7 +1113,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
                 if(sParameterReturn!="")    sResult+=QString("%1").arg(sParameterReturn);
             }
         }
-        else if((symbol.symbolType==ST_VFTABLE))
+        else if(symbol.symbolType==ST_VTABLE)
         {
             QString sStorage=storageClassIdToString(symbol.storageClass,symbol.mode);
             QString sName=getNameFromSymbol(symbol);
@@ -1500,6 +1520,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("?_5",OP_BITWISEOREQUAL);
         mapResult.insert("?_6",OP_BITWISEXOREQUAL);
         mapResult.insert("?_7",OP_VIRTUALTABLE);
+        mapResult.insert("?_8",OP_VBTABLE);
         mapResult.insert("?_F",OP_DEFAULTCTORCLOSURE);
         mapResult.insert("?_U",OP_ARRAYNEW);
         mapResult.insert("?_V",OP_ARRAYDELETE);
@@ -1651,21 +1672,22 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
     if(nNumberOfFunctionParameters)
     {
         QString sFunction;
+        QString sFunctionConvention=functionConventionIdToString(parameter.functionConvention,mode);
 
         if(parameter.type==TYPE_POINTERTOFUNCTION)
         {
-            sFunction=QString("(__cdecl *");
+            sFunction=QString("(%1 *").arg(sFunctionConvention);
 
             if(sName!="") sFunction+=QString(" %1").arg(sName);
             sFunction+=")";
         }
         else if(parameter.type==TYPE_FUNCTION)
         {
-            sFunction=QString("__cdecl");
+            sFunction=QString("%1").arg(sFunctionConvention);
         }
         else if(parameter.type==TYPE_MEMBER)
         {
-            sFunction=QString("(__thiscall %1::*)").arg(getNameFromParameter(&parameter,mode));
+            sFunction=QString("(%1 %2::*)").arg(sFunctionConvention).arg(getNameFromParameter(&parameter,mode));
         }
 
         QString sReturn=getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
@@ -1696,37 +1718,54 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
         int nNumberOfMods=parameter.listMods.count();
 
         QString sMod;
-        bool bStorageClass=false;
+
         bool bParamMod=false;
-        bool bPointer=false;
 
         for(int i=0;i<nNumberOfMods;i++)
         {
-            QString sStorageClass=storageClassIdToString(parameter.listMods.at(i).storageClass,mode);
-            QString sParamMod=paramModIdToString(parameter.listMods.at(i).paramMod,mode);
+            QString sStorageClass;
 
-            bStorageClass=(sStorageClass!="");
-            bParamMod=(sParamMod!="");
-
-            if(sStorageClass!="")
+            if(i==0)
             {
-//                if((sMod!="*const")&&(sStorageClass!="const"))
-//                {
-//                    if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
-//                    sMod+=QString("%1").arg(sStorageClass);
-//                }
-                if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
-                sMod+=QString("%1").arg(sStorageClass);
+                sStorageClass=storageClassIdToString(parameter.listMods.at(i).storageClass,mode);
             }
 
-            if(sParamMod!="")
+            QString sParamMod=paramModIdToString(parameter.listMods.at(i).paramMod,mode);
+
+            bParamMod=(sParamMod!="");
+
+            if(parameter.listMods.at(i).listNames.count())
             {
-                if( (_getStringEnd(sMod)!=QChar(' '))&&
-                    (_getStringEnd(sMod)!=QChar('*')))
+                int nNumberOfNames=parameter.listMods.at(i).listNames.count();
+
+                for(int j=0;j<nNumberOfNames;j++)
                 {
-                    sMod+=" ";
+                    sMod+=QString("%1::").arg(parameter.listMods.at(i).listNames.at(j));
                 }
-                sMod+=QString("%1").arg(sParamMod);
+            }
+            else
+            {
+                if(sStorageClass!="")
+                {
+    //                if((sMod!="*const")&&(sStorageClass!="const"))
+    //                {
+    //                    if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
+    //                    sMod+=QString("%1").arg(sStorageClass);
+    //                }
+                    if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
+                    sMod+=QString("%1").arg(sStorageClass);
+                }
+
+                if(sParamMod!="")
+                {
+                    if( (_getStringEnd(sMod)!=QChar(' '))&&
+                        (_getStringEnd(sMod)!=QChar('*'))&&
+                        (_getStringEnd(sMod)!=QChar(':')))
+                    {
+                        sMod+=" ";
+                    }
+                    sMod+=QString("%1").arg(sParamMod);
+                }
             }
         }
 

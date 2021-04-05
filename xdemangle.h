@@ -163,7 +163,7 @@ public:
         ST_UNKNOWN=0,
         ST_VARIABLE,
         ST_FUNCTION,
-        ST_VFTABLE
+        ST_VTABLE
     };
 
     enum PM
@@ -225,6 +225,7 @@ public:
         OP_ARRAYNEW,
         OP_ARRAYDELETE,
         OP_VIRTUALTABLE,
+        OP_VBTABLE,
         OP_DEFAULTCTORCLOSURE,
         OP_TYPE
     };
@@ -240,6 +241,7 @@ public:
         QList<qint64> listIndexes; // For var[x][y]
         QList<QList<PARAMETER>> listListTemplateParameters; // Template mb TODO flags;
         QList<PARAMETER> listFunctionParameters; // if pointer to a function
+        FC functionConvention; // if function
         qint64 nConst;
     };
 
