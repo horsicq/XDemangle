@@ -23,6 +23,9 @@
 
 #include <QObject>
 #include <QMap>
+#ifdef QT_DEBUG
+#include <QDebug>
+#endif
 
 class XDemangle : public QObject
 {
@@ -226,7 +229,18 @@ public:
         OP_ARRAYDELETE,
         OP_VIRTUALTABLE,
         OP_VBTABLE,
+        OP_VBASEDTOR,
+        OP_VECDELDTOR,
         OP_DEFAULTCTORCLOSURE,
+        OP_SCALARDELDTOR,
+        OP_VECCTORITER,
+        OP_VECDTORITER,
+        OP_VECVBASECTORITER,
+        OP_VDISPMAP,
+        OP_EHVECCTORITER,
+        OP_EHVECDTORITER,
+        OP_EHVECVBASECTORITER,
+        OP_COPYCTORCLOSURE,
         OP_TYPE
     };
 
@@ -242,7 +256,8 @@ public:
         QList<QList<PARAMETER>> listListTemplateParameters; // Template mb TODO flags;
         QList<PARAMETER> listFunctionParameters; // if pointer to a function
         FC functionConvention; // if function
-        qint64 nConst;
+        qint64 nConstValue;
+        SC extraStorageClass;
     };
 
     struct HDATA
@@ -276,6 +291,8 @@ public:
         FC functionConvention;
         bool bRef;
         bool bDoubleRef;
+        bool bParamTable;
+        PARAMETER paramTable;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);

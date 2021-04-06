@@ -52,7 +52,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
 
     switch(type)
     {
-        case TYPE_UNKNOWN:          sResult=QString("Unknown");             break; // mb TODO translate
+        case TYPE_UNKNOWN:          sResult=QString("");                    break;
         case TYPE_EMPTY:            sResult=QString("");                    break;
         case TYPE_VOID:             sResult=QString("void");                break;
         case TYPE_BOOL:             sResult=QString("bool");                break;
@@ -211,55 +211,66 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
 
     switch(_operator)
     {
-        case OP_UNKNOWN:                sResult=QString("Unknown");                 break; // mb TODO translate
-        case OP_CONSTRUCTOR:            sResult=QString("");                        break;
-        case OP_DESTRUCTOR:             sResult=QString("~");                       break;
-        case OP_NEW:                    sResult=QString("operator new");            break;
-        case OP_DELETE:                 sResult=QString("operator delete");         break;
-        case OP_ASSIGN:                 sResult=QString("operator=");               break;
-        case OP_RIGHTSHIFT:             sResult=QString("operator>>");              break;
-        case OP_LEFTSHIFT:              sResult=QString("operator<<");              break;
-        case OP_LOGICALNOT:             sResult=QString("operator!");               break;
-        case OP_EQUALS:                 sResult=QString("operator==");              break;
-        case OP_NOTEQUALS:              sResult=QString("operator!=");              break;
-        case OP_ARRAYSUBSCRIPT:         sResult=QString("operator[]");              break;
-        case OP_POINTER:                sResult=QString("operator->");              break;
-        case OP_DEREFERENCE:            sResult=QString("operator*");               break;
-        case OP_INCREMENT:              sResult=QString("operator++");              break;
-        case OP_DECREMENT:              sResult=QString("operator--");              break;
-        case OP_MINUS:                  sResult=QString("operator-");               break;
-        case OP_PLUS:                   sResult=QString("operator+");               break;
-        case OP_BITWISEAND:             sResult=QString("operator&");               break;
-        case OP_MEMBERPOINTER:          sResult=QString("operator->*");             break;
-        case OP_DIVIDE:                 sResult=QString("operator/");               break;
-        case OP_MODULUS:                sResult=QString("operator%");               break;
-        case OP_LESSTHAN:               sResult=QString("operator<");               break;
-        case OP_LESSTHANEQUAL:          sResult=QString("operator<=");              break;
-        case OP_GREATERTHAN:            sResult=QString("operator>");               break;
-        case OP_GREATERTHANEQUAL:       sResult=QString("operator>=");              break;
-        case OP_COMMA:                  sResult=QString("operator,");               break;
-        case OP_PARENS:                 sResult=QString("operator()");              break;
-        case OP_BITWISENOT:             sResult=QString("operator~");               break;
-        case OP_BITWISEXOR:             sResult=QString("operator^");               break;
-        case OP_BITWISEOR:              sResult=QString("operator|");               break;
-        case OP_LOGICALAND:             sResult=QString("operator&&");              break;
-        case OP_LOGICALOR:              sResult=QString("operator||");              break;
-        case OP_TIMESEQUAL:             sResult=QString("operator*=");              break;
-        case OP_PLUSEQUAL:              sResult=QString("operator+=");              break;
-        case OP_MINUSEQUAL:             sResult=QString("operator-=");              break;
-        case OP_DIVEQUAL:               sResult=QString("operator/=");              break;
-        case OP_MODEQUAL:               sResult=QString("operator%=");              break;
-        case OP_RSHEQUAL:               sResult=QString("operator>>=");             break;
-        case OP_LSHEQUAL:               sResult=QString("operator<<=");             break;
-        case OP_BITWISEANDEQUAL:        sResult=QString("operator&=");              break;
-        case OP_BITWISEOREQUAL:         sResult=QString("operator|=");              break;
-        case OP_BITWISEXOREQUAL:        sResult=QString("operator^=");              break;
-        case OP_VIRTUALTABLE:           sResult=QString("`vftable'");               break;
-        case OP_VBTABLE:                sResult=QString("`vbtable'");               break;
-        case OP_DEFAULTCTORCLOSURE:     sResult=QString("`default ctor closure'");  break;
-        case OP_ARRAYNEW:               sResult=QString("operator new[]");          break;
-        case OP_ARRAYDELETE:            sResult=QString("operator delete[]");       break;
-        case OP_TYPE:                   sResult=QString("operator ");               break;
+        case OP_UNKNOWN:                sResult=QString("Unknown");                         break; // mb TODO translate
+        case OP_CONSTRUCTOR:            sResult=QString("");                                break;
+        case OP_DESTRUCTOR:             sResult=QString("~");                               break;
+        case OP_NEW:                    sResult=QString("operator new");                    break;
+        case OP_DELETE:                 sResult=QString("operator delete");                 break;
+        case OP_ASSIGN:                 sResult=QString("operator=");                       break;
+        case OP_RIGHTSHIFT:             sResult=QString("operator>>");                      break;
+        case OP_LEFTSHIFT:              sResult=QString("operator<<");                      break;
+        case OP_LOGICALNOT:             sResult=QString("operator!");                       break;
+        case OP_EQUALS:                 sResult=QString("operator==");                      break;
+        case OP_NOTEQUALS:              sResult=QString("operator!=");                      break;
+        case OP_ARRAYSUBSCRIPT:         sResult=QString("operator[]");                      break;
+        case OP_POINTER:                sResult=QString("operator->");                      break;
+        case OP_DEREFERENCE:            sResult=QString("operator*");                       break;
+        case OP_INCREMENT:              sResult=QString("operator++");                      break;
+        case OP_DECREMENT:              sResult=QString("operator--");                      break;
+        case OP_MINUS:                  sResult=QString("operator-");                       break;
+        case OP_PLUS:                   sResult=QString("operator+");                       break;
+        case OP_BITWISEAND:             sResult=QString("operator&");                       break;
+        case OP_MEMBERPOINTER:          sResult=QString("operator->*");                     break;
+        case OP_DIVIDE:                 sResult=QString("operator/");                       break;
+        case OP_MODULUS:                sResult=QString("operator%");                       break;
+        case OP_LESSTHAN:               sResult=QString("operator<");                       break;
+        case OP_LESSTHANEQUAL:          sResult=QString("operator<=");                      break;
+        case OP_GREATERTHAN:            sResult=QString("operator>");                       break;
+        case OP_GREATERTHANEQUAL:       sResult=QString("operator>=");                      break;
+        case OP_COMMA:                  sResult=QString("operator,");                       break;
+        case OP_PARENS:                 sResult=QString("operator()");                      break;
+        case OP_BITWISENOT:             sResult=QString("operator~");                       break;
+        case OP_BITWISEXOR:             sResult=QString("operator^");                       break;
+        case OP_BITWISEOR:              sResult=QString("operator|");                       break;
+        case OP_LOGICALAND:             sResult=QString("operator&&");                      break;
+        case OP_LOGICALOR:              sResult=QString("operator||");                      break;
+        case OP_TIMESEQUAL:             sResult=QString("operator*=");                      break;
+        case OP_PLUSEQUAL:              sResult=QString("operator+=");                      break;
+        case OP_MINUSEQUAL:             sResult=QString("operator-=");                      break;
+        case OP_DIVEQUAL:               sResult=QString("operator/=");                      break;
+        case OP_MODEQUAL:               sResult=QString("operator%=");                      break;
+        case OP_RSHEQUAL:               sResult=QString("operator>>=");                     break;
+        case OP_LSHEQUAL:               sResult=QString("operator<<=");                     break;
+        case OP_BITWISEANDEQUAL:        sResult=QString("operator&=");                      break;
+        case OP_BITWISEOREQUAL:         sResult=QString("operator|=");                      break;
+        case OP_BITWISEXOREQUAL:        sResult=QString("operator^=");                      break;
+        case OP_VIRTUALTABLE:           sResult=QString("`vftable'");                       break;
+        case OP_VBTABLE:                sResult=QString("`vbtable'");                       break;
+        case OP_VBASEDTOR:              sResult=QString("`vbase dtor'");                    break;
+        case OP_VECDELDTOR:             sResult=QString("`vector deleting dtor'");          break;
+        case OP_DEFAULTCTORCLOSURE:     sResult=QString("`default ctor closure'");          break;
+        case OP_SCALARDELDTOR:          sResult=QString("`scalar deleting dtor'");          break;
+        case OP_VECCTORITER:            sResult=QString("`vector ctor iterator'");          break;
+        case OP_VECDTORITER:            sResult=QString("`vector dtor iterator'");          break;
+        case OP_VECVBASECTORITER:       sResult=QString("`vector vbase ctor iterator'");    break;
+        case OP_VDISPMAP:               sResult=QString("`virtual displacement map'");      break;
+        case OP_EHVECCTORITER:          sResult=QString("`eh vector ctor iterator'");       break;
+        case OP_EHVECDTORITER:          sResult=QString("`eh vector dtor iterator'");       break;
+        case OP_EHVECVBASECTORITER:     sResult=QString("`eh vector vbase ctor iterator'"); break;
+        case OP_COPYCTORCLOSURE:        sResult=QString("`copy ctor closure'");             break;
+        case OP_ARRAYNEW:               sResult=QString("operator new[]");                  break;
+        case OP_ARRAYDELETE:            sResult=QString("operator delete[]");               break;
+        case OP_TYPE:                   sResult=QString("operator ");                       break;
     }
 
     return sResult;
@@ -409,22 +420,34 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 
             if(result.symbolType==ST_VTABLE)
             {
+                qint32 nPSize=handleParamStrings(&hdata,sString,mode,&(result.paramTable),&_listStringRefs,&_listArgRefs,false);
+
+                if(nPSize>1)
+                {
+                    result.bParamTable=true;
+
+                    sString=sString.mid(nPSize,-1);
+                }
+
                 if(_compare(sString,"@"))
                 {
                     sString=sString.mid(1,-1);
                 }
             }
 
-            if((sString=="")&&(result.storageClass!=SC_UNKNOWN)) // TODO more checks
+            if(result.storageClass!=SC_UNKNOWN) // TODO more checks
             {
                 result.bValid=true;
             }
-            else
+
+            if(sString!="")
             {
             #ifdef QT_DEBUG
                 qDebug(sString.toLatin1().data());
             #endif
             }
+
+            result.bValid=true;
         }
     }
 
@@ -439,7 +462,14 @@ QString XDemangle::convert(QString sString, MODE mode)
     {
         SYMBOL symbol=getSymbol(sString,mode);
 
-        sResult=symbolToString(symbol);
+        if(symbol.bValid)
+        {
+            sResult=symbolToString(symbol);
+        }
+        else
+        {
+            sResult=sString;
+        }
     }
 
     return sResult;
@@ -606,7 +636,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             NUMBER number=readNumber(pHdata,sString,mode);
 
-            parameter.nConst=number.nValue;
+            parameter.nConstValue=number.nValue;
 
             if(bAddToRecord)
             {
@@ -715,6 +745,27 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                         }
                     }
                 }
+            }
+
+            if(_compare(sString,"$$C"))
+            {
+                sString=sString.mid(3,-1);
+
+                if(bAddToRecord)
+                {
+                    nResult+=3;
+                }
+
+                SIGNATURE signatureStorageClass=getSignature(sString,&(pHdata->mapStorageClasses));
+
+                if(bAddToRecord)
+                {
+                    nResult+=signatureStorageClass.nSize;
+                }
+
+                sString=sString.mid(signatureStorageClass.nSize,-1);
+
+                parameter.extraStorageClass=(SC)signatureStorageClass.nValue;
             }
 
             SIGNATURE signatureType={};
@@ -830,6 +881,13 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
                 nResult+=signatureIndex.nSize;
 
                 bAddToList=false;
+
+//            #ifdef QT_DEBUG
+//                for(int i=0;i<pListStringRefs->count();i++)
+//                {
+//                    qDebug(pListStringRefs->at(i).toLatin1().data());
+//                }
+//            #endif
             }
             else
             {
@@ -916,9 +974,11 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
         {
             if((!bFirst)||(nIndex)||(!bTemplate))
             {
-                pListStringRefs->append(sRecord);
+                if(!(pListStringRefs->contains(sRecord)))
+                {
+                    pListStringRefs->append(sRecord);
+                }
             }
-
 
 //            if(bTemplate)
 //            {
@@ -1124,6 +1184,11 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             }
 
             sResult+=sName;
+
+            if(symbol.bParamTable)
+            {
+                sResult+=QString("{for `%1'}").arg(getStringFromParameter(symbol.paramTable,symbol.mode));
+            }
         }
     }
 
@@ -1521,7 +1586,18 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("?_6",OP_BITWISEXOREQUAL);
         mapResult.insert("?_7",OP_VIRTUALTABLE);
         mapResult.insert("?_8",OP_VBTABLE);
+        mapResult.insert("?_D",OP_VBASEDTOR);
+        mapResult.insert("?_E",OP_VECDELDTOR);
         mapResult.insert("?_F",OP_DEFAULTCTORCLOSURE);
+        mapResult.insert("?_G",OP_SCALARDELDTOR);
+        mapResult.insert("?_H",OP_VECCTORITER);
+        mapResult.insert("?_I",OP_VECDTORITER);
+        mapResult.insert("?_J",OP_VECVBASECTORITER);
+        mapResult.insert("?_K",OP_VDISPMAP);
+        mapResult.insert("?_L",OP_EHVECCTORITER);
+        mapResult.insert("?_M",OP_EHVECDTORITER);
+        mapResult.insert("?_N",OP_EHVECVBASECTORITER);
+        mapResult.insert("?_O",OP_COPYCTORCLOSURE);
         mapResult.insert("?_U",OP_ARRAYNEW);
         mapResult.insert("?_V",OP_ARRAYDELETE);
     }
@@ -1710,7 +1786,7 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
     }
     else if(parameter.type==TYPE_CONST)
     {
-        sResult=QString::number(parameter.nConst);
+        sResult=QString::number(parameter.nConstValue);
     }
     else
     {
@@ -1779,6 +1855,12 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
             if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
 
             sResult+=QString("%1").arg(sTypeName);
+        }
+
+        if(parameter.extraStorageClass!=SC_UNKNOWN)
+        {
+            if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
+            sResult+=QString("%1").arg(storageClassIdToString(parameter.extraStorageClass,mode));
         }
 
 //        if( ((sMod!="")&&(parameter.type!=TYPE_STRUCT))||
