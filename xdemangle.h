@@ -343,7 +343,7 @@ private:
     };
 
     QString symbolToString(SYMBOL symbol);
-    STRING readString(QString sString,MODE mode);
+    STRING readString(HDATA *pHdata,QString sString,MODE mode);
     NUMBER readNumber(HDATA *pHdata,QString sString,MODE mode);
     bool _compare(QString sString,QString sSignature);
     QChar _getStringEnd(QString sString);
@@ -364,14 +364,15 @@ private:
     QMap<QString,qint32> getHexNumbers(MODE mode);
 
     SYMBOL Microsoft_handle(HDATA *pHdata,QString sString,MODE mode);
+    SYMBOL Itanium_handle(HDATA *pHdata,QString sString,MODE mode);
 
     qint32 Microsoft_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
     qint32 Microsoft_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs,bool bFirst);
 
-    QString Microsoft_getNameFromSymbol(SYMBOL symbol);
-    QString Microsoft_getNameFromParameter(PARAMETER *pParameter,MODE mode);
-    QString Microsoft_getTemplatesFromParameters(QList<PARAMETER> *pListParameters,MODE mode);
-    QString Microsoft_getStringFromParameter(PARAMETER parameter,MODE mode,QString sName="",bool bFuncRet=false);
+    QString _getNameFromSymbol(SYMBOL symbol);
+    QString _getNameFromParameter(PARAMETER *pParameter,MODE mode);
+    QString _getTemplatesFromParameters(QList<PARAMETER> *pListParameters,MODE mode);
+    QString _getStringFromParameter(PARAMETER parameter,MODE mode,QString sName="",bool bFuncRet=false);
 
     static void reverseList(QList<QString> *pList);
 //    static void reverseList(QList<MOD> *pList);

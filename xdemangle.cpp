@@ -284,6 +284,10 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     {
         result=SYNTAX_MICROSOFT;
     }
+    if(mode==MODE_GCC)
+    {
+        result=SYNTAX_ITANIUM;
+    }
 
     return result;
 }
@@ -297,6 +301,10 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         result=Microsoft_handle(&hdata,sString,mode);
+    }
+    else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    {
+        result=Itanium_handle(&hdata,sString,mode);
     }
 
     return result;
@@ -799,7 +807,7 @@ qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, M
             sRecord+="?$";
         }
 
-        STRING _string=readString(sString,mode);
+        STRING _string=readString(pHdata,sString,mode);
 
         if(_string.nSize)
         {
@@ -908,7 +916,11 @@ XDemangle::MODE XDemangle::detectMode(QString sString)
 
     if(_compare(sString,"?")&&(sString.contains("@")))
     {
-        result=MODE_MSVC32;
+        result=MODE_MSVC;
+    }
+    else if(_compare(sString,"_Z"))
+    {
+        result=MODE_GCC;
     }
 
     return result;
@@ -1005,11 +1017,11 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             QString sObjectClass=objectClassIdToString(symbol.objectClass,symbol.mode);
             QString sParameter;
 
-            QString sName=Microsoft_getNameFromSymbol(symbol);
+            QString sName=_getNameFromSymbol(symbol);
 
             if(symbol.listParameters.count())
             {
-                sParameter=Microsoft_getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sName);
+                sParameter=_getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sName);
             }
 
             if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
@@ -1024,7 +1036,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
                 QString sClassStorage=storageClassIdToString(symbol.classStorageClass,symbol.mode);
                 QString sFuncMod=functionModIdToString(symbol.functionMod,symbol.mode);
                 QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
-                QString sFunctionName=Microsoft_getNameFromSymbol(symbol);
+                QString sFunctionName=_getNameFromSymbol(symbol);
 
                 QString sFunction=QString("%1 %2").arg(sFunctionConvention).arg(sFunctionName);
 
@@ -1032,7 +1044,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
                 for(int i=1;i<nNumberOfArguments;i++)
                 {
-                    sFunction+=Microsoft_getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
+                    sFunction+=_getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
 
                     if(i!=nNumberOfArguments-1)
                     {
@@ -1056,7 +1068,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
                     sFunction+=QString(" &&");
                 }
 
-                QString sParameterReturn=Microsoft_getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sFunction,true);
+                QString sParameterReturn=_getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sFunction,true);
 
                 if(sFuncMod!="")            sResult+=QString("%1 ").arg(sFuncMod);
                 if(sParameterReturn!="")    sResult+=QString("%1").arg(sParameterReturn);
@@ -1065,7 +1077,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
         else if(symbol.symbolType==ST_VTABLE)
         {
             QString sStorage=storageClassIdToString(symbol.storageClass,symbol.mode);
-            QString sName=Microsoft_getNameFromSymbol(symbol);
+            QString sName=_getNameFromSymbol(symbol);
 
             if(symbol.storageClass!=SC_UNKNOWN)
             {
@@ -1076,7 +1088,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
             if(symbol.bParamTable)
             {
-                sResult+=QString("{for `%1'}").arg(Microsoft_getStringFromParameter(symbol.paramTable,symbol.mode));
+                sResult+=QString("{for `%1'}").arg(_getStringFromParameter(symbol.paramTable,symbol.mode));
             }
         }
 
@@ -1109,7 +1121,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
     return sResult;
 }
 
-XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
+XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString, XDemangle::MODE mode)
 {
     STRING result={};
 
@@ -1125,6 +1137,17 @@ XDemangle::STRING XDemangle::readString(QString sString, XDemangle::MODE mode)
             {
                 result.nSize++;
             }
+        }
+    }
+    else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    {
+        NUMBER number=readNumber(pHdata,sString,mode);
+
+        if(number.nSize)
+        {
+            sString=sString.mid(number.nSize,-1);
+            result.sString=sString.left(number.nValue);
+            result.nSize=number.nSize+result.sString.size();
         }
     }
 
@@ -1195,6 +1218,21 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
         {
             result.nSize++;
             result.nValue=-(result.nValue);
+        }
+    }
+    else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    {
+        while((sString!="")&&(isSignaturePresent(sString,&(pHdata->mapNumbers))))
+        {
+            result.nValue*=10;
+
+            SIGNATURE signature=getSignature(sString,&(pHdata->mapNumbers));
+
+            result.nValue+=signature.nValue;
+
+            result.nSize++;
+
+            sString=sString.mid(signature.nSize,-1);
         }
     }
 
@@ -1531,7 +1569,8 @@ QMap<QString, qint32> XDemangle::getNumbers(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
-    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+    if( (getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)||
+        (getSyntaxFromMode(mode)==SYNTAX_ITANIUM))
     {
         mapResult.insert("0",0);
         mapResult.insert("1",1);
@@ -1649,7 +1688,7 @@ XDemangle::SYMBOL XDemangle::Microsoft_handle(XDemangle::HDATA *pHdata, QString 
             }
             else
             {
-                STRING _string=readString(_sString,mode);
+                STRING _string=readString(pHdata,_sString,mode);
                 _sString=_sString.mid(_string.nSize,-1);
 
                 if(_string.sString=="")
@@ -1889,9 +1928,44 @@ XDemangle::SYMBOL XDemangle::Microsoft_handle(XDemangle::HDATA *pHdata, QString 
     return result;
 }
 
-QString XDemangle::Microsoft_getNameFromSymbol(XDemangle::SYMBOL symbol)
+XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
 {
-    QString sResult=Microsoft_getNameFromParameter(&(symbol.paramMain),symbol.mode);
+    SYMBOL result={};
+
+    if(_compare(sString,"@_Z")||_compare(sString,"_Z"))
+    {
+        result.bValid=true;
+
+        if(_compare(sString,"@_Z")) // Fastcall
+        {
+            sString=sString.mid(3,-1);
+        }
+        else if(_compare(sString,"_Z"))
+        {
+            sString=sString.mid(2,-1);
+        }
+
+        while(sString!="")
+        {
+            STRING string=readString(pHdata,sString,mode);
+
+            result.paramMain.listNames.append(string.sString);
+
+            sString=sString.mid(string.nSize,-1);
+
+            if(string.nSize==0)
+            {
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+
+QString XDemangle::_getNameFromSymbol(XDemangle::SYMBOL symbol)
+{
+    QString sResult=_getNameFromParameter(&(symbol.paramMain),symbol.mode);
 
     if(symbol._operator!=OP_UNKNOWN)
     {
@@ -1909,7 +1983,7 @@ QString XDemangle::Microsoft_getNameFromSymbol(XDemangle::SYMBOL symbol)
             if(nNumberOfNames)
             {
                 QList<PARAMETER> listTemplates=symbol.paramMain.listListTemplateParameters.at(nNumberOfNames-1);
-                sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1)+Microsoft_getTemplatesFromParameters(&listTemplates,symbol.mode);
+                sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1)+_getTemplatesFromParameters(&listTemplates,symbol.mode);
             }
         }
         else if(symbol._operator==OP_TYPE)
@@ -1918,7 +1992,7 @@ QString XDemangle::Microsoft_getNameFromSymbol(XDemangle::SYMBOL symbol)
 
             if(nNumberOfTypes)
             {
-                sResult+=Microsoft_getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
+                sResult+=_getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
             }
         }
     }
@@ -1926,7 +2000,7 @@ QString XDemangle::Microsoft_getNameFromSymbol(XDemangle::SYMBOL symbol)
     return sResult;
 }
 
-QString XDemangle::Microsoft_getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE mode)
+QString XDemangle::_getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE mode)
 {
     QString sResult;
 
@@ -1938,7 +2012,7 @@ QString XDemangle::Microsoft_getNameFromParameter(PARAMETER *pParameter, XDemang
 
         QList<PARAMETER> listParameter=pParameter->listListTemplateParameters.at(i);
 
-        sResult+=Microsoft_getTemplatesFromParameters(&listParameter,mode);
+        sResult+=_getTemplatesFromParameters(&listParameter,mode);
 
         if(i!=(nNumberOfNames-1))
         {
@@ -1949,7 +2023,7 @@ QString XDemangle::Microsoft_getNameFromParameter(PARAMETER *pParameter, XDemang
     return sResult;
 }
 
-QString XDemangle::Microsoft_getTemplatesFromParameters(QList<PARAMETER> *pListParameters, XDemangle::MODE mode)
+QString XDemangle::_getTemplatesFromParameters(QList<PARAMETER> *pListParameters, XDemangle::MODE mode)
 {
     QString sResult;
 
@@ -1961,7 +2035,7 @@ QString XDemangle::Microsoft_getTemplatesFromParameters(QList<PARAMETER> *pListP
 
         for(int i=0;i<nNumberOfTemplates;i++)
         {
-            sResult+=Microsoft_getStringFromParameter(pListParameters->at(i),mode);
+            sResult+=_getStringFromParameter(pListParameters->at(i),mode);
 
             if(i!=(nNumberOfTemplates-1))
             {
@@ -1975,7 +2049,7 @@ QString XDemangle::Microsoft_getTemplatesFromParameters(QList<PARAMETER> *pListP
     return sResult;
 }
 
-QString XDemangle::Microsoft_getStringFromParameter(XDemangle::PARAMETER parameter, MODE mode, QString sName, bool bFuncRet)
+QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE mode, QString sName, bool bFuncRet)
 {
     QString sResult;
 
@@ -2006,10 +2080,10 @@ QString XDemangle::Microsoft_getStringFromParameter(XDemangle::PARAMETER paramet
         }
         else if(parameter.type==TYPE_MEMBER)
         {
-            sFunction=QString("(%1 %2::*)").arg(sFunctionConvention).arg(Microsoft_getNameFromParameter(&parameter,mode));
+            sFunction=QString("(%1 %2::*)").arg(sFunctionConvention).arg(_getNameFromParameter(&parameter,mode));
         }
 
-        QString sReturn=Microsoft_getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
+        QString sReturn=_getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
 
         sResult=sReturn;
 
@@ -2017,7 +2091,7 @@ QString XDemangle::Microsoft_getStringFromParameter(XDemangle::PARAMETER paramet
 
         for(int i=1;i<nNumberOfFunctionParameters;i++)
         {
-            sResult+=Microsoft_getStringFromParameter(parameter.listFunctionParameters.at(i),mode);
+            sResult+=_getStringFromParameter(parameter.listFunctionParameters.at(i),mode);
 
             if(i!=nNumberOfFunctionParameters-1)
             {
@@ -2084,7 +2158,7 @@ QString XDemangle::Microsoft_getStringFromParameter(XDemangle::PARAMETER paramet
         }
 
         QString sType=typeIdToString(parameter.type,mode);
-        QString sTypeName=Microsoft_getNameFromParameter(&parameter,mode);
+        QString sTypeName=_getNameFromParameter(&parameter,mode);
 
         if(sType!="") sResult+=QString("%1").arg(sType);
 
