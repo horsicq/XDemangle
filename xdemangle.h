@@ -87,6 +87,7 @@ public:
         TYPE_STRUCT,
         TYPE_ENUM,
         TYPE_POINTERTOFUNCTION,
+        TYPE_POINTERTOFUNCTIONREF,
         TYPE_MEMBER,
         TYPE_FUNCTION,
         TYPE_NULLPTR,
@@ -100,8 +101,7 @@ public:
         OC_PROTECTEDSTATICCLASSMEMBER,
         OC_PUBLICSTATICCLASSMEMBER,
         OC_GLOBALOBJECT,
-        OC_FUNCTIONLOCALSTATIC,
-        OC_VFTABLE
+        OC_FUNCTIONLOCALSTATIC
     };
 
     enum SC
@@ -293,6 +293,14 @@ public:
         bool bDoubleRef;
         bool bParamTable;
         PARAMETER paramTable;
+        bool bExtra;
+        OC extraObjectClass;
+        PM extraParamMod;
+        SC extraStorageClass1;
+        TYPE extraType;
+        SC extraStorageClass2;
+        QList<QString> listPreps;
+        QString sPrep;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
@@ -305,22 +313,13 @@ public:
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
 
-    static SYNTAX getSyntaxFromMode(MODE mode);
-
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
-
-    qint32 handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
-    qint32 handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs,bool bFirst);
 
     MODE detectMode(QString sString);
 
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
-    static void reverseList(QList<QString> *pList);
-//    static void reverseList(QList<MOD> *pList);
-    static void reverseList(QList<PARAMETER> *pList);
-    static void reverseList(QList<QList<PARAMETER>> *pListList);
 
     HDATA getHdata(MODE mode);
 
@@ -361,12 +360,25 @@ private:
     QMap<QString,qint32> getFunctionConventions(MODE mode);
     QMap<QString,qint32> getOperators(MODE mode);
     QMap<QString,qint32> getNumbers(MODE mode);
+    QMap<QString,qint32> getLineNumbers(MODE mode);
     QMap<QString,qint32> getHexNumbers(MODE mode);
 
-    QString getNameFromSymbol(SYMBOL symbol);
-    QString getNameFromParameter(PARAMETER *pParameter,MODE mode);
-    QString getTemplatesFromParameters(QList<PARAMETER> *pListParameters,MODE mode);
-    QString getStringFromParameter(PARAMETER parameter,MODE mode,QString sName="",bool bFuncRet=false);
+    SYMBOL Microsoft_handle(HDATA *pHdata,QString sString,MODE mode);
+
+    qint32 Microsoft_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
+    qint32 Microsoft_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs,bool bFirst);
+
+    QString Microsoft_getNameFromSymbol(SYMBOL symbol);
+    QString Microsoft_getNameFromParameter(PARAMETER *pParameter,MODE mode);
+    QString Microsoft_getTemplatesFromParameters(QList<PARAMETER> *pListParameters,MODE mode);
+    QString Microsoft_getStringFromParameter(PARAMETER parameter,MODE mode,QString sName="",bool bFuncRet=false);
+
+    static void reverseList(QList<QString> *pList);
+//    static void reverseList(QList<MOD> *pList);
+    static void reverseList(QList<PARAMETER> *pList);
+    static void reverseList(QList<QList<PARAMETER>> *pListList);
+
+    static SYNTAX getSyntaxFromMode(MODE mode);
 };
 
 #endif // XDEMANGLE_H

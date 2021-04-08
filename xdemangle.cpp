@@ -280,7 +280,7 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
 {
     SYNTAX result=SYNTAX_UNKNOWN;
 
-    if((mode==MODE_MSVC32)||(mode==MODE_MSVC64))
+    if((mode==MODE_MSVC32)||(mode==MODE_MSVC64)||(mode==MODE_MSVC))
     {
         result=SYNTAX_MICROSOFT;
     }
@@ -292,163 +292,11 @@ XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 {
     SYMBOL result={};
 
-    result.mode=mode;
-
     HDATA hdata=getHdata(mode);
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        if(_compare(sString,"?"))
-        {
-            bool bFirst=true;
-            QList<QString> _listStringRefs;
-            QList<QString> _listArgRefs;
-
-            sString=sString.mid(1,-1);
-
-            if(isSignaturePresent(sString,&hdata.mapOperators))
-            {
-                SIGNATURE signatureOP=getSignature(sString,&hdata.mapOperators);
-                result._operator=(OP)signatureOP.nValue;
-                sString=sString.mid(signatureOP.nSize,-1);
-                bFirst=false;
-            }
-
-            // Name
-            qint32 nNamesSize=handleParamStrings(&hdata,sString,mode,&(result.paramMain),&_listStringRefs,&_listArgRefs,bFirst);
-
-            sString=sString.mid(nNamesSize,-1);
-
-//            if(_compare(sString,"@@@")) // TODO Check !!! Templates params
-//            {
-//                sString=sString.mid(2,-1);
-//            }
-
-            if(isSignaturePresent(sString,&hdata.mapObjectClasses))
-            {
-                result.symbolType=ST_VARIABLE;
-
-                SIGNATURE signatureOC=getSignature(sString,&hdata.mapObjectClasses);
-                result.objectClass=(OC)signatureOC.nValue;
-                sString=sString.mid(signatureOC.nSize,-1);
-            }
-            else if(isSignaturePresent(sString,&hdata.mapFunctionMods))
-            {
-                result.symbolType=ST_FUNCTION;
-
-                SIGNATURE signatureFM=getSignature(sString,&hdata.mapFunctionMods);
-                result.functionMod=(FM)signatureFM.nValue;
-                sString=sString.mid(signatureFM.nSize,-1);
-
-                if( (result.functionMod!=FM_FAR)&&
-                    (result.functionMod!=FM_NEAR)&&
-                    (result.functionMod!=FM_PUBLIC_STATICNEAR)&&
-                    (result.functionMod!=FM_PUBLIC_STATICFAR)&&
-                    (result.functionMod!=FM_PROTECTED_STATICNEAR)&&
-                    (result.functionMod!=FM_PROTECTED_STATICFAR)&&
-                    (result.functionMod!=FM_PRIVATE_STATICNEAR)&&
-                    (result.functionMod!=FM_PRIVATE_STATICFAR))
-                {
-                    if(_compare(sString,"G"))
-                    {
-                        result.bRef=true;
-                        sString=sString.mid(1,-1);
-                    }
-                    else if(_compare(sString,"H"))
-                    {
-                        result.bDoubleRef=true;
-                        sString=sString.mid(1,-1);
-                    }
-
-                    if(isSignaturePresent(sString,&hdata.mapStorageClasses))
-                    {
-                        SIGNATURE signatureSC=getSignature(sString,&hdata.mapStorageClasses);
-                        result.classStorageClass=(SC)signatureSC.nValue;
-                        sString=sString.mid(signatureSC.nSize,-1);
-                    }
-                }
-
-                if(isSignaturePresent(sString,&hdata.mapFunctionConventions))
-                {
-                    SIGNATURE signature=getSignature(sString,&hdata.mapFunctionConventions);
-                    result.functionConvention=(FC)signature.nValue;
-                    sString=sString.mid(signature.nSize,-1);
-                }
-                else
-                {
-                     result.functionConvention=FC_THISCALL; // TODO Check
-                }
-            }
-            else if(_compare(sString,"6")||_compare(sString,"7")) // VFTABLE VBTABLE
-            {
-                result.symbolType=ST_VTABLE;
-                sString=sString.mid(1,-1);
-            }
-
-            qint32 nLimit=0;
-
-            if(result.symbolType==ST_VARIABLE)
-            {
-                nLimit=1;
-            }
-
-            qint32 nSize=handleParams(&hdata,sString,mode,&(result.listParameters),nLimit,&_listStringRefs,&_listArgRefs);
-
-            sString=sString.mid(nSize,-1);
-
-            if(_compare(sString,"@"))
-            {
-                sString=sString.mid(1,-1);
-            }
-
-            if(isSignaturePresent(sString,&hdata.mapStorageClasses))
-            {
-                SIGNATURE signature=getSignature(sString,&hdata.mapStorageClasses);
-
-                result.storageClass=(SC)signature.nValue;
-
-                if(result.symbolType==ST_VARIABLE)
-                {
-                    if((result.listParameters.count()==1)&&(result.listParameters.at(0).listMods.count()==1)) // TODO Check
-                    {
-                        result.listParameters[0].listMods[0].storageClass=result.storageClass;
-                    }
-                }
-
-                sString=sString.mid(signature.nSize,-1);
-            }
-
-            if(result.symbolType==ST_VTABLE)
-            {
-                qint32 nPSize=handleParamStrings(&hdata,sString,mode,&(result.paramTable),&_listStringRefs,&_listArgRefs,false);
-
-                if(nPSize>1)
-                {
-                    result.bParamTable=true;
-
-                    sString=sString.mid(nPSize,-1);
-                }
-
-                if(_compare(sString,"@"))
-                {
-                    sString=sString.mid(1,-1);
-                }
-            }
-
-            if(result.storageClass!=SC_UNKNOWN) // TODO more checks
-            {
-                result.bValid=true;
-            }
-
-            if(sString!="")
-            {
-            #ifdef QT_DEBUG
-                qDebug(sString.toLatin1().data());
-            #endif
-            }
-
-            result.bValid=true;
-        }
+        result=Microsoft_handle(&hdata,sString,mode);
     }
 
     return result;
@@ -475,7 +323,7 @@ QString XDemangle::convert(QString sString, MODE mode)
     return sResult;
 }
 
-qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStringRefs,QList<QString> *plistArgRefs)
+qint32 XDemangle::Microsoft_handleParams(HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStringRefs,QList<QString> *plistArgRefs)
 {
     qint32 nResult=0;
 
@@ -535,6 +383,18 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
             sString=sString.mid(2,-1);
         }
+        else if(_compare(sString,"AAP6")) // Pointer to a function
+        {
+            parameter.type=TYPE_POINTERTOFUNCTIONREF;
+            bFunction=true;
+
+            if(bAddToRecord)
+            {
+                nResult+=4;
+            }
+
+            sString=sString.mid(4,-1);
+        }
         if(_compare(sString,"$$A6")) // Function
         {
             parameter.type=TYPE_FUNCTION;
@@ -562,7 +422,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 //            QList<QString> _ListStringRefs;
 //            QList<QString> _ListArgRefs;
 //            qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,&_ListStringRefs,&_ListArgRefs);
-            qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
+            qint32 nNamesSize=Microsoft_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
 
             if(bAddToRecord)
             {
@@ -574,7 +434,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
         if(bFunction) // Pointer to a function
         {
-            if((parameter.type==TYPE_POINTERTOFUNCTION)||(parameter.type==TYPE_FUNCTION))
+            if((parameter.type==TYPE_POINTERTOFUNCTION)||(parameter.type==TYPE_POINTERTOFUNCTIONREF)||(parameter.type==TYPE_FUNCTION))
             {
                 if(isSignaturePresent(sString,&(pHdata->mapFunctionConventions)))
                 {
@@ -594,7 +454,20 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                 parameter.functionConvention=FC_THISCALL; // TODO Check
             }
 
-            qint32 nPSize=handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),0,pListStringRefs,plistArgRefs);
+            if((mode==MODE_MSVC)||(mode==MODE_MSVC64))
+            {
+                if(_compare(sString,"E"))
+                {
+                    if(bAddToRecord)
+                    {
+                        nResult++;
+                    }
+
+                    sString=sString.mid(1,-1);
+                }
+            }
+
+            qint32 nPSize=Microsoft_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),0,pListStringRefs,plistArgRefs);
 
             if(bAddToRecord)
             {
@@ -663,6 +536,22 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
                     sString=sString.mid(signatureParamMod.nSize,-1);
 
+                    if(signatureParamMod.nSize)
+                    {
+                        if((mode==MODE_MSVC)||(mode==MODE_MSVC64))
+                        {
+                            if(_compare(sString,"E"))
+                            {
+                                if(bAddToRecord)
+                                {
+                                    nResult++;
+                                }
+
+                                sString=sString.mid(1,-1);
+                            }
+                        }
+                    }
+
                     SIGNATURE signatureStorageClass=getSignature(sString,&(pHdata->mapStorageClasses));
 
                     if(bAddToRecord)
@@ -679,7 +568,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
                     if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
                     {
                         // TODO Check
-                        qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&mod,pListStringRefs,plistArgRefs,false);
+                        qint32 nNamesSize=Microsoft_handleParamStrings(pHdata,sString,mode,&mod,pListStringRefs,plistArgRefs,false);
 
                         if(bAddToRecord)
                         {
@@ -792,7 +681,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
 
                 sString=sString.mid(signatureType.nSize,-1);
 
-                qint32 nNamesSize=handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
+                qint32 nNamesSize=Microsoft_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,plistArgRefs,false);
 
                 if(bAddToRecord)
                 {
@@ -858,7 +747,7 @@ qint32 XDemangle::handleParams(HDATA *pHdata, QString sString, XDemangle::MODE m
     return nResult;
 }
 
-qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, PARAMETER *pParameter, QList<QString> *pListStringRefs, QList<QString> *plistArgRefs, bool bFirst)
+qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, MODE mode, PARAMETER *pParameter, QList<QString> *pListStringRefs, QList<QString> *plistArgRefs, bool bFirst)
 {
     qint32 nResult=0;
 
@@ -943,7 +832,7 @@ qint32 XDemangle::handleParamStrings(HDATA *pHdata, QString sString, MODE mode, 
             sTemplate=sString;
             
             _listStringRefs.append(sString);
-            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,&_listStringRefs,&_listArgRefs);
+            qint32 nPSize=Microsoft_handleParams(pHdata,sString,mode,&listTemplateParameters,0,&_listStringRefs,&_listArgRefs);
 //            qint32 nPSize=handleParams(pHdata,sString,mode,&listTemplateParameters,0,pListStringRefs,pListArgRefs);
 
             sRecord+=sString.leftRef(nPSize);
@@ -1116,11 +1005,11 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             QString sObjectClass=objectClassIdToString(symbol.objectClass,symbol.mode);
             QString sParameter;
 
-            QString sName=getNameFromSymbol(symbol);
+            QString sName=Microsoft_getNameFromSymbol(symbol);
 
             if(symbol.listParameters.count())
             {
-                sParameter=getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sName);
+                sParameter=Microsoft_getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sName);
             }
 
             if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
@@ -1135,7 +1024,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
                 QString sClassStorage=storageClassIdToString(symbol.classStorageClass,symbol.mode);
                 QString sFuncMod=functionModIdToString(symbol.functionMod,symbol.mode);
                 QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
-                QString sFunctionName=getNameFromSymbol(symbol);
+                QString sFunctionName=Microsoft_getNameFromSymbol(symbol);
 
                 QString sFunction=QString("%1 %2").arg(sFunctionConvention).arg(sFunctionName);
 
@@ -1143,7 +1032,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
                 for(int i=1;i<nNumberOfArguments;i++)
                 {
-                    sFunction+=getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
+                    sFunction+=Microsoft_getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
 
                     if(i!=nNumberOfArguments-1)
                     {
@@ -1167,7 +1056,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
                     sFunction+=QString(" &&");
                 }
 
-                QString sParameterReturn=getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sFunction,true);
+                QString sParameterReturn=Microsoft_getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sFunction,true);
 
                 if(sFuncMod!="")            sResult+=QString("%1 ").arg(sFuncMod);
                 if(sParameterReturn!="")    sResult+=QString("%1").arg(sParameterReturn);
@@ -1176,7 +1065,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
         else if(symbol.symbolType==ST_VTABLE)
         {
             QString sStorage=storageClassIdToString(symbol.storageClass,symbol.mode);
-            QString sName=getNameFromSymbol(symbol);
+            QString sName=Microsoft_getNameFromSymbol(symbol);
 
             if(symbol.storageClass!=SC_UNKNOWN)
             {
@@ -1187,9 +1076,34 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
             if(symbol.bParamTable)
             {
-                sResult+=QString("{for `%1'}").arg(getStringFromParameter(symbol.paramTable,symbol.mode));
+                sResult+=QString("{for `%1'}").arg(Microsoft_getStringFromParameter(symbol.paramTable,symbol.mode));
             }
         }
+
+        if(symbol.bExtra)
+        {
+            sResult=QString("`%1'").arg(sResult);
+
+            if((symbol.extraObjectClass==OC_FUNCTIONLOCALSTATIC)||(symbol.extraObjectClass==OC_GLOBALOBJECT))
+            {
+                sResult.prepend(QString("%1 %2 %3 ")
+                        .arg(typeIdToString(symbol.extraType,symbol.mode))
+                        .arg(storageClassIdToString(symbol.extraStorageClass1,symbol.mode))
+                        .arg(paramModIdToString(symbol.extraParamMod,symbol.mode)));
+            }
+        }
+
+        int nNumberOfPreps=symbol.listPreps.count();
+
+        if(nNumberOfPreps)
+        {
+            for(int i=0;i<nNumberOfPreps;i++)
+            {
+                sResult+=QString("::%1").arg(symbol.listPreps.at(i));
+            }
+        }
+
+        sResult+=symbol.sPrep;
     }
 
     return sResult;
@@ -1514,7 +1428,16 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        mapResult.insert("A",FC_CDECL);
+        if((mode==MODE_MSVC)||(mode==MODE_MSVC32))
+        {
+            mapResult.insert("A",FC_CDECL);
+            mapResult.insert("I",FC_FASTCALL);
+        }
+        else if(mode==MODE_MSVC64)
+        {
+            mapResult.insert("A",FC_FASTCALL);
+        }
+
         mapResult.insert("B",FC_CDECL);
         mapResult.insert("C",FC_PASCAL);
         mapResult.insert("D",FC_PASCAL);
@@ -1522,7 +1445,6 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
         mapResult.insert("F",FC_THISCALL);
         mapResult.insert("G",FC_STDCALL);
         mapResult.insert("H",FC_STDCALL);
-        mapResult.insert("I",FC_FASTCALL);
         mapResult.insert("J",FC_FASTCALL);
         mapResult.insert("M",FC_CLRCALL);
         mapResult.insert("N",FC_CLRCALL);
@@ -1626,6 +1548,27 @@ QMap<QString, qint32> XDemangle::getNumbers(XDemangle::MODE mode)
     return mapResult;
 }
 
+QMap<QString, qint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+    {
+        mapResult.insert("?0??",1);
+        mapResult.insert("?1??",2);
+        mapResult.insert("?2??",3);
+        mapResult.insert("?3??",4);
+        mapResult.insert("?4??",5);
+        mapResult.insert("?5??",6);
+        mapResult.insert("?6??",7);
+        mapResult.insert("?7??",8);
+        mapResult.insert("?8??",9);
+        mapResult.insert("?9??",10);
+    }
+
+    return mapResult;
+}
+
 QMap<QString, qint32> XDemangle::getHexNumbers(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
@@ -1653,9 +1596,302 @@ QMap<QString, qint32> XDemangle::getHexNumbers(XDemangle::MODE mode)
     return mapResult;
 }
 
-QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
+XDemangle::SYMBOL XDemangle::Microsoft_handle(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
 {
-    QString sResult=getNameFromParameter(&(symbol.paramMain),symbol.mode);
+    SYMBOL result={};
+
+    if(_compare(sString,"?"))
+    {
+        result.mode=mode;
+
+        bool bFirst=true;
+        QList<QString> listStringRefs;
+        QList<QString> listArgRefs;
+
+        sString=sString.mid(1,-1);
+
+        QString _sString=sString;
+        QMap<QString,qint32> mapLineNumbers=getLineNumbers(mode);
+        QList<QString> _listPreps;
+        QList<QString> _listStringRefs;
+
+        while(_sString!="")
+        {
+            bool bLine=false;
+
+            QString sRecord;
+
+            if(_compare(_sString,"?_B"))
+            {
+                sRecord="`local static guard'";
+                _sString=_sString.mid(3,-1);
+            }
+            else if(isSignaturePresent(_sString,&mapLineNumbers))
+            {
+                SIGNATURE signatureLineNumber=getSignature(_sString,&mapLineNumbers);
+
+                sRecord=QString("`%1'").arg(signatureLineNumber.nValue);
+
+                _sString=_sString.mid(signatureLineNumber.nSize,-1);
+
+                bLine=true;
+            }
+            else if(isSignaturePresent(_sString,&(pHdata->mapNumbers)))
+            {
+                SIGNATURE signatureIndex=getSignature(_sString,&(pHdata->mapNumbers));
+
+                if(signatureIndex.nValue<_listStringRefs.count())
+                {
+                    sRecord=_listStringRefs.at(signatureIndex.nValue);
+                }
+
+                _sString=_sString.mid(signatureIndex.nSize,-1);
+            }
+            else
+            {
+                STRING _string=readString(_sString,mode);
+                _sString=_sString.mid(_string.nSize,-1);
+
+                if(_string.sString=="")
+                {
+                    break;
+                }
+
+                if(!_listStringRefs.contains(_string.sString))
+                {
+                    _listStringRefs.append(_string.sString);
+                }
+
+                sRecord=_string.sString;
+            }
+
+            _listPreps.append(sRecord);
+
+            if(bLine)
+            {
+                reverseList(&_listPreps);
+
+                sString=_sString;
+                listStringRefs=_listStringRefs;
+                result.listPreps=_listPreps;
+
+                break;
+            }
+        }
+
+        if(isSignaturePresent(sString,&(pHdata->mapOperators)))
+        {
+            SIGNATURE signatureOP=getSignature(sString,&(pHdata->mapOperators));
+            result._operator=(OP)signatureOP.nValue;
+            sString=sString.mid(signatureOP.nSize,-1);
+            bFirst=false;
+        }
+
+        // Name
+        qint32 nNamesSize=Microsoft_handleParamStrings(pHdata,sString,mode,&(result.paramMain),&listStringRefs,&listArgRefs,bFirst);
+
+        sString=sString.mid(nNamesSize,-1);
+
+//            if(_compare(sString,"@@@")) // TODO Check !!! Templates params
+//            {
+//                sString=sString.mid(2,-1);
+//            }
+
+        if(isSignaturePresent(sString,&(pHdata->mapObjectClasses)))
+        {
+            result.symbolType=ST_VARIABLE;
+
+            SIGNATURE signatureOC=getSignature(sString,&(pHdata->mapObjectClasses));
+            result.objectClass=(OC)signatureOC.nValue;
+            sString=sString.mid(signatureOC.nSize,-1);
+        }
+        else if(isSignaturePresent(sString,&(pHdata->mapFunctionMods)))
+        {
+            result.symbolType=ST_FUNCTION;
+
+            SIGNATURE signatureFM=getSignature(sString,&(pHdata->mapFunctionMods));
+            result.functionMod=(FM)signatureFM.nValue;
+            sString=sString.mid(signatureFM.nSize,-1);
+
+            if( (result.functionMod!=FM_FAR)&&
+                (result.functionMod!=FM_NEAR)&&
+                (result.functionMod!=FM_PUBLIC_STATICNEAR)&&
+                (result.functionMod!=FM_PUBLIC_STATICFAR)&&
+                (result.functionMod!=FM_PROTECTED_STATICNEAR)&&
+                (result.functionMod!=FM_PROTECTED_STATICFAR)&&
+                (result.functionMod!=FM_PRIVATE_STATICNEAR)&&
+                (result.functionMod!=FM_PRIVATE_STATICFAR))
+            {
+                if((mode==MODE_MSVC)||(mode==MODE_MSVC64))
+                {
+                    if(_compare(sString,"E"))
+                    {
+                        sString=sString.mid(1,-1);
+                    }
+                }
+
+                if(_compare(sString,"G"))
+                {
+                    result.bRef=true;
+                    sString=sString.mid(1,-1);
+                }
+                else if(_compare(sString,"H"))
+                {
+                    result.bDoubleRef=true;
+                    sString=sString.mid(1,-1);
+                }
+
+                if(isSignaturePresent(sString,&(pHdata->mapStorageClasses)))
+                {
+                    SIGNATURE signatureSC=getSignature(sString,&(pHdata->mapStorageClasses));
+                    result.classStorageClass=(SC)signatureSC.nValue;
+                    sString=sString.mid(signatureSC.nSize,-1);
+                }
+            }
+
+            if(isSignaturePresent(sString,&(pHdata->mapFunctionConventions)))
+            {
+                SIGNATURE signature=getSignature(sString,&(pHdata->mapFunctionConventions));
+                result.functionConvention=(FC)signature.nValue;
+                sString=sString.mid(signature.nSize,-1);
+            }
+            else
+            {
+                 result.functionConvention=FC_THISCALL; // TODO Check
+            }
+        }
+        else if(_compare(sString,"6")||_compare(sString,"7")) // VFTABLE VBTABLE
+        {
+            result.symbolType=ST_VTABLE;
+            sString=sString.mid(1,-1);
+        }
+
+        qint32 nLimit=0;
+
+        if(result.symbolType==ST_VARIABLE)
+        {
+            nLimit=1;
+        }
+
+        qint32 nSize=Microsoft_handleParams(pHdata,sString,mode,&(result.listParameters),nLimit,&listStringRefs,&listArgRefs);
+
+        sString=sString.mid(nSize,-1);
+
+        if(_compare(sString,"@"))
+        {
+            sString=sString.mid(1,-1);
+        }
+
+        if((mode==MODE_MSVC)||(mode==MODE_MSVC64))
+        {
+            if(_compare(sString,"E"))
+            {
+                sString=sString.mid(1,-1);
+            }
+        }
+
+        if(isSignaturePresent(sString,&(pHdata->mapStorageClasses)))
+        {
+            SIGNATURE signature=getSignature(sString,&(pHdata->mapStorageClasses));
+
+            result.storageClass=(SC)signature.nValue;
+
+            if(result.symbolType==ST_VARIABLE)
+            {
+                if((result.listParameters.count()==1)&&(result.listParameters.at(0).listMods.count()==1)) // TODO Check
+                {
+                    result.listParameters[0].listMods[0].storageClass=result.storageClass;
+                }
+            }
+
+            sString=sString.mid(signature.nSize,-1);
+        }
+
+        if(result.symbolType==ST_VTABLE)
+        {
+            qint32 nPSize=Microsoft_handleParamStrings(pHdata,sString,mode,&(result.paramTable),&listStringRefs,&listArgRefs,false);
+
+            if(nPSize>1)
+            {
+                result.bParamTable=true;
+
+                sString=sString.mid(nPSize,-1);
+            }
+
+            if(_compare(sString,"@"))
+            {
+                sString=sString.mid(1,-1);
+            }
+        }
+
+        if(result.storageClass!=SC_UNKNOWN) // TODO more checks
+        {
+            result.bValid=true;
+        }
+
+        if(sString!="")
+        {
+            if(_compare(sString,"@"))
+            {
+                sString=sString.mid(1,-1);
+            }
+
+            // Extra
+            result.bExtra=true;
+
+            if(isSignaturePresent(sString,&(pHdata->mapObjectClasses)))
+            {
+                SIGNATURE signatureOC=getSignature(sString,&(pHdata->mapObjectClasses));
+                result.extraObjectClass=(OC)signatureOC.nValue;
+                sString=sString.mid(signatureOC.nSize,-1);
+
+                SIGNATURE signaturePM=getSignature(sString,&(pHdata->mapParamMods));
+                result.extraParamMod=(PM)signaturePM.nValue;
+                sString=sString.mid(signaturePM.nSize,-1);
+
+                SIGNATURE signatureSC1=getSignature(sString,&(pHdata->mapStorageClasses));
+                result.extraStorageClass1=(SC)signatureSC1.nValue;
+                sString=sString.mid(signatureSC1.nSize,-1);
+
+                SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
+                result.extraType=(TYPE)signatureType.nValue;
+                sString=sString.mid(signatureType.nSize,-1);
+
+                SIGNATURE signatureSC2=getSignature(sString,&(pHdata->mapStorageClasses));
+                result.extraStorageClass2=(SC)signatureSC2.nValue;
+                sString=sString.mid(signatureSC2.nSize,-1);
+
+                if( (result.extraObjectClass==OC_UNKNOWN)||
+                    (result.extraStorageClass1==SC_UNKNOWN)||
+                    (result.extraStorageClass2==SC_UNKNOWN))
+                {
+                    result.bValid=false;
+                }
+            }
+            else if(_compare(sString,"5"))
+            {
+                sString=sString.mid(1,-1);
+
+                SIGNATURE signatureNumbers=getSignature(sString,&(pHdata->mapNumbers));
+                result.sPrep=QString("{%1}").arg(signatureNumbers.nValue+1);
+                sString=sString.mid(signatureNumbers.nSize,-1);
+            }
+        }
+
+        if(sString!="")
+        {
+        #ifdef QT_DEBUG
+            qDebug(sString.toLatin1().data());
+        #endif
+        }
+    }
+
+    return result;
+}
+
+QString XDemangle::Microsoft_getNameFromSymbol(XDemangle::SYMBOL symbol)
+{
+    QString sResult=Microsoft_getNameFromParameter(&(symbol.paramMain),symbol.mode);
 
     if(symbol._operator!=OP_UNKNOWN)
     {
@@ -1673,7 +1909,7 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
             if(nNumberOfNames)
             {
                 QList<PARAMETER> listTemplates=symbol.paramMain.listListTemplateParameters.at(nNumberOfNames-1);
-                sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1)+getTemplatesFromParameters(&listTemplates,symbol.mode);
+                sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1)+Microsoft_getTemplatesFromParameters(&listTemplates,symbol.mode);
             }
         }
         else if(symbol._operator==OP_TYPE)
@@ -1682,7 +1918,7 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
 
             if(nNumberOfTypes)
             {
-                sResult+=getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
+                sResult+=Microsoft_getStringFromParameter(symbol.listParameters.at(0),symbol.mode);
             }
         }
     }
@@ -1690,7 +1926,7 @@ QString XDemangle::getNameFromSymbol(XDemangle::SYMBOL symbol)
     return sResult;
 }
 
-QString XDemangle::getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE mode)
+QString XDemangle::Microsoft_getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE mode)
 {
     QString sResult;
 
@@ -1702,7 +1938,7 @@ QString XDemangle::getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE m
 
         QList<PARAMETER> listParameter=pParameter->listListTemplateParameters.at(i);
 
-        sResult+=getTemplatesFromParameters(&listParameter,mode);
+        sResult+=Microsoft_getTemplatesFromParameters(&listParameter,mode);
 
         if(i!=(nNumberOfNames-1))
         {
@@ -1713,7 +1949,7 @@ QString XDemangle::getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE m
     return sResult;
 }
 
-QString XDemangle::getTemplatesFromParameters(QList<PARAMETER> *pListParameters, XDemangle::MODE mode)
+QString XDemangle::Microsoft_getTemplatesFromParameters(QList<PARAMETER> *pListParameters, XDemangle::MODE mode)
 {
     QString sResult;
 
@@ -1725,7 +1961,7 @@ QString XDemangle::getTemplatesFromParameters(QList<PARAMETER> *pListParameters,
 
         for(int i=0;i<nNumberOfTemplates;i++)
         {
-            sResult+=getStringFromParameter(pListParameters->at(i),mode);
+            sResult+=Microsoft_getStringFromParameter(pListParameters->at(i),mode);
 
             if(i!=(nNumberOfTemplates-1))
             {
@@ -1739,7 +1975,7 @@ QString XDemangle::getTemplatesFromParameters(QList<PARAMETER> *pListParameters,
     return sResult;
 }
 
-QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE mode, QString sName, bool bFuncRet)
+QString XDemangle::Microsoft_getStringFromParameter(XDemangle::PARAMETER parameter, MODE mode, QString sName, bool bFuncRet)
 {
     QString sResult;
 
@@ -1757,16 +1993,23 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
             if(sName!="") sFunction+=QString(" %1").arg(sName);
             sFunction+=")";
         }
+        else if(parameter.type==TYPE_POINTERTOFUNCTIONREF)
+        {
+            sFunction=QString("(%1 *&").arg(sFunctionConvention);
+
+            if(sName!="") sFunction+=QString(" %1").arg(sName);
+            sFunction+=")";
+        }
         else if(parameter.type==TYPE_FUNCTION)
         {
             sFunction=QString("%1").arg(sFunctionConvention);
         }
         else if(parameter.type==TYPE_MEMBER)
         {
-            sFunction=QString("(%1 %2::*)").arg(sFunctionConvention).arg(getNameFromParameter(&parameter,mode));
+            sFunction=QString("(%1 %2::*)").arg(sFunctionConvention).arg(Microsoft_getNameFromParameter(&parameter,mode));
         }
 
-        QString sReturn=getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
+        QString sReturn=Microsoft_getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
 
         sResult=sReturn;
 
@@ -1774,7 +2017,7 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
 
         for(int i=1;i<nNumberOfFunctionParameters;i++)
         {
-            sResult+=getStringFromParameter(parameter.listFunctionParameters.at(i),mode);
+            sResult+=Microsoft_getStringFromParameter(parameter.listFunctionParameters.at(i),mode);
 
             if(i!=nNumberOfFunctionParameters-1)
             {
@@ -1801,7 +2044,7 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
         {
             QString sStorageClass;
 
-            if(i==0)
+            if(i==0) // TODO Check!
             {
                 sStorageClass=storageClassIdToString(parameter.listMods.at(i).storageClass,mode);
             }
@@ -1823,11 +2066,6 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
             {
                 if(sStorageClass!="")
                 {
-    //                if((sMod!="*const")&&(sStorageClass!="const"))
-    //                {
-    //                    if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
-    //                    sMod+=QString("%1").arg(sStorageClass);
-    //                }
                     if(_getStringEnd(sMod)!=QChar(' ')) sMod+=" ";
                     sMod+=QString("%1").arg(sStorageClass);
                 }
@@ -1846,7 +2084,7 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
         }
 
         QString sType=typeIdToString(parameter.type,mode);
-        QString sTypeName=getNameFromParameter(&parameter,mode);
+        QString sTypeName=Microsoft_getNameFromParameter(&parameter,mode);
 
         if(sType!="") sResult+=QString("%1").arg(sType);
 
@@ -1863,21 +2101,10 @@ QString XDemangle::getStringFromParameter(XDemangle::PARAMETER parameter, MODE m
             sResult+=QString("%1").arg(storageClassIdToString(parameter.extraStorageClass,mode));
         }
 
-//        if( ((sMod!="")&&(parameter.type!=TYPE_STRUCT))||
-//            (bStorageClass)||
-//            ((sMod!="")&&(!bPointer)&&(parameter.type==TYPE_STRUCT)))
-//        {
-//            if(sResult!="") sResult+=" ";
-//        }
-
         if(sMod!="")
         {
             if(_getStringEnd(sResult)!=QChar(' '))
             {
-//                if(parameter.type!=TYPE_STRUCT)
-//                {
-//                    sResult+=" ";
-//                }
                 sResult+=" ";
             }
         }
