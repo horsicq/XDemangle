@@ -1379,6 +1379,10 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("_W",TYPE_WCHAR);
         mapResult.insert("$$T",TYPE_NULLPTR);
     }
+    else if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+    {
+        mapResult.insert("i",TYPE_UINT);
+    }
 
     return mapResult;
 }
