@@ -1014,7 +1014,13 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
     {
         if(symbol.symbolType==ST_VARIABLE)
         {
-            QString sObjectClass=objectClassIdToString(symbol.objectClass,symbol.mode);
+            QString sObjectClass;
+
+            if(symbol.objectClass!=OC_UNKNOWN)
+            {
+                sObjectClass=objectClassIdToString(symbol.objectClass,symbol.mode);
+            }
+
             QString sParameter;
 
             QString sName=_getNameFromSymbol(symbol);
@@ -1022,6 +1028,10 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
             if(symbol.listParameters.count())
             {
                 sParameter=_getStringFromParameter(symbol.listParameters.at(0),symbol.mode,sName);
+            }
+            else
+            {
+                sParameter=sName;
             }
 
             if(sObjectClass!="")    sResult+=QString("%1 ").arg(sObjectClass);
@@ -1935,6 +1945,9 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
     if(_compare(sString,"@_Z")||_compare(sString,"_Z"))
     {
         result.bValid=true;
+        result.symbolType=ST_VARIABLE;
+
+        bool bNamespace=false;
 
         if(_compare(sString,"@_Z")) // Fastcall
         {
@@ -1945,15 +1958,26 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
             sString=sString.mid(2,-1);
         }
 
+        if(_compare(sString,"N"))
+        {
+            bNamespace=true;
+            sString=sString.mid(1,-1);
+        }
+
         while(sString!="")
         {
             STRING string=readString(pHdata,sString,mode);
+
+            if(string.nSize==0)
+            {
+                break;
+            }
 
             result.paramMain.listNames.append(string.sString);
 
             sString=sString.mid(string.nSize,-1);
 
-            if(string.nSize==0)
+            if(!bNamespace)
             {
                 break;
             }
@@ -2005,14 +2029,18 @@ QString XDemangle::_getNameFromParameter(PARAMETER *pParameter, XDemangle::MODE 
     QString sResult;
 
     int nNumberOfNames=pParameter->listNames.count();
+    int nNumberOfTemplates=pParameter->listListTemplateParameters.count();
 
     for(int i=0;i<nNumberOfNames;i++)
     {
         sResult+=pParameter->listNames.at(i);
 
-        QList<PARAMETER> listParameter=pParameter->listListTemplateParameters.at(i);
+        if(i<nNumberOfTemplates)
+        {
+            QList<PARAMETER> listParameter=pParameter->listListTemplateParameters.at(i);
 
-        sResult+=_getTemplatesFromParameters(&listParameter,mode);
+            sResult+=_getTemplatesFromParameters(&listParameter,mode);
+        }
 
         if(i!=(nNumberOfNames-1))
         {
