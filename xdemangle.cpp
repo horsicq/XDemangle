@@ -71,7 +71,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_LONGDOUBLE_80:    sResult=QString("long double");         break;
         case TYPE_INT64:            sResult=QString("__int64");             break; // TODO Check !!!
         case TYPE_UINT64:           sResult=QString("unsigned __int64");    break; // TODO Check !!!
-        case TYPE_CHAR8:            sResult=QString("char");                break;
+        case TYPE_CHAR8:            sResult=QString("char8_t");             break;
         case TYPE_CHAR16:           sResult=QString("char16_t");            break;
         case TYPE_CHAR32:           sResult=QString("char32_t");            break;
         case TYPE_WCHAR:            sResult=QString("wchar_t");             break;
@@ -1389,7 +1389,28 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
     }
     else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
+        mapResult.insert("v",TYPE_VOID);
+        mapResult.insert("a",TYPE_SCHAR);
+        mapResult.insert("c",TYPE_CHAR);
+        mapResult.insert("h",TYPE_UCHAR);
+        mapResult.insert("s",TYPE_SHORT);
+        mapResult.insert("t",TYPE_USHORT);
         mapResult.insert("i",TYPE_INT);
+        mapResult.insert("j",TYPE_UINT);
+        mapResult.insert("l",TYPE_LONG);
+        mapResult.insert("m",TYPE_ULONG);
+        mapResult.insert("f",TYPE_FLOAT);
+        mapResult.insert("d",TYPE_DOUBLE);
+        mapResult.insert("e",TYPE_LONGDOUBLE_64);
+        mapResult.insert("z",TYPE_VARARGS);
+        mapResult.insert("x",TYPE_INT64);
+        mapResult.insert("y",TYPE_UINT64);
+        mapResult.insert("b",TYPE_BOOL);
+        mapResult.insert("Du",TYPE_CHAR8);
+        mapResult.insert("Ds",TYPE_CHAR16);
+        mapResult.insert("Di",TYPE_CHAR32);
+        mapResult.insert("w",TYPE_WCHAR);
+        mapResult.insert("Dn",TYPE_NULLPTR);
     }
 
     return mapResult;
