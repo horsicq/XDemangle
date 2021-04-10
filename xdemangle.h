@@ -52,7 +52,6 @@ public:
         SYNTAX_MICROSOFT,
         SYNTAX_ITANIUM,
         SYNTAX_BORLAND32,
-        SYNTAX_BORLAND64,
         SYNTAX_WATCOM
     };
 
@@ -147,6 +146,7 @@ public:
     enum FC
     {
         FC_UNKNOWN=0,
+        FC_NONE,
         FC_CDECL,
         FC_PASCAL,
         FC_FORTRAN,

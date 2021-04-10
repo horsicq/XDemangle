@@ -160,24 +160,24 @@ QString XDemangle::functionModIdToString(XDemangle::FM functionMod, XDemangle::M
         case FM_UNKNOWN:                sResult=QString("Unknown");             break; // mb TODO translate
         case FM_NEAR:                   sResult=QString("");                    break;
         case FM_FAR:                    sResult=QString("");                    break;
-        case FM_PUBLIC_NEAR:            sResult=QString("public:");              break;
-        case FM_PUBLIC_FAR:             sResult=QString("public:");              break;
-        case FM_PUBLIC_STATICNEAR:      sResult=QString("public: static");       break;
-        case FM_PUBLIC_STATICFAR:       sResult=QString("public: static");       break;
-        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public: virtual");      break;
-        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public: virtual");      break;
-        case FM_PROTECTED_NEAR:         sResult=QString("protected:");           break;
-        case FM_PROTECTED_FAR:          sResult=QString("protected:");           break;
-        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected: static");    break;
-        case FM_PROTECTED_STATICFAR:    sResult=QString("protected: static");    break;
-        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected: virtual");   break;
-        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected: virtual");   break;
-        case FM_PRIVATE_NEAR:           sResult=QString("private:");             break;
-        case FM_PRIVATE_FAR:            sResult=QString("private:");             break;
-        case FM_PRIVATE_STATICNEAR:     sResult=QString("private: static");      break;
-        case FM_PRIVATE_STATICFAR:      sResult=QString("private: static");      break;
-        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private: virtual");     break;
-        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private: virtual");     break;
+        case FM_PUBLIC_NEAR:            sResult=QString("public:");             break;
+        case FM_PUBLIC_FAR:             sResult=QString("public:");             break;
+        case FM_PUBLIC_STATICNEAR:      sResult=QString("public: static");      break;
+        case FM_PUBLIC_STATICFAR:       sResult=QString("public: static");      break;
+        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public: virtual");     break;
+        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public: virtual");     break;
+        case FM_PROTECTED_NEAR:         sResult=QString("protected:");          break;
+        case FM_PROTECTED_FAR:          sResult=QString("protected:");          break;
+        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected: static");   break;
+        case FM_PROTECTED_STATICFAR:    sResult=QString("protected: static");   break;
+        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected: virtual");  break;
+        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected: virtual");  break;
+        case FM_PRIVATE_NEAR:           sResult=QString("private:");            break;
+        case FM_PRIVATE_FAR:            sResult=QString("private:");            break;
+        case FM_PRIVATE_STATICNEAR:     sResult=QString("private: static");     break;
+        case FM_PRIVATE_STATICFAR:      sResult=QString("private: static");     break;
+        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private: virtual");    break;
+        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private: virtual");    break;
     }
 
     return sResult;
@@ -192,6 +192,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
     switch(functionConvention)
     {
         case FC_UNKNOWN:            sResult=QString("Unknown");                     break; // mb TODO translate
+        case FC_NONE:               sResult=QString("");                            break;
         case FC_CDECL:              sResult=QString("__cdecl");                     break;
         case FC_THISCALL:           sResult=QString("__thiscall");                  break;
         case FC_STDCALL:            sResult=QString("__stdcall");                   break;
@@ -1048,7 +1049,14 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
                 QString sFunctionConvention=functionConventionIdToString(symbol.functionConvention,symbol.mode);
                 QString sFunctionName=_getNameFromSymbol(symbol);
 
-                QString sFunction=QString("%1 %2").arg(sFunctionConvention).arg(sFunctionName);
+                QString sFunction=sFunctionConvention;
+
+                if(sFunction!="")
+                {
+                    sFunction+=" ";
+                }
+
+                sFunction+=sFunctionName;
 
                 sFunction+=QString("(");
 
@@ -1379,9 +1387,9 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("_W",TYPE_WCHAR);
         mapResult.insert("$$T",TYPE_NULLPTR);
     }
-    else if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+    else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
-        mapResult.insert("i",TYPE_UINT);
+        mapResult.insert("i",TYPE_INT);
     }
 
     return mapResult;
@@ -1982,6 +1990,47 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
             sString=sString.mid(string.nSize,-1);
 
             if(!bNamespace)
+            {
+                break;
+            }
+        }
+
+        while(sString!="")
+        {
+            // TODO sRecord
+            bool bParameter=false;
+            PARAMETER parameter={};
+
+            if(isSignaturePresent(sString,&(pHdata->mapTypes)))
+            {
+                SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
+
+                parameter.type=(TYPE)signatureType.nValue;
+
+                sString=sString.mid(signatureType.nSize,-1);
+
+                bParameter=true;
+            }
+
+            if(bParameter)
+            {
+                if(result.listParameters.count()==0)
+                {
+                    result.functionMod=FM_NEAR;
+                    result.functionConvention=FC_NONE;
+                    result.symbolType=ST_FUNCTION;
+
+                    PARAMETER paramReturn={};
+
+                    paramReturn.type=TYPE_EMPTY;
+                    paramReturn.storageClass=SC_NEAR;
+
+                    result.listParameters.append(paramReturn);
+                }
+
+                result.listParameters.append(parameter);
+            }
+            else
             {
                 break;
             }
