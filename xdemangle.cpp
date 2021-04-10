@@ -131,8 +131,6 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
 
 QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mode)
 {
-    Q_UNUSED(mode) // TODO
-
     QString sResult="Unknown"; // mb TODO translate
 
     switch(paramMod)
@@ -1445,6 +1443,11 @@ QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
         mapResult.insert("S",PM_POINTERCONSTVOLATILE);
         mapResult.insert("$$Q",PM_DOUBLEREFERENCE);
     }
+    else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    {
+        mapResult.insert("P",PM_POINTER);
+        mapResult.insert("S",PM_REFERENCE);
+    }
 
     return mapResult;
 }
@@ -2021,6 +2024,19 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
             // TODO sRecord
             bool bParameter=false;
             PARAMETER parameter={};
+
+            if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+            {
+                SIGNATURE signatureType=getSignature(sString,&(pHdata->mapParamMods));
+
+                PARAMETER paramMod={};
+
+                paramMod.paramMod=(PM)signatureType.nValue;
+
+                parameter.listMods.append(paramMod);
+
+                sString=sString.mid(signatureType.nSize,-1);
+            }
 
             if(isSignaturePresent(sString,&(pHdata->mapTypes)))
             {
