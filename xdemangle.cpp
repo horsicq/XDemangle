@@ -69,8 +69,26 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_DOUBLE:           sResult=QString("double");              break;
         case TYPE_LONGDOUBLE_64:    sResult=QString("long double");         break;
         case TYPE_LONGDOUBLE_80:    sResult=QString("long double");         break;
-        case TYPE_INT64:            sResult=QString("__int64");             break; // TODO Check !!!
-        case TYPE_UINT64:           sResult=QString("unsigned __int64");    break; // TODO Check !!!
+        case TYPE_INT64:
+            if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+            {
+                sResult=QString("__int64");
+            }
+            else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+            {
+                sResult=QString("long long");
+            }
+            break; // TODO Check !!!
+        case TYPE_UINT64:
+            if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+            {
+                sResult=QString("unsigned __int64");
+            }
+            else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+            {
+                sResult=QString("unsigned long long");
+            }
+            break; // TODO Check !!!
         case TYPE_CHAR8:            sResult=QString("char8_t");             break;
         case TYPE_CHAR16:           sResult=QString("char16_t");            break;
         case TYPE_CHAR32:           sResult=QString("char32_t");            break;
@@ -1446,7 +1464,7 @@ QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
     else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
         mapResult.insert("P",PM_POINTER);
-        mapResult.insert("S",PM_REFERENCE);
+        mapResult.insert("R",PM_REFERENCE);
     }
 
     return mapResult;
@@ -1981,6 +1999,7 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
     if(_compare(sString,"@_Z")||_compare(sString,"_Z"))
     {
         result.bValid=true;
+        result.mode=mode;
         result.symbolType=ST_VARIABLE;
 
         bool bNamespace=false;
@@ -2293,11 +2312,14 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
             sResult+=QString("%1").arg(storageClassIdToString(parameter.extraStorageClass,mode));
         }
 
-        if(sMod!="")
+        if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
         {
-            if(_getStringEnd(sResult)!=QChar(' '))
+            if(sMod!="")
             {
-                sResult+=" ";
+                if(_getStringEnd(sResult)!=QChar(' '))
+                {
+                    sResult+=" ";
+                }
             }
         }
 
