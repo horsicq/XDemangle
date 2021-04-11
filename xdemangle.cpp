@@ -1078,12 +1078,29 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
 
                 for(int i=1;i<nNumberOfArguments;i++)
                 {
-                    sFunction+=_getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
+                    bool bEnable=true;
 
-                    if(i!=nNumberOfArguments-1)
+                    if(getSyntaxFromMode(symbol.mode)==SYNTAX_ITANIUM)
                     {
-                        sFunction+=QString(", ");;
+                        if(nNumberOfArguments==2)
+                        {
+                            if((symbol.listParameters.at(i).listMods.count()==0)&&(symbol.listParameters.at(i).type==TYPE_VOID))
+                            {
+                                bEnable=false;
+                            }
+                        }
                     }
+
+                    if(bEnable)
+                    {
+                        sFunction+=_getStringFromParameter(symbol.listParameters.at(i),symbol.mode);
+
+                        if(i!=nNumberOfArguments-1)
+                        {
+                            sFunction+=QString(", ");;
+                        }
+                    }
+
                 }
 
                 sFunction+=QString(")");
@@ -2038,13 +2055,21 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
             }
         }
 
+        if(bNamespace)
+        {
+            if(_compare(sString,"E")) // End
+            {
+                sString=sString.mid(1,-1);
+            }
+        }
+
         while(sString!="")
         {
             // TODO sRecord
             bool bParameter=false;
             PARAMETER parameter={};
 
-            if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+            while(isSignaturePresent(sString,&(pHdata->mapParamMods)))
             {
                 SIGNATURE signatureType=getSignature(sString,&(pHdata->mapParamMods));
 
@@ -2056,6 +2081,8 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
 
                 sString=sString.mid(signatureType.nSize,-1);
             }
+
+            reverseList(&(parameter.listMods));
 
             if(isSignaturePresent(sString,&(pHdata->mapTypes)))
             {
