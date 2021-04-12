@@ -1642,6 +1642,115 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("?_U",OP_ARRAYNEW);
         mapResult.insert("?_V",OP_ARRAYDELETE);
     }
+    else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    {
+//        ::= ps        # + (unary)
+//        ::= ng	# - (unary)
+//        ::= ad	# & (unary)
+//        ::= de	# * (unary)
+//        ::= co	# ~
+//        ::= pl	# +
+//        ::= mi	# -
+//        ::= ml	# *
+//        ::= dv	# /
+//        ::= rm	# %
+//        ::= an	# &
+//        ::= or	# |
+//        ::= eo	# ^
+//        ::= aS	# =
+//        ::= pL	# +=
+//        ::= mI	# -=
+//        ::= mL	# *=
+//        ::= dV	# /=
+//        ::= rM	# %=
+//        ::= aN	# &=
+//        ::= oR	# |=
+//        ::= eO	# ^=
+//        ::= ls	# <<
+//        ::= rs	# >>
+//        ::= lS	# <<=
+//        ::= rS	# >>=
+//        ::= eq	# ==
+//        ::= ne	# !=
+//        ::= lt	# <
+//        ::= gt	# >
+//        ::= le	# <=
+//        ::= ge	# >=
+//        ::= ss	# <=>
+//        ::= nt	# !
+//        ::= aa	# &&
+//        ::= oo	# ||
+//        ::= pp	# ++ (postfix in <expression> context)
+//        ::= mm	# -- (postfix in <expression> context)
+//        ::= cm	# ,
+//        ::= pm	# ->*
+//        ::= pt	# ->
+//        ::= cl	# ()
+//        ::= ix	# []
+//        ::= qu	# ?
+
+        mapResult.insert("C1",OP_CONSTRUCTOR);
+        mapResult.insert("C2",OP_CONSTRUCTOR);
+        mapResult.insert("D1",OP_DESTRUCTOR);
+        mapResult.insert("D2",OP_DESTRUCTOR);
+        mapResult.insert("nw",OP_NEW);
+        mapResult.insert("dl",OP_DELETE);
+        mapResult.insert("XXXXX4",OP_ASSIGN);
+        mapResult.insert("XXXXX5",OP_RIGHTSHIFT);
+        mapResult.insert("XXXXX6",OP_LEFTSHIFT);
+        mapResult.insert("XXXXX7",OP_LOGICALNOT);
+        mapResult.insert("XXXXX8",OP_EQUALS);
+        mapResult.insert("XXXXX9",OP_NOTEQUALS);
+        mapResult.insert("XXXXXA",OP_ARRAYSUBSCRIPT);
+        mapResult.insert("XXXXXB",OP_TYPE);
+        mapResult.insert("XXXXXC",OP_POINTER);
+        mapResult.insert("XXXXXD",OP_DEREFERENCE);
+        mapResult.insert("pp",OP_INCREMENT);
+        mapResult.insert("XXXXXF",OP_DECREMENT);
+        mapResult.insert("mi",OP_MINUS);
+        mapResult.insert("pl",OP_PLUS);
+        mapResult.insert("XXXXXI",OP_BITWISEAND);
+        mapResult.insert("XXXXXJ",OP_MEMBERPOINTER);
+        mapResult.insert("XXXXXK",OP_DIVIDE);
+        mapResult.insert("XXXXXL",OP_MODULUS);
+        mapResult.insert("XXXXXM",OP_LESSTHAN);
+        mapResult.insert("XXXXXN",OP_LESSTHANEQUAL);
+        mapResult.insert("XXXXXO",OP_GREATERTHAN);
+        mapResult.insert("XXXXXP",OP_GREATERTHANEQUAL);
+        mapResult.insert("XXXXXQ",OP_COMMA);
+        mapResult.insert("XXXXXR",OP_PARENS);
+        mapResult.insert("XXXXXS",OP_BITWISENOT);
+        mapResult.insert("XXXXXT",OP_BITWISEXOR);
+        mapResult.insert("XXXXXU",OP_BITWISEOR);
+        mapResult.insert("XXXXXV",OP_LOGICALAND);
+        mapResult.insert("XXXXXW",OP_LOGICALOR);
+        mapResult.insert("XXXXXX",OP_TIMESEQUAL);
+        mapResult.insert("pL",OP_PLUSEQUAL);
+        mapResult.insert("XXXXXZ",OP_MINUSEQUAL);
+        mapResult.insert("XXXXX_0",OP_DIVEQUAL);
+        mapResult.insert("XXXXX_1",OP_MODEQUAL);
+        mapResult.insert("XXXXX_2",OP_RSHEQUAL);
+        mapResult.insert("XXXXX_3",OP_LSHEQUAL);
+        mapResult.insert("XXXXX_4",OP_BITWISEANDEQUAL);
+        mapResult.insert("XXXXX_5",OP_BITWISEOREQUAL);
+        mapResult.insert("XXXXX_6",OP_BITWISEXOREQUAL);
+        mapResult.insert("XXXXX_7",OP_VIRTUALTABLE);
+        mapResult.insert("XXXXX_8",OP_VBTABLE);
+        mapResult.insert("XXXXX_D",OP_VBASEDTOR);
+        mapResult.insert("XXXXX_E",OP_VECDELDTOR);
+        mapResult.insert("XXXXX_F",OP_DEFAULTCTORCLOSURE);
+        mapResult.insert("XXXXX_G",OP_SCALARDELDTOR);
+        mapResult.insert("XXXXX_H",OP_VECCTORITER);
+        mapResult.insert("XXXXX_I",OP_VECDTORITER);
+        mapResult.insert("XXXXX_J",OP_VECVBASECTORITER);
+        mapResult.insert("XXXXX_K",OP_VDISPMAP);
+        mapResult.insert("XXXXX_L",OP_EHVECCTORITER);
+        mapResult.insert("XXXXX_M",OP_EHVECDTORITER);
+        mapResult.insert("XXXXX_N",OP_EHVECVBASECTORITER);
+        mapResult.insert("XXXXX_O",OP_COPYCTORCLOSURE);
+        mapResult.insert("na",OP_ARRAYNEW);
+        mapResult.insert("da",OP_ARRAYDELETE);
+    }
 
     return mapResult;
 }
@@ -2038,16 +2147,27 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
 
         while(sString!="")
         {
-            STRING string=readString(pHdata,sString,mode);
-
-            if(string.nSize==0)
+            if(isSignaturePresent(sString,&(pHdata->mapOperators)))
             {
-                break;
+                SIGNATURE signatureOperator=getSignature(sString,&(pHdata->mapOperators));
+
+                result._operator=(OP)signatureOperator.nValue;
+
+                sString=sString.mid(signatureOperator.nSize,-1);
             }
+            else
+            {
+                STRING string=readString(pHdata,sString,mode);
 
-            result.paramMain.listNames.append(string.sString);
+                if(string.nSize==0)
+                {
+                    break;
+                }
 
-            sString=sString.mid(string.nSize,-1);
+                result.paramMain.listNames.append(string.sString);
+
+                sString=sString.mid(string.nSize,-1);
+            }
 
             if(!bNamespace)
             {
@@ -2142,7 +2262,13 @@ QString XDemangle::_getNameFromSymbol(XDemangle::SYMBOL symbol)
 
             if(nNumberOfNames)
             {
-                QList<PARAMETER> listTemplates=symbol.paramMain.listListTemplateParameters.at(nNumberOfNames-1);
+                QList<PARAMETER> listTemplates;
+
+                if(symbol.paramMain.listListTemplateParameters.count()>(nNumberOfNames-1))
+                {
+                    listTemplates=symbol.paramMain.listListTemplateParameters.at(nNumberOfNames-1);
+                }
+
                 sResult+=symbol.paramMain.listNames.at(nNumberOfNames-1)+_getTemplatesFromParameters(&listTemplates,symbol.mode);
             }
         }
