@@ -1709,7 +1709,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("XXXXXF",OP_DECREMENT);
         mapResult.insert("mi",OP_MINUS);
         mapResult.insert("pl",OP_PLUS);
-        mapResult.insert("XXXXXI",OP_BITWISEAND);
+        mapResult.insert("an",OP_BITWISEAND);
         mapResult.insert("XXXXXJ",OP_MEMBERPOINTER);
         mapResult.insert("XXXXXK",OP_DIVIDE);
         mapResult.insert("XXXXXL",OP_MODULUS);
@@ -1717,7 +1717,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("XXXXXN",OP_LESSTHANEQUAL);
         mapResult.insert("XXXXXO",OP_GREATERTHAN);
         mapResult.insert("XXXXXP",OP_GREATERTHANEQUAL);
-        mapResult.insert("XXXXXQ",OP_COMMA);
+        mapResult.insert("cm",OP_COMMA);
         mapResult.insert("XXXXXR",OP_PARENS);
         mapResult.insert("XXXXXS",OP_BITWISENOT);
         mapResult.insert("eo",OP_BITWISEXOR);
@@ -2124,6 +2124,8 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
 
     if(_compare(sString,"@_Z")||_compare(sString,"_Z"))
     {
+        QList<QString> listStringRefs; // String and args
+
         result.bValid=true;
         result.mode=mode;
         result.symbolType=ST_VARIABLE;
@@ -2132,6 +2134,7 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
 
         if(_compare(sString,"@_Z")) // Fastcall
         {
+            result.functionConvention=FC_FASTCALL;
             sString=sString.mid(3,-1);
         }
         else if(_compare(sString,"_Z"))
@@ -2167,6 +2170,11 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
                 result.paramMain.listNames.append(string.sString);
 
                 sString=sString.mid(string.nSize,-1);
+
+                if(!_compare(sString,"E")) // If not the last
+                {
+                    listStringRefs.append(string.sString);
+                }
             }
 
             if(!bNamespace)
@@ -2187,19 +2195,25 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
         {
             // TODO sRecord
             bool bParameter=false;
+            bool bAdd=true;
             PARAMETER parameter={};
 
             while(isSignaturePresent(sString,&(pHdata->mapParamMods)))
             {
-                SIGNATURE signatureType=getSignature(sString,&(pHdata->mapParamMods));
+                SIGNATURE signatureMod=getSignature(sString,&(pHdata->mapParamMods));
 
                 PARAMETER paramMod={};
 
-                paramMod.paramMod=(PM)signatureType.nValue;
+                paramMod.paramMod=(PM)signatureMod.nValue;
 
                 parameter.listMods.append(paramMod);
 
-                sString=sString.mid(signatureType.nSize,-1);
+                if(bAdd)
+                {
+                    parameter.sRecord+=sString.leftRef(signatureMod.nSize);
+                }
+
+                sString=sString.mid(signatureMod.nSize,-1);
             }
 
             reverseList(&(parameter.listMods));
@@ -2209,6 +2223,11 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
                 SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
 
                 parameter.type=(TYPE)signatureType.nValue;
+
+                if(bAdd)
+                {
+                    parameter.sRecord+=sString.leftRef(signatureType.nSize);
+                }
 
                 sString=sString.mid(signatureType.nSize,-1);
 
