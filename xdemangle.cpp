@@ -1701,7 +1701,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("XXXXX7",OP_LOGICALNOT);
         mapResult.insert("eq",OP_EQUALS);
         mapResult.insert("XXXXX9",OP_NOTEQUALS);
-        mapResult.insert("XXXXXA",OP_ARRAYSUBSCRIPT);
+        mapResult.insert("ix",OP_ARRAYSUBSCRIPT);
         mapResult.insert("XXXXXB",OP_TYPE);
         mapResult.insert("XXXXXC",OP_POINTER);
         mapResult.insert("XXXXXD",OP_DEREFERENCE);
@@ -1733,7 +1733,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("XXXXX_3",OP_LSHEQUAL);
         mapResult.insert("XXXXX_4",OP_BITWISEANDEQUAL);
         mapResult.insert("XXXXX_5",OP_BITWISEOREQUAL);
-        mapResult.insert("XXXXX_6",OP_BITWISEXOREQUAL);
+        mapResult.insert("OE",OP_BITWISEXOREQUAL);
         mapResult.insert("XXXXX_7",OP_VIRTUALTABLE);
         mapResult.insert("XXXXX_8",OP_VBTABLE);
         mapResult.insert("XXXXX_D",OP_VBASEDTOR);
