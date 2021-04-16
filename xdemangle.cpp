@@ -829,7 +829,7 @@ qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, M
         if(_string.nSize)
         {
             pParameter->listNames.append(_string.sString);
-            sRecord+=_string.sString+"@";
+            sRecord+=_string.sOriginal;
         }
         else
         {
@@ -923,6 +923,86 @@ qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, M
     // Reverse
     reverseList(&(pParameter->listNames));
     reverseList(&(pParameter->listListTemplateParameters));
+
+    return nResult;
+}
+
+qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStringRefs)
+{
+    qint32 nResult=0;
+
+    while(sString!="")
+    {
+        bool bParameter=false;
+        bool bAdd=true;
+        PARAMETER parameter={};
+
+        while(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+        {
+            SIGNATURE signatureMod=getSignature(sString,&(pHdata->mapParamMods));
+
+            PARAMETER paramMod={};
+
+            paramMod.paramMod=(PM)signatureMod.nValue;
+
+            parameter.listMods.append(paramMod);
+
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(signatureMod.nSize);
+                nResult+=signatureMod.nSize;
+            }
+
+            sString=sString.mid(signatureMod.nSize,-1);
+        }
+
+        reverseList(&(parameter.listMods));
+
+        if(isSignaturePresent(sString,&(pHdata->mapTypes)))
+        {
+            SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
+
+            parameter.type=(TYPE)signatureType.nValue;
+
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(signatureType.nSize);
+                nResult+=signatureType.nSize;
+            }
+
+            sString=sString.mid(signatureType.nSize,-1);
+
+            bParameter=true;
+        }
+
+        if(bParameter)
+        {
+            if(pListParameters->count()==0)
+            {
+                // Return
+                PARAMETER paramReturn={};
+
+                paramReturn.type=TYPE_EMPTY;
+                paramReturn.storageClass=SC_NEAR;
+
+                pListParameters->append(paramReturn);
+            }
+
+            pListParameters->append(parameter);
+
+            if(parameter.sRecord.size()>1)
+            {
+                if(!pListStringRefs->contains(parameter.sRecord))
+                {
+                    pListStringRefs->append(parameter.sRecord);
+                }
+            }
+        }
+        else
+        {
+            break;
+        }
+    }
 
     return nResult;
 }
@@ -1179,6 +1259,12 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString, XDemangle
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
         result.sString=sString.section("@",0,0);
+        result.sOriginal=result.sString;
+
+        if(sString.contains("@"))
+        {
+            result.sOriginal+="@";
+        }
 
         result.nSize=result.sString.size();
 
@@ -1196,9 +1282,11 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString, XDemangle
 
         if(number.nSize)
         {
+            result.sOriginal+=sString.leftRef(number.nSize);
             sString=sString.mid(number.nSize,-1);
             result.sString=sString.left(number.nValue);
             result.nSize=number.nSize+result.sString.size();
+            result.sOriginal+=result.sString;
         }
     }
 
@@ -2171,9 +2259,12 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
 
                 sString=sString.mid(string.nSize,-1);
 
-                if(!_compare(sString,"E")) // If not the last
+                if((bNamespace)&&(!_compare(sString,"E"))) // If not the last
                 {
-                    listStringRefs.append(string.sString);
+                    if(!listStringRefs.contains(string.sOriginal))
+                    {
+                        listStringRefs.append(string.sString);
+                    }
                 }
             }
 
@@ -2191,72 +2282,16 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
             }
         }
 
-        while(sString!="")
+        quint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(result.listParameters),&listStringRefs);
+
+        if(nParamSize)
         {
-            // TODO sRecord
-            bool bParameter=false;
-            bool bAdd=true;
-            PARAMETER parameter={};
-
-            while(isSignaturePresent(sString,&(pHdata->mapParamMods)))
-            {
-                SIGNATURE signatureMod=getSignature(sString,&(pHdata->mapParamMods));
-
-                PARAMETER paramMod={};
-
-                paramMod.paramMod=(PM)signatureMod.nValue;
-
-                parameter.listMods.append(paramMod);
-
-                if(bAdd)
-                {
-                    parameter.sRecord+=sString.leftRef(signatureMod.nSize);
-                }
-
-                sString=sString.mid(signatureMod.nSize,-1);
-            }
-
-            reverseList(&(parameter.listMods));
-
-            if(isSignaturePresent(sString,&(pHdata->mapTypes)))
-            {
-                SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
-
-                parameter.type=(TYPE)signatureType.nValue;
-
-                if(bAdd)
-                {
-                    parameter.sRecord+=sString.leftRef(signatureType.nSize);
-                }
-
-                sString=sString.mid(signatureType.nSize,-1);
-
-                bParameter=true;
-            }
-
-            if(bParameter)
-            {
-                if(result.listParameters.count()==0)
-                {
-                    result.functionMod=FM_NEAR;
-                    result.functionConvention=FC_NONE;
-                    result.symbolType=ST_FUNCTION;
-
-                    PARAMETER paramReturn={};
-
-                    paramReturn.type=TYPE_EMPTY;
-                    paramReturn.storageClass=SC_NEAR;
-
-                    result.listParameters.append(paramReturn);
-                }
-
-                result.listParameters.append(parameter);
-            }
-            else
-            {
-                break;
-            }
+            result.functionMod=FM_NEAR;
+            result.functionConvention=FC_NONE;
+            result.symbolType=ST_FUNCTION;
         }
+
+        sString=sString.mid(nParamSize,-1);
     }
 
     return result;

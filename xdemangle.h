@@ -328,6 +328,7 @@ private:
     {
         qint32 nSize;
         QString sString;
+        QString sOriginal;
     };
 
     struct NUMBER
@@ -368,6 +369,8 @@ private:
 
     qint32 Microsoft_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
     qint32 Microsoft_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs,bool bFirst);
+
+    qint32 Itanium_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStringRefs);
 
     QString _getNameFromSymbol(SYMBOL symbol);
     QString _getNameFromParameter(PARAMETER *pParameter,MODE mode);
