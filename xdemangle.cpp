@@ -937,6 +937,45 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
         bool bAdd=true;
         PARAMETER parameter={};
 
+        if(_compare(sString,"S"))
+        {
+            parameter.sRecord+=sString.leftRef(1);
+            sString=sString.mid(1,-1);
+
+            nResult+=1;
+
+            qint32 nIndex=0;
+
+            NUMBER number=readNumber(pHdata,sString,mode);
+
+            if(number.nSize)
+            {
+                nIndex=number.nValue+1;
+                parameter.sRecord+=sString.leftRef(number.nSize);
+                sString=sString.mid(number.nSize,-1);
+                nResult+=number.nSize;
+            }
+
+            if(_compare(sString,"_"))
+            {
+                parameter.sRecord+=sString.leftRef(1);
+                sString=sString.mid(1,-1);
+                nResult+=1;
+            }
+
+            if(nIndex<pListStringRefs->count())
+            {
+                sString=sString.prepend(pListStringRefs->at(nIndex));
+                bAdd=false;
+            }
+            else
+            {
+            #ifdef QT_DEBUG
+                qDebug("ERROR!!!");
+            #endif
+            }
+        }
+
         while(isSignaturePresent(sString,&(pHdata->mapParamMods)))
         {
             SIGNATURE signatureMod=getSignature(sString,&(pHdata->mapParamMods));
@@ -957,6 +996,8 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
         }
 
         reverseList(&(parameter.listMods));
+
+        // TODO read names
 
         if(isSignaturePresent(sString,&(pHdata->mapTypes)))
         {
@@ -990,13 +1031,17 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
             pListParameters->append(parameter);
 
-            if(parameter.sRecord.size()>1)
+            if(bAdd)
             {
-                if(!pListStringRefs->contains(parameter.sRecord))
+                if(parameter.sRecord.size()>1)
                 {
-                    pListStringRefs->append(parameter.sRecord);
+                    if(!pListStringRefs->contains(parameter.sRecord))
+                    {
+                        pListStringRefs->append(parameter.sRecord);
+                    }
                 }
             }
+
         }
         else
         {
@@ -2263,7 +2308,7 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
                 {
                     if(!listStringRefs.contains(string.sOriginal))
                     {
-                        listStringRefs.append(string.sString);
+                        listStringRefs.append(string.sOriginal);
                     }
                 }
             }
