@@ -340,6 +340,7 @@ private:
     struct SIGNATURE
     {
         qint32 nSize;
+        QString sKey;
         qint32 nValue;
     };
 
@@ -352,6 +353,9 @@ private:
 
     bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);
     SIGNATURE getSignature(QString sString,QMap<QString,qint32> *pMap);
+
+    SIGNATURE Itanium_getReplaceSignature(HDATA *pHdata,QString sString,MODE mode);
+
     QMap<QString,qint32> getObjectClasses(MODE mode);
     QMap<QString,qint32> getTypes(MODE mode);
     QMap<QString,qint32> getNameTypes(MODE mode);
@@ -371,6 +375,7 @@ private:
     qint32 Microsoft_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs,bool bFirst);
 
     qint32 Itanium_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStringRefs);
+    qint32 Itanium_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,bool bFirst,SYMBOL *pSymbol);
 
     QString _getNameFromSymbol(SYMBOL symbol);
     QString _getNameFromParameter(PARAMETER *pParameter,MODE mode);
