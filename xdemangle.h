@@ -366,7 +366,7 @@ private:
     QMap<QString,qint32> getOperators(MODE mode);
     QMap<QString,qint32> getNumbers(MODE mode);
     QMap<QString,qint32> getLineNumbers(MODE mode);
-    QMap<QString,qint32> getHexNumbers(MODE mode);
+    QMap<QString,qint32> getSymNumbers(MODE mode);
 
     SYMBOL Microsoft_handle(HDATA *pHdata,QString sString,MODE mode);
     SYMBOL Itanium_handle(HDATA *pHdata,QString sString,MODE mode);

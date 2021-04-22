@@ -931,12 +931,13 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 {
     qint32 nResult=0;
 
+    bool bParameter=false;
+    bool bAdd=true;
+    PARAMETER parameter={};
+    QList<QString> listPos;
+
     while(sString!="")
     {
-        bool bParameter=false;
-        bool bAdd=true;
-        PARAMETER parameter={};
-
         if(_compare(sString,"S"))
         {
             SIGNATURE signatureReplace=Itanium_getReplaceSignature(pHdata,sString,mode);
@@ -956,12 +957,13 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             #endif
             }
         }
-
-        while(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+        else if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
         {
+            PARAMETER paramMod={};
+
             SIGNATURE signatureMod=getSignature(sString,&(pHdata->mapParamMods));
 
-            PARAMETER paramMod={};
+            listPos.append(signatureMod.sKey);
 
             paramMod.paramMod=(PM)signatureMod.nValue;
 
@@ -973,64 +975,33 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
             sString=sString.mid(signatureMod.nSize,-1);
 
-            if(isSignaturePresent(sString,&(pHdata->mapStorageClasses)))
+            parameter.listMods.append(paramMod);
+        }
+        else if(isSignaturePresent(sString,&(pHdata->mapStorageClasses)))
+        {
+            PARAMETER paramMod={};
+
+            SIGNATURE signatureSC=getSignature(sString,&(pHdata->mapStorageClasses));
+
+            listPos.append(signatureSC.sKey);
+
+            paramMod.storageClass=(SC)signatureSC.nValue;
+
+            if(bAdd)
             {
-                SIGNATURE signatureSC=getSignature(sString,&(pHdata->mapStorageClasses));
-
-                paramMod.storageClass=(SC)signatureSC.nValue;
-
-                if(bAdd)
-                {
-                    parameter.sRecord+=sString.leftRef(signatureSC.nSize);
-                    nResult+=signatureSC.nSize;
-                }
-
-                sString=sString.mid(signatureSC.nSize,-1);
+                parameter.sRecord+=sString.leftRef(signatureSC.nSize);
+                nResult+=signatureSC.nSize;
             }
+
+            sString=sString.mid(signatureSC.nSize,-1);
 
             parameter.listMods.append(paramMod);
         }
-
-        reverseList(&(parameter.listMods));
-
-        if(_compare(sString,"S"))
-        {
-            SIGNATURE signatureReplace=Itanium_getReplaceSignature(pHdata,sString,mode);
-
-            if(signatureReplace.nValue<pListStringRefs->count())
-            {
-                QString sRecord=pListStringRefs->at(signatureReplace.nValue);
-                sString=sString.replace(0,signatureReplace.nSize,sRecord);
-                bAdd=false;
-                parameter.sRecord+=sRecord;
-                nResult+=signatureReplace.nSize;
-            }
-            else
-            {
-            #ifdef QT_DEBUG
-                qDebug("ERROR!!!");
-            #endif
-            }
-        }
-
-        quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,false,nullptr);
-
-        if(nNameSize)
-        {
-            if(bAdd)
-            {
-                parameter.sRecord+=sString.leftRef(nNameSize);
-                nResult+=nNameSize;
-            }
-
-            sString=sString.mid(nNameSize,-1);
-
-            bParameter=true;
-        }
-
-        if(isSignaturePresent(sString,&(pHdata->mapTypes)))
+        else if(isSignaturePresent(sString,&(pHdata->mapTypes)))
         {
             SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
+
+            listPos.append(signatureType.sKey);
 
             parameter.type=(TYPE)signatureType.nValue;
 
@@ -1043,6 +1014,29 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             sString=sString.mid(signatureType.nSize,-1);
 
             bParameter=true;
+        }
+        else
+        {
+            quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,false,nullptr);
+
+            if(nNameSize)
+            {
+                listPos.append(sString.leftRef(nNameSize).toString());
+
+                if(bAdd)
+                {
+                    parameter.sRecord+=sString.leftRef(nNameSize);
+                    nResult+=nNameSize;
+                }
+
+                sString=sString.mid(nNameSize,-1);
+
+                bParameter=true;
+            }
+            else
+            {
+                break;
+            }
         }
 
         if(bParameter)
@@ -1058,19 +1052,29 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 pListParameters->append(paramReturn);
             }
 
+            reverseList(&(parameter.listMods));
             pListParameters->append(parameter);
 
-            if(parameter.sRecord.size()>1)
+            int nNumberOfPos=listPos.count();
+            QString _sRecord;
+
+            for(int i=(nNumberOfPos-1);i>=0;i--)
             {
-                if(!pListStringRefs->contains(parameter.sRecord))
+                _sRecord=_sRecord.prepend(listPos.at(i));
+
+                if(_sRecord.size()>1)
                 {
-                    pListStringRefs->append(parameter.sRecord);
+                    if(!pListStringRefs->contains(_sRecord))
+                    {
+                        pListStringRefs->append(_sRecord);
+                    }
                 }
             }
-        }
-        else
-        {
-            break;
+
+            bParameter=false;
+            bAdd=true;
+            parameter={};
+            listPos.clear();
         }
     }
 
@@ -1089,6 +1093,8 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
         sString=sString.mid(1,-1);
         nResult++;
     }
+
+    QString sPos;
 
     while(sString!="")
     {
@@ -1111,15 +1117,24 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
             }
 
             pParameter->listNames.append(string.sString);
+            sPos+=string.sOriginal;
 
             sString=sString.mid(string.nSize,-1);
             nResult+=string.nSize;
 
-            if(((bFirst)&&(bNamespace)&&(!_compare(sString,"E")))||(!bFirst)) // If not the last in main
+//            if(((bFirst)&&(bNamespace)&&(!_compare(sString,"E")))||(!bFirst)) // If not the last in main
+//            {
+//                if(!pListStringRefs->contains(sPos))
+//                {
+//                    pListStringRefs->append(sPos);
+//                }
+//            }
+
+            if((bNamespace)&&(!_compare(sString,"E"))) // If not the last in main
             {
-                if(!pListStringRefs->contains(string.sOriginal))
+                if(!pListStringRefs->contains("N"+sPos))
                 {
-                    pListStringRefs->append(string.sOriginal);
+                    pListStringRefs->append("N"+sPos);
                 }
             }
         }
@@ -1233,7 +1248,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapFunctionConventions=getFunctionConventions(mode);
     result.mapOperators=getOperators(mode);
     result.mapNumbers=getNumbers(mode);
-    result.mapHexNumbers=getHexNumbers(mode);
+    result.mapHexNumbers=getSymNumbers(mode);
 
     return result;
 }
@@ -2055,7 +2070,7 @@ QMap<QString, qint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getHexNumbers(XDemangle::MODE mode)
+QMap<QString, qint32> XDemangle::getSymNumbers(XDemangle::MODE mode)
 {
     QMap<QString,qint32> mapResult;
 
@@ -2653,6 +2668,14 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
             if(sMod=="const &")
             {
                 sMod=" const&";
+            }
+            else if(sMod=="const *")
+            {
+                sMod=" const*";
+            }
+            else if(sMod=="const")
+            {
+                sMod=" const";
             }
         }
 
