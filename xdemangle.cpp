@@ -927,7 +927,7 @@ qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, M
     return nResult;
 }
 
-qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStringRefs)
+qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStringRefs, bool bFirst)
 {
     qint32 nResult=0;
 
@@ -955,6 +955,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             #ifdef QT_DEBUG
                 qDebug("ERROR!!!");
             #endif
+                break;
             }
         }
         else if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
@@ -996,6 +997,74 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             sString=sString.mid(signatureSC.nSize,-1);
 
             parameter.listMods.append(paramMod);
+        }
+        else if(_compare(sString,"A")) // [x]
+        {
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(1);
+                nResult+=1;
+            }
+
+            sString=sString.mid(1,-1);
+
+            NUMBER number=readNumber(pHdata,sString,mode);
+
+            parameter.listIndexes.append(number.nValue);
+
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(number.nSize);
+                nResult+=number.nSize;
+            }
+
+            sString=sString.mid(number.nSize,-1);
+
+            if(_compare(sString,"_"))
+            {
+                if(bAdd)
+                {
+                    parameter.sRecord+=sString.leftRef(1);
+                    nResult+=1;
+                }
+
+                sString=sString.mid(1,-1);
+            }
+        }
+        else if(_compare(sString,"F")) // Function
+        {
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(1);
+                nResult+=1;
+            }
+
+            sString=sString.mid(1,-1);
+
+            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false);
+
+            listPos.append(QString("F%1E").arg(sString.leftRef(nParamSize)));
+
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(nParamSize);
+                nResult+=nParamSize;
+            }
+
+            sString=sString.mid(nParamSize,-1);
+
+            if(_compare(sString,"E"))
+            {
+                if(bAdd)
+                {
+                    parameter.sRecord+=sString.leftRef(1);
+                    nResult+=1;
+                }
+
+                sString=sString.mid(1,-1);
+            }
+
+            bParameter=true;
         }
         else if(isSignaturePresent(sString,&(pHdata->mapTypes)))
         {
@@ -1041,7 +1110,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
         if(bParameter)
         {
-            if(pListParameters->count()==0)
+            if((pListParameters->count()==0)&&(bFirst))
             {
                 // Return
                 PARAMETER paramReturn={};
@@ -2416,7 +2485,7 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
 
         sString=sString.mid(nNameSize,-1);
 
-        quint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(result.listParameters),&listStringRefs);
+        quint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(result.listParameters),&listStringRefs,true);
 
         if(nParamSize)
         {
@@ -2679,7 +2748,19 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
             }
         }
 
-        if(nNumberOfIndexes>1) sResult+="(";
+        int nStart=0;
+
+        if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+        {
+            nStart=1;
+        }
+
+        if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+        {
+            if(nNumberOfIndexes>nStart) sResult+=" ";
+        }
+
+        if(nNumberOfIndexes>nStart) sResult+="(";
 
         if(sMod!="")sResult+=QString("%1").arg(sMod);
 
@@ -2717,9 +2798,17 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
             sResult+=QString("%1").arg(sName);
         }
 
-        if(nNumberOfIndexes>1) sResult+=")";
+        if(nNumberOfIndexes>nStart) sResult+=")";
 
-        for(int i=1;i<nNumberOfIndexes;i++)
+        if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+        {
+            if(nNumberOfIndexes)
+            {
+                sResult+=" ";
+            }
+        }
+
+        for(int i=nStart;i<nNumberOfIndexes;i++)
         {
             sResult+=QString("[%1]").arg(parameter.listIndexes.at(i));
         }
