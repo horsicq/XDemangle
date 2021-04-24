@@ -1084,6 +1084,62 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
             bParameter=true;
         }
+        else if(_compare(sString,"Li"))
+        {
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(2);
+                nResult+=2;
+            }
+
+            sString=sString.mid(2,-1);
+
+            bool bNeg=false;
+
+            if(_compare(sString,"n"))
+            {
+                if(bAdd)
+                {
+                    parameter.sRecord+=sString.leftRef(1);
+                    nResult+=1;
+                }
+
+                sString=sString.mid(1,-1);
+
+                bNeg=true;
+            }
+
+            NUMBER number=readNumber(pHdata,sString,mode);
+
+            parameter.nConstValue=number.nValue;
+
+            if(bNeg)
+            {
+                parameter.nConstValue=-parameter.nConstValue;
+            }
+
+            if(bAdd)
+            {
+                parameter.sRecord+=sString.leftRef(number.nSize);
+                nResult+=number.nSize;
+            }
+
+            sString=sString.mid(number.nSize,-1);
+
+            if(_compare(sString,"E"))
+            {
+                if(bAdd)
+                {
+                    parameter.sRecord+=sString.leftRef(1);
+                    nResult+=1;
+                }
+
+                sString=sString.mid(1,-1);
+            }
+
+            parameter.type=TYPE_CONST;
+            bParameter=true;
+        }
         else
         {
             quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,false,nullptr);
@@ -1207,6 +1263,27 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
                 }
             }
         }
+
+        QList<PARAMETER> listTemplateParameters;
+
+        if(_compare(sString,"I"))
+        {
+            sString=sString.mid(1,-1);
+            nResult+=1;
+
+            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&listTemplateParameters,pListStringRefs,false);
+
+            sString=sString.mid(nParamSize,-1);
+            nResult+=nParamSize;
+
+            if(_compare(sString,"E"))
+            {
+                sString=sString.mid(1,-1);
+                nResult+=1;
+            }
+        }
+
+        pParameter->listListTemplateParameters.append(listTemplateParameters);
 
         if(!bNamespace)
         {
@@ -2047,7 +2124,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("XXXXXC",OP_POINTER);
         mapResult.insert("XXXXXD",OP_DEREFERENCE);
         mapResult.insert("pp",OP_INCREMENT);
-        mapResult.insert("XXXXXF",OP_DECREMENT);
+        mapResult.insert("mm",OP_DECREMENT);
         mapResult.insert("mi",OP_MINUS);
         mapResult.insert("pl",OP_PLUS);
         mapResult.insert("an",OP_BITWISEAND);
@@ -2055,9 +2132,9 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("XXXXXK",OP_DIVIDE);
         mapResult.insert("XXXXXL",OP_MODULUS);
         mapResult.insert("XXXXXM",OP_LESSTHAN);
-        mapResult.insert("XXXXXN",OP_LESSTHANEQUAL);
+        mapResult.insert("le",OP_LESSTHANEQUAL);
         mapResult.insert("XXXXXO",OP_GREATERTHAN);
-        mapResult.insert("XXXXXP",OP_GREATERTHANEQUAL);
+        mapResult.insert("ge",OP_GREATERTHANEQUAL);
         mapResult.insert("cm",OP_COMMA);
         mapResult.insert("XXXXXR",OP_PARENS);
         mapResult.insert("XXXXXS",OP_BITWISENOT);
@@ -2072,7 +2149,7 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("XXXXX_1",OP_MODEQUAL);
         mapResult.insert("XXXXX_2",OP_RSHEQUAL);
         mapResult.insert("XXXXX_3",OP_LSHEQUAL);
-        mapResult.insert("XXXXX_4",OP_BITWISEANDEQUAL);
+        mapResult.insert("aN",OP_BITWISEANDEQUAL);
         mapResult.insert("XXXXX_5",OP_BITWISEOREQUAL);
         mapResult.insert("OE",OP_BITWISEXOREQUAL);
         mapResult.insert("XXXXX_7",OP_VIRTUALTABLE);
