@@ -1043,7 +1043,9 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
             qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false);
 
-            listPos.append(QString("F%1E").arg(sString.leftRef(nParamSize).string()));
+            QString _sRecord=*(sString.leftRef(nParamSize).string()); // TODO rewrite!!!
+
+            listPos.append(QString("F%1E").arg(_sRecord));
 
             if(bAdd)
             {
