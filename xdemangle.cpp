@@ -242,12 +242,14 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_ARRAYSUBSCRIPT:         sResult=QString("operator[]");                      break;
         case OP_POINTER:                sResult=QString("operator->");                      break;
         case OP_DEREFERENCE:            sResult=QString("operator*");                       break;
+        case OP_REFERENCE:              sResult=QString("operator&");                       break;
         case OP_INCREMENT:              sResult=QString("operator++");                      break;
         case OP_DECREMENT:              sResult=QString("operator--");                      break;
         case OP_MINUS:                  sResult=QString("operator-");                       break;
         case OP_PLUS:                   sResult=QString("operator+");                       break;
         case OP_BITWISEAND:             sResult=QString("operator&");                       break;
         case OP_MEMBERPOINTER:          sResult=QString("operator->*");                     break;
+        case OP_MULTIPLE:               sResult=QString("operator*");                       break;
         case OP_DIVIDE:                 sResult=QString("operator/");                       break;
         case OP_MODULUS:                sResult=QString("operator%");                       break;
         case OP_LESSTHAN:               sResult=QString("operator<");                       break;
@@ -1043,7 +1045,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
             qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false);
 
-            QString _sRecord=*(sString.leftRef(nParamSize).string()); // TODO rewrite!!!
+            QString _sRecord=sString.left(nParamSize);
 
             listPos.append(QString("F%1E").arg(_sRecord));
 
@@ -2064,112 +2066,54 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
     }
     else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
-//        ::= ps        # + (unary)
-//        ::= ng	# - (unary)
-//        ::= ad	# & (unary)
-//        ::= de	# * (unary)
-//        ::= co	# ~
-//        ::= pl	# +
-//        ::= mi	# -
-//        ::= ml	# *
-//        ::= dv	# /
-//        ::= rm	# %
-//        ::= an	# &
-//        ::= or	# |
-//        ::= eo	# ^
-//        ::= aS	# =
-//        ::= pL	# +=
-//        ::= mI	# -=
-//        ::= mL	# *=
-//        ::= dV	# /=
-//        ::= rM	# %=
-//        ::= aN	# &=
-//        ::= oR	# |=
-//        ::= eO	# ^=
-//        ::= ls	# <<
-//        ::= rs	# >>
-//        ::= lS	# <<=
-//        ::= rS	# >>=
-//        ::= eq	# ==
-//        ::= ne	# !=
-//        ::= lt	# <
-//        ::= gt	# >
-//        ::= le	# <=
-//        ::= ge	# >=
-//        ::= ss	# <=>
-//        ::= nt	# !
-//        ::= aa	# &&
-//        ::= oo	# ||
-//        ::= pp	# ++ (postfix in <expression> context)
-//        ::= mm	# -- (postfix in <expression> context)
-//        ::= cm	# ,
-//        ::= pm	# ->*
-//        ::= pt	# ->
-//        ::= cl	# ()
-//        ::= ix	# []
-//        ::= qu	# ?
-
         mapResult.insert("C1",OP_CONSTRUCTOR);
         mapResult.insert("C2",OP_CONSTRUCTOR);
         mapResult.insert("D1",OP_DESTRUCTOR);
         mapResult.insert("D2",OP_DESTRUCTOR);
         mapResult.insert("nw",OP_NEW);
         mapResult.insert("dl",OP_DELETE);
-        mapResult.insert("XXXXX4",OP_ASSIGN);
-        mapResult.insert("XXXXX5",OP_RIGHTSHIFT);
-        mapResult.insert("XXXXX6",OP_LEFTSHIFT);
-        mapResult.insert("XXXXX7",OP_LOGICALNOT);
-        mapResult.insert("eq",OP_EQUALS);
-        mapResult.insert("XXXXX9",OP_NOTEQUALS);
-        mapResult.insert("ix",OP_ARRAYSUBSCRIPT);
-        mapResult.insert("XXXXXB",OP_TYPE);
-        mapResult.insert("XXXXXC",OP_POINTER);
-        mapResult.insert("XXXXXD",OP_DEREFERENCE);
-        mapResult.insert("pp",OP_INCREMENT);
-        mapResult.insert("mm",OP_DECREMENT);
-        mapResult.insert("mi",OP_MINUS);
-        mapResult.insert("pl",OP_PLUS);
-        mapResult.insert("an",OP_BITWISEAND);
-        mapResult.insert("XXXXXJ",OP_MEMBERPOINTER);
-        mapResult.insert("XXXXXK",OP_DIVIDE);
-        mapResult.insert("XXXXXL",OP_MODULUS);
-        mapResult.insert("XXXXXM",OP_LESSTHAN);
-        mapResult.insert("le",OP_LESSTHANEQUAL);
-        mapResult.insert("XXXXXO",OP_GREATERTHAN);
-        mapResult.insert("ge",OP_GREATERTHANEQUAL);
-        mapResult.insert("cm",OP_COMMA);
-        mapResult.insert("XXXXXR",OP_PARENS);
-        mapResult.insert("XXXXXS",OP_BITWISENOT);
-        mapResult.insert("eo",OP_BITWISEXOR);
-        mapResult.insert("XXXXXU",OP_BITWISEOR);
-        mapResult.insert("XXXXXV",OP_LOGICALAND);
-        mapResult.insert("XXXXXW",OP_LOGICALOR);
-        mapResult.insert("XXXXXX",OP_TIMESEQUAL);
-        mapResult.insert("pL",OP_PLUSEQUAL);
-        mapResult.insert("XXXXXZ",OP_MINUSEQUAL);
-        mapResult.insert("XXXXX_0",OP_DIVEQUAL);
-        mapResult.insert("XXXXX_1",OP_MODEQUAL);
-        mapResult.insert("XXXXX_2",OP_RSHEQUAL);
-        mapResult.insert("XXXXX_3",OP_LSHEQUAL);
-        mapResult.insert("aN",OP_BITWISEANDEQUAL);
-        mapResult.insert("XXXXX_5",OP_BITWISEOREQUAL);
-        mapResult.insert("OE",OP_BITWISEXOREQUAL);
-        mapResult.insert("XXXXX_7",OP_VIRTUALTABLE);
-        mapResult.insert("XXXXX_8",OP_VBTABLE);
-        mapResult.insert("XXXXX_D",OP_VBASEDTOR);
-        mapResult.insert("XXXXX_E",OP_VECDELDTOR);
-        mapResult.insert("XXXXX_F",OP_DEFAULTCTORCLOSURE);
-        mapResult.insert("XXXXX_G",OP_SCALARDELDTOR);
-        mapResult.insert("XXXXX_H",OP_VECCTORITER);
-        mapResult.insert("XXXXX_I",OP_VECDTORITER);
-        mapResult.insert("XXXXX_J",OP_VECVBASECTORITER);
-        mapResult.insert("XXXXX_K",OP_VDISPMAP);
-        mapResult.insert("XXXXX_L",OP_EHVECCTORITER);
-        mapResult.insert("XXXXX_M",OP_EHVECDTORITER);
-        mapResult.insert("XXXXX_N",OP_EHVECVBASECTORITER);
-        mapResult.insert("XXXXX_O",OP_COPYCTORCLOSURE);
-        mapResult.insert("na",OP_ARRAYNEW);
-        mapResult.insert("da",OP_ARRAYDELETE);
+        mapResult.insert("aS",OP_ASSIGN);               // operator=
+        mapResult.insert("rs",OP_RIGHTSHIFT);           // operator>>
+        mapResult.insert("ls",OP_LEFTSHIFT);            // operator<<
+        mapResult.insert("nt",OP_LOGICALNOT);           // operator!
+        mapResult.insert("eq",OP_EQUALS);               // operator==
+        mapResult.insert("ne",OP_NOTEQUALS);            // operator!=
+        mapResult.insert("ix",OP_ARRAYSUBSCRIPT);       // operator[]
+        mapResult.insert("pt",OP_POINTER);              // operator->
+        mapResult.insert("de",OP_DEREFERENCE);          // operator*
+        mapResult.insert("ad",OP_REFERENCE);            // operator&
+        mapResult.insert("pp",OP_INCREMENT);            // operator++
+        mapResult.insert("mm",OP_DECREMENT);            // operator--
+        mapResult.insert("mi",OP_MINUS);                // operator-
+        mapResult.insert("pl",OP_PLUS);                 // operator+
+        mapResult.insert("an",OP_BITWISEAND);           // operator&
+        mapResult.insert("pm",OP_MEMBERPOINTER);        // operator->*
+        mapResult.insert("ml",OP_MULTIPLE);             // operator*
+        mapResult.insert("dv",OP_DIVIDE);               // operator/
+        mapResult.insert("rm",OP_MODULUS);              // operator%
+        mapResult.insert("lt",OP_LESSTHAN);             // operator<
+        mapResult.insert("le",OP_LESSTHANEQUAL);        // operator<=
+        mapResult.insert("gt",OP_GREATERTHAN);          // operator>
+        mapResult.insert("ge",OP_GREATERTHANEQUAL);     // operator>=
+        mapResult.insert("cm",OP_COMMA);                // operator,
+        mapResult.insert("cl",OP_PARENS);               // operator()
+        mapResult.insert("co",OP_BITWISENOT);           // operator~
+        mapResult.insert("eo",OP_BITWISEXOR);           // operator^
+        mapResult.insert("or",OP_BITWISEOR);            // operator|
+        mapResult.insert("aa",OP_LOGICALAND);           // operator&&
+        mapResult.insert("oo",OP_LOGICALOR);            // operator||
+        mapResult.insert("mL",OP_TIMESEQUAL);           // operator*=
+        mapResult.insert("pL",OP_PLUSEQUAL);            // operator+=
+        mapResult.insert("mI",OP_MINUSEQUAL);           // operator-=
+        mapResult.insert("dV",OP_DIVEQUAL);             // operator/=
+        mapResult.insert("rM",OP_MODEQUAL);             // operator%=
+        mapResult.insert("rS",OP_RSHEQUAL);             // operator>>=
+        mapResult.insert("lS",OP_LSHEQUAL);             // operator<<=
+        mapResult.insert("aN",OP_BITWISEANDEQUAL);      // operator&=
+        mapResult.insert("oR",OP_BITWISEOREQUAL);       // operator|=
+        mapResult.insert("eO",OP_BITWISEXOREQUAL);      // operator^=
+        mapResult.insert("na",OP_ARRAYNEW);             // operator new[]
+        mapResult.insert("da",OP_ARRAYDELETE);          // operator delete[]
     }
 
     return mapResult;
