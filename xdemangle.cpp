@@ -937,7 +937,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
     bool bAdd=true;
     PARAMETER parameter={};
     QList<QString> listPos;
-    QString sRawRecord; // TODO !!!
+    QString sRawRecord;
 
     while(sString!="")
     {
@@ -979,6 +979,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=signatureMod.nSize;
             }
 
+            sRawRecord+=sString.leftRef(signatureMod.nSize);
             sString=sString.mid(signatureMod.nSize,-1);
 
             parameter.listMods.append(paramMod);
@@ -999,6 +1000,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=signatureSC.nSize;
             }
 
+            sRawRecord+=sString.leftRef(signatureSC.nSize);
             sString=sString.mid(signatureSC.nSize,-1);
 
             parameter.listMods.append(paramMod);
@@ -1011,6 +1013,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=1;
             }
 
+            sRawRecord+=sString.leftRef(1);
             sString=sString.mid(1,-1);
 
             NUMBER number=readNumber(pHdata,sString,mode);
@@ -1023,6 +1026,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=number.nSize;
             }
 
+            sRawRecord+=sString.leftRef(number.nSize);
             sString=sString.mid(number.nSize,-1);
 
             if(_compare(sString,"_"))
@@ -1033,6 +1037,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                     nResult+=1;
                 }
 
+                sRawRecord+=sString.leftRef(1);
                 sString=sString.mid(1,-1);
             }
         }
@@ -1044,12 +1049,14 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=1;
             }
 
+            sRawRecord+=sString.leftRef(1);
             sString=sString.mid(1,-1);
 
             qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false);
 
             parameter.functionConvention=FC_NONE;
-            if(parameter.sRecord=="PF")
+
+            if(sRawRecord=="PF")
             {
                 parameter.type=TYPE_POINTERTOFUNCTION;
             }
@@ -1068,6 +1075,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=nParamSize;
             }
 
+            sRawRecord+=sString.leftRef(nParamSize);
             sString=sString.mid(nParamSize,-1);
 
             if(_compare(sString,"E"))
@@ -1078,6 +1086,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                     nResult+=1;
                 }
 
+                sRawRecord+=sString.leftRef(1);
                 sString=sString.mid(1,-1);
             }
 
@@ -1097,6 +1106,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=signatureType.nSize;
             }
 
+            sRawRecord+=sString.leftRef(signatureType.nSize);
             sString=sString.mid(signatureType.nSize,-1);
 
             bParameter=true;
@@ -1109,6 +1119,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=2;
             }
 
+            sRawRecord+=sString.leftRef(2);
             sString=sString.mid(2,-1);
 
             bool bNeg=false;
@@ -1121,6 +1132,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                     nResult+=1;
                 }
 
+                sRawRecord+=sString.leftRef(1);
                 sString=sString.mid(1,-1);
 
                 bNeg=true;
@@ -1141,6 +1153,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 nResult+=number.nSize;
             }
 
+            sRawRecord+=sString.leftRef(number.nSize);
             sString=sString.mid(number.nSize,-1);
 
             if(_compare(sString,"E"))
@@ -1151,6 +1164,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                     nResult+=1;
                 }
 
+                sRawRecord+=sString.leftRef(1);
                 sString=sString.mid(1,-1);
             }
 
@@ -1171,6 +1185,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                     nResult+=nNameSize;
                 }
 
+                sRawRecord+=sString.leftRef(nNameSize);
                 sString=sString.mid(nNameSize,-1);
 
                 bParameter=true;
@@ -1217,6 +1232,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             bAdd=true;
             parameter={};
             listPos.clear();
+            sRawRecord="";
         }
     }
 
