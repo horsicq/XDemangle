@@ -937,6 +937,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
     bool bAdd=true;
     PARAMETER parameter={};
     QList<QString> listPos;
+    QString sRawRecord; // TODO !!!
 
     while(sString!="")
     {
@@ -955,7 +956,9 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             else
             {
             #ifdef QT_DEBUG
+                // TODO Set Global error flag;
                 qDebug("ERROR!!!");
+                qDebug(signatureReplace.sKey.toLatin1().data());
             #endif
                 break;
             }
@@ -1044,6 +1047,16 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             sString=sString.mid(1,-1);
 
             qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false);
+
+            parameter.functionConvention=FC_NONE;
+            if(parameter.sRecord=="PF")
+            {
+                parameter.type=TYPE_POINTERTOFUNCTION;
+            }
+            else
+            {
+                parameter.type=TYPE_FUNCTION;
+            }
 
             QString _sRecord=sString.left(nParamSize);
 
@@ -2632,7 +2645,14 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
 
         if(parameter.type==TYPE_POINTERTOFUNCTION)
         {
-            sFunction=QString("(%1 *").arg(sFunctionConvention);
+            sFunction+=QString("(");
+
+            if(sFunctionConvention!="")
+            {
+                sFunction+=QString("%1 ").arg(sFunctionConvention);
+            }
+
+            sFunction+=QString("*");
 
             if(sName!="") sFunction+=QString(" %1").arg(sName);
             sFunction+=")";
