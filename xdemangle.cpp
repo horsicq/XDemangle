@@ -2154,17 +2154,11 @@ QMap<QString, qint32> XDemangle::getNumbers(XDemangle::MODE mode)
 
     if( (getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)||
         (getSyntaxFromMode(mode)==SYNTAX_ITANIUM))
-    {
-        mapResult.insert("0",0);
-        mapResult.insert("1",1);
-        mapResult.insert("2",2);
-        mapResult.insert("3",3);
-        mapResult.insert("4",4);
-        mapResult.insert("5",5);
-        mapResult.insert("6",6);
-        mapResult.insert("7",7);
-        mapResult.insert("8",8);
-        mapResult.insert("9",9);
+    {        
+        for(int i=0;i<10;i++)
+        {
+            mapResult.insert(QString("%1").arg(i),i);
+        }
     }
 
     return mapResult;
@@ -2175,17 +2169,11 @@ QMap<QString, qint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
     QMap<QString,qint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
-    {
-        mapResult.insert("?0??",1);
-        mapResult.insert("?1??",2);
-        mapResult.insert("?2??",3);
-        mapResult.insert("?3??",4);
-        mapResult.insert("?4??",5);
-        mapResult.insert("?5??",6);
-        mapResult.insert("?6??",7);
-        mapResult.insert("?7??",8);
-        mapResult.insert("?8??",9);
-        mapResult.insert("?9??",10);
+    {  
+        for(int i=0;i<10;i++)
+        {
+            mapResult.insert(QString("?%1??").arg(i),i+1);
+        }
     }
 
     return mapResult;
@@ -2697,11 +2685,27 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
 
         for(int i=1;i<nNumberOfFunctionParameters;i++)
         {
-            sResult+=_getStringFromParameter(parameter.listFunctionParameters.at(i),mode);
+            bool bEnable=true;
 
-            if(i!=nNumberOfFunctionParameters-1)
+            if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
             {
-                sResult+=QString(", ");
+                if(nNumberOfFunctionParameters==2)
+                {
+                    if((parameter.listFunctionParameters.at(i).listMods.count()==0)&&(parameter.listFunctionParameters.at(i).type==TYPE_VOID))
+                    {
+                        bEnable=false;
+                    }
+                }
+            }
+
+            if(bEnable)
+            {
+                sResult+=_getStringFromParameter(parameter.listFunctionParameters.at(i),mode);
+
+                if(i!=nNumberOfFunctionParameters-1)
+                {
+                    sResult+=QString(", ");
+                }
             }
         }
 
