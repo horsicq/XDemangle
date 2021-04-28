@@ -149,6 +149,8 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
 
 QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mode)
 {
+    Q_UNUSED(mode)
+
     QString sResult="Unknown"; // mb TODO translate
 
     switch(paramMod)
@@ -2674,7 +2676,7 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
         }
         else if(parameter.type==TYPE_MEMBER)
         {
-            sFunction=QString("(%1 %2::*)").arg(sFunctionConvention).arg(_getNameFromParameter(&parameter,mode));
+            sFunction=QString("(%1 %2::*)").arg(sFunctionConvention,_getNameFromParameter(&parameter,mode));
         }
 
         QString sReturn=_getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
