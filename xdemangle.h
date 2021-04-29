@@ -273,7 +273,7 @@ public:
         QMap<QString,qint32> mapFunctionConventions;
         QMap<QString,qint32> mapOperators;
         QMap<QString,qint32> mapNumbers;
-        QMap<QString,qint32> mapHexNumbers;
+        QMap<QString,qint32> mapSymNumbers;
     };
 
     struct SYMBOL
@@ -349,6 +349,7 @@ private:
     QString symbolToString(SYMBOL symbol);
     STRING readString(HDATA *pHdata,QString sString,MODE mode);
     NUMBER readNumber(HDATA *pHdata,QString sString,MODE mode);
+    NUMBER readSymNumber(HDATA *pHdata,QString sString,MODE mode);
     bool _compare(QString sString,QString sSignature);
     QChar _getStringEnd(QString sString);
     QString _removeLastSymbol(QString sString);
