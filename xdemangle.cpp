@@ -1232,6 +1232,8 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
 
     QString sPos;
 
+    bool bBreak=false;
+
     while(sString!="")
     {
         if(bFirst&&isSignaturePresent(sString,&(pHdata->mapOperators)))
@@ -1243,6 +1245,8 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
             sString=sString.mid(signatureOperator.nSize,-1);
 
             nResult+=signatureOperator.nSize;
+
+            bBreak=true;
         }
         else
         {
@@ -1259,7 +1263,10 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
                     sString=sString.mid(signatureReplace.nSize,-1);
                     nResult+=signatureReplace.nSize;
 
-                    break;
+                    if(!bNamespace)
+                    {
+                        bBreak=true;
+                    }
                 }
                 else
                 {
@@ -1347,8 +1354,13 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
                 sString=sString.mid(1,-1);
                 nResult++;
 
-                break;
+                bBreak=true;
             }
+        }
+
+        if(bBreak)
+        {
+            break;
         }
     }
 
