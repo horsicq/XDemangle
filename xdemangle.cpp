@@ -931,7 +931,7 @@ qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, M
     return nResult;
 }
 
-qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStringRefs, bool bFirst)
+qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStringRefs, bool bFirst, bool bSplit)
 {
     qint32 nResult=0;
 
@@ -953,7 +953,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 sString=sString.mid(signatureReplace.nSize,-1);
                 parameter.sRecord+=sRecord;
 
-                Itanium_handleParams(pHdata,parameter.sRecord,mode,pListParameters,pListStringRefs,(pListParameters->count()==0)&(bFirst));
+                Itanium_handleParams(pHdata,parameter.sRecord,mode,pListParameters,pListStringRefs,(pListParameters->count()==0)&(bFirst),false);
 
                 nResult+=signatureReplace.nSize;
             }
@@ -1040,7 +1040,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             sRawRecord+=sString.leftRef(1);
             sString=sString.mid(1,-1);
 
-            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false);
+            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false,true);
 
             parameter.functionConvention=FC_NONE;
 
@@ -1140,7 +1140,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
         }
         else
         {
-            quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,false,nullptr);
+            quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,false,nullptr,bSplit);
 
             if(nNameSize)
             {
@@ -1206,7 +1206,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
     return nResult;
 }
 
-qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, XDemangle::PARAMETER *pParameter, QList<QString> *pListStringRefs, bool bFirst, SYMBOL *pSymbol)
+qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, XDemangle::PARAMETER *pParameter, QList<QString> *pListStringRefs, bool bFirst, SYMBOL *pSymbol, bool bSplit)
 {
     qint32 nResult=0;
 
@@ -1258,7 +1258,7 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
                 {
                     QString sRecord=pListStringRefs->at(signatureReplace.nValue);
 
-                    Itanium_handleParamStrings(pHdata,sRecord,mode,pParameter,pListStringRefs,false,pSymbol);
+                    Itanium_handleParamStrings(pHdata,sRecord,mode,pParameter,pListStringRefs,false,pSymbol,false);
 
                     sString=sString.mid(signatureReplace.nSize,-1);
                     nResult+=signatureReplace.nSize;
@@ -1333,7 +1333,7 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
 
             nResult+=1;
 
-            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&listTemplateParameters,pListStringRefs,false);
+            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&listTemplateParameters,pListStringRefs,false,true);
 
             sString=sString.mid(nParamSize,-1);
             nResult+=nParamSize;
@@ -1356,6 +1356,11 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
 
                 bBreak=true;
             }
+        }
+
+        if(bSplit&&(!bNamespace))
+        {
+            bBreak=true;
         }
 
         if(bBreak)
@@ -2577,11 +2582,11 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
             sString=sString.mid(2,-1);
         }
 
-        quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&(result.paramMain),&listStringRefs,true,&result);
+        quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&(result.paramMain),&listStringRefs,true,&result,true);
 
         sString=sString.mid(nNameSize,-1);
 
-        quint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(result.listParameters),&listStringRefs,true);
+        quint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(result.listParameters),&listStringRefs,true,true);
 
         if(nParamSize)
         {
