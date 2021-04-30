@@ -356,8 +356,28 @@ QString XDemangle::ms_demangle(QString sString, XDemangle::MODE mode)
 {
     QString sResult;
 
+    HDATA hdata=getHdata(mode);
+
     if(_compare(sString,"."))
     {
+        sString=sString.mid(1,-1);
+
+        if(_compare(sString,"?"))
+        {
+            sString=sString.mid(1,-1);
+            // TODO demangle qualifiers
+        }
+
+        if(isSignaturePresent(sString,&(hdata.mapNameTypes)))
+        {
+            SIGNATURE signature=getSignature(sString,&(hdata.mapNameTypes));
+
+            sString=sString.mid(signature.nSize,-1);
+
+
+        }
+
+
         // TODO typeinformation
     }
     else if(_compare(sString,"??@"))
