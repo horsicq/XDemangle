@@ -313,6 +313,80 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     return result;
 }
 
+qint32 XDemangle::ms_demangle_FullName(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
+{
+    qint32 nResult=0;
+
+    qint32 nUnkName=ms_demangle_UnkName(pHdata,sString,mode);
+    nResult+=nUnkName;
+
+    sString=sString.mid(nUnkName,-1);
+
+    qint32 nNameScope=ms_demangle_NameScope(pHdata,sString,mode);
+    nResult+=nNameScope;
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_UnkName(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
+{
+    qint32 nResult=0;
+
+    // TODO replace
+
+    if(_compare(sString,"?$"))
+    {
+        // TODO Template
+        sString=sString.mid(2,-1);
+        nResult+=2;
+    }
+    else
+    {
+        STRING string=readString(pHdata,sString,mode);
+        nResult+=string.nSize;
+    }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_NameScope(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
+{
+    qint32 nResult=0;
+
+    while(sString!="")
+    {
+        // TODO replace
+
+        if(_compare(sString,"?$"))
+        {
+            // TODO Template
+            sString=sString.mid(2,-1);
+            nResult+=2;
+        }
+        else if(_compare(sString,"?A"))
+        {
+            // TODO AnonymousNamespaceName
+            sString=sString.mid(2,-1);
+            nResult+=2;
+        }
+        // TODO LocallyScopedNamePiece
+        else
+        {
+            STRING string=readString(pHdata,sString,mode);
+            sString=sString.mid(string.nSize,-1);
+            nResult+=string.nSize;
+        }
+
+        if(_compare(sString,"@"))
+        {
+            nResult+=1;
+            sString=sString.mid(1,-1);
+        }
+    }
+
+    return nResult;
+}
+
 XDemangle::SYMBOL XDemangle::getSymbol(QString sString, XDemangle::MODE mode)
 {
     SYMBOL result={};
@@ -365,18 +439,23 @@ QString XDemangle::ms_demangle(QString sString, XDemangle::MODE mode)
         if(_compare(sString,"?"))
         {
             sString=sString.mid(1,-1);
-            // TODO demangle qualifiers
+
+            if(isSignaturePresent(sString,&(hdata.mapQualifiers)))
+            {
+                SIGNATURE signature=getSignature(sString,&(hdata.mapQualifiers));
+
+                sString=sString.mid(signature.nSize,-1);
+            }
         }
 
-        if(isSignaturePresent(sString,&(hdata.mapNameTypes)))
+        if(isSignaturePresent(sString,&(hdata.mapTagTypes)))
         {
-            SIGNATURE signature=getSignature(sString,&(hdata.mapNameTypes));
+            SIGNATURE signature=getSignature(sString,&(hdata.mapTagTypes));
 
             sString=sString.mid(signature.nSize,-1);
 
-
+            ms_demangle_FullName(&hdata,sString,mode);
         }
-
 
         // TODO typeinformation
     }
@@ -741,9 +820,9 @@ qint32 XDemangle::Microsoft_handleParams(HDATA *pHdata, QString sString, XDemang
 
                 sString=sString.mid(signatureType.nSize,-1);
             }
-            else if(isSignaturePresent(sString,&(pHdata->mapNameTypes)))
+            else if(isSignaturePresent(sString,&(pHdata->mapTagTypes)))
             {
-                signatureType=getSignature(sString,&(pHdata->mapNameTypes));
+                signatureType=getSignature(sString,&(pHdata->mapTagTypes));
 
                 if(bAddToRecord)
                 {
@@ -1534,7 +1613,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapParamMods=getParamMods(mode);
     result.mapObjectClasses=getObjectClasses(mode);
     result.mapTypes=getTypes(mode);
-    result.mapNameTypes=getNameTypes(mode);
+    result.mapTagTypes=getTagTypes(mode);
     result.mapSymbolTypes=getSymbolTypes(mode);
     result.mapStorageClasses=getStorageClasses(mode);
     result.mapFunctionMods=getFunctionMods(mode);
@@ -1542,6 +1621,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapOperators=getOperators(mode);
     result.mapNumbers=getNumbers(mode);
     result.mapSymNumbers=getSymNumbers(mode);
+    result.mapQualifiers=getQualifiers(mode);
 
     return result;
 }
@@ -1900,11 +1980,11 @@ QString XDemangle::_removeLastSymbol(QString sString)
     return sString;
 }
 
-bool XDemangle::isSignaturePresent(QString sString, QMap<QString, qint32> *pMap)
+bool XDemangle::isSignaturePresent(QString sString, QMap<QString, quint32> *pMap)
 {
     bool bResult=false;
 
-    QMapIterator<QString,qint32> i(*pMap);
+    QMapIterator<QString,quint32> i(*pMap);
 
     while(i.hasNext())
     {
@@ -1921,11 +2001,11 @@ bool XDemangle::isSignaturePresent(QString sString, QMap<QString, qint32> *pMap)
     return bResult;
 }
 
-XDemangle::SIGNATURE XDemangle::getSignature(QString sString, QMap<QString, qint32> *pMap)
+XDemangle::SIGNATURE XDemangle::getSignature(QString sString, QMap<QString, quint32> *pMap)
 {
     SIGNATURE result={};
 
-    QMapIterator<QString,qint32> i(*pMap);
+    QMapIterator<QString,quint32> i(*pMap);
 
     while(i.hasNext())
     {
@@ -1976,9 +2056,9 @@ XDemangle::SIGNATURE XDemangle::Itanium_getReplaceSignature(HDATA *pHdata,QStrin
     return result;
 }
 
-QMap<QString, qint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -1992,9 +2072,9 @@ QMap<QString, qint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -2051,9 +2131,9 @@ QMap<QString, qint32> XDemangle::getTypes(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getNameTypes(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getTagTypes(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -2066,9 +2146,9 @@ QMap<QString, qint32> XDemangle::getNameTypes(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getSymbolTypes(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getSymbolTypes(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
@@ -2079,9 +2159,9 @@ QMap<QString, qint32> XDemangle::getSymbolTypes(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getParamMods(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -2103,9 +2183,9 @@ QMap<QString, qint32> XDemangle::getParamMods(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -2130,9 +2210,9 @@ QMap<QString, qint32> XDemangle::getStorageClasses(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getFunctionMods(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getFunctionMods(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -2161,9 +2241,9 @@ QMap<QString, qint32> XDemangle::getFunctionMods(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -2196,9 +2276,9 @@ QMap<QString, qint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getOperators(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
@@ -2318,14 +2398,14 @@ QMap<QString, qint32> XDemangle::getOperators(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getNumbers(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getNumbers(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if( (getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)||
         (getSyntaxFromMode(mode)==SYNTAX_ITANIUM))
     {        
-        for(int i=0;i<10;i++)
+        for(quint32 i=0;i<10;i++)
         {
             mapResult.insert(QString("%1").arg(i),i);
         }
@@ -2334,13 +2414,13 @@ QMap<QString, qint32> XDemangle::getNumbers(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {  
-        for(int i=0;i<10;i++)
+        for(quint32 i=0;i<10;i++)
         {
             mapResult.insert(QString("?%1??").arg(i),i+1);
         }
@@ -2349,28 +2429,47 @@ QMap<QString, qint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, qint32> XDemangle::getSymNumbers(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getSymNumbers(XDemangle::MODE mode)
 {
-    QMap<QString,qint32> mapResult;
+    QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        for(int i=0;i<16;i++)
+        for(quint32 i=0;i<16;i++)
         {
             mapResult.insert(QString("%1").arg(QChar('A'+i)),i);
         }
     }
     else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
-        for(int i=0;i<10;i++)
+        for(quint32 i=0;i<10;i++)
         {
             mapResult.insert(QString("%1").arg(QChar('0'+i)),i);
         }
 
-        for(int i=0;i<26;i++)
+        for(quint32 i=0;i<26;i++)
         {
             mapResult.insert(QString("%1").arg(QChar('A'+i)),i+10);
         }
+    }
+
+    return mapResult;
+}
+
+QMap<QString, quint32> XDemangle::getQualifiers(XDemangle::MODE mode)
+{
+    QMap<QString,quint32> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+    {
+        mapResult.insert("A",Q_NONE);
+        mapResult.insert("B",Q_CONST);
+        mapResult.insert("C",Q_VOLATILE);
+        mapResult.insert("D",Q_CONST|Q_VOLATILE);
+        mapResult.insert("Q",Q_MEMBER|Q_NONE);
+        mapResult.insert("R",Q_MEMBER|Q_CONST);
+        mapResult.insert("S",Q_MEMBER|Q_VOLATILE);
+        mapResult.insert("T",Q_MEMBER|Q_CONST|Q_VOLATILE);
     }
 
     return mapResult;
@@ -2391,7 +2490,7 @@ XDemangle::SYMBOL XDemangle::Microsoft_handle(XDemangle::HDATA *pHdata, QString 
         sString=sString.mid(1,-1);
 
         QString _sString=sString;
-        QMap<QString,qint32> mapLineNumbers=getLineNumbers(mode);
+        QMap<QString,quint32> mapLineNumbers=getLineNumbers(mode);
         QList<QString> _listPreps;
         QList<QString> _listStringRefs;
 

@@ -247,6 +247,14 @@ public:
         OP_TYPE
     };
 
+    enum Q
+    {
+        Q_NONE      =0x00000000,
+        Q_MEMBER    =0x80000000,
+        Q_CONST     =0x00000001,
+        Q_VOLATILE  =0x00000002,
+    };
+
     struct PARAMETER
     {
         QString sRecord;
@@ -266,17 +274,18 @@ public:
 
     struct HDATA
     {
-        QMap<QString,qint32> mapParamMods;
-        QMap<QString,qint32> mapObjectClasses;
-        QMap<QString,qint32> mapTypes;
-        QMap<QString,qint32> mapNameTypes;
-        QMap<QString,qint32> mapSymbolTypes;
-        QMap<QString,qint32> mapStorageClasses;
-        QMap<QString,qint32> mapFunctionMods;
-        QMap<QString,qint32> mapFunctionConventions;
-        QMap<QString,qint32> mapOperators;
-        QMap<QString,qint32> mapNumbers;
-        QMap<QString,qint32> mapSymNumbers;
+        QMap<QString,quint32> mapParamMods;
+        QMap<QString,quint32> mapObjectClasses;
+        QMap<QString,quint32> mapTypes;
+        QMap<QString,quint32> mapTagTypes;
+        QMap<QString,quint32> mapSymbolTypes;
+        QMap<QString,quint32> mapStorageClasses;
+        QMap<QString,quint32> mapFunctionMods;
+        QMap<QString,quint32> mapFunctionConventions;
+        QMap<QString,quint32> mapOperators;
+        QMap<QString,quint32> mapNumbers;
+        QMap<QString,quint32> mapSymNumbers;
+        QMap<QString,quint32> mapQualifiers;
     };
 
     struct SYMBOL
@@ -359,23 +368,24 @@ private:
     QChar _getStringEnd(QString sString);
     QString _removeLastSymbol(QString sString);
 
-    bool isSignaturePresent(QString sString,QMap<QString,qint32> *pMap);
-    SIGNATURE getSignature(QString sString,QMap<QString,qint32> *pMap);
+    bool isSignaturePresent(QString sString,QMap<QString,quint32> *pMap);
+    SIGNATURE getSignature(QString sString,QMap<QString,quint32> *pMap);
 
     SIGNATURE Itanium_getReplaceSignature(HDATA *pHdata,QString sString,MODE mode);
 
-    QMap<QString,qint32> getObjectClasses(MODE mode);
-    QMap<QString,qint32> getTypes(MODE mode);
-    QMap<QString,qint32> getNameTypes(MODE mode);
-    QMap<QString,qint32> getSymbolTypes(MODE mode);
-    QMap<QString,qint32> getParamMods(MODE mode);
-    QMap<QString,qint32> getStorageClasses(MODE mode);
-    QMap<QString,qint32> getFunctionMods(MODE mode);
-    QMap<QString,qint32> getFunctionConventions(MODE mode);
-    QMap<QString,qint32> getOperators(MODE mode);
-    QMap<QString,qint32> getNumbers(MODE mode);
-    QMap<QString,qint32> getLineNumbers(MODE mode);
-    QMap<QString,qint32> getSymNumbers(MODE mode);
+    QMap<QString,quint32> getObjectClasses(MODE mode);
+    QMap<QString,quint32> getTypes(MODE mode);
+    QMap<QString,quint32> getTagTypes(MODE mode);
+    QMap<QString,quint32> getSymbolTypes(MODE mode);
+    QMap<QString,quint32> getParamMods(MODE mode);
+    QMap<QString,quint32> getStorageClasses(MODE mode);
+    QMap<QString,quint32> getFunctionMods(MODE mode);
+    QMap<QString,quint32> getFunctionConventions(MODE mode);
+    QMap<QString,quint32> getOperators(MODE mode);
+    QMap<QString,quint32> getNumbers(MODE mode);
+    QMap<QString,quint32> getLineNumbers(MODE mode);
+    QMap<QString,quint32> getSymNumbers(MODE mode);
+    QMap<QString,quint32> getQualifiers(MODE mode);
 
     SYMBOL Microsoft_handle(HDATA *pHdata,QString sString,MODE mode);
     SYMBOL Itanium_handle(HDATA *pHdata,QString sString,MODE mode);
@@ -397,6 +407,10 @@ private:
     static void reverseList(QList<QList<PARAMETER>> *pListList);
 
     static SYNTAX getSyntaxFromMode(MODE mode);
+
+    qint32 ms_demangle_FullName(HDATA *pHdata,QString sString,MODE mode);
+    qint32 ms_demangle_UnkName(HDATA *pHdata,QString sString,MODE mode);
+    qint32 ms_demangle_NameScope(HDATA *pHdata,QString sString,MODE mode);
 };
 
 #endif // XDEMANGLE_H
