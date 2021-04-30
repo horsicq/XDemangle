@@ -352,6 +352,28 @@ QString XDemangle::convert(QString sString, MODE mode)
     return sResult;
 }
 
+QString XDemangle::ms_demangle(QString sString, XDemangle::MODE mode)
+{
+    QString sResult;
+
+    if(_compare(sString,"."))
+    {
+        // TODO typeinformation
+    }
+    else if(_compare(sString,"??@"))
+    {
+        // TODO MD5
+    }
+    else if(_compare(sString,"?"))
+    {
+        sString=sString.mid(1,-1);
+
+
+    }
+
+    return sResult;
+}
+
 qint32 XDemangle::Microsoft_handleParams(HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, qint32 nLimit, QList<QString> *pListStringRefs,QList<QString> *plistArgRefs)
 {
     qint32 nResult=0;
@@ -886,6 +908,7 @@ qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, M
             }
         }
 
+        pParameter->bTemplate=bTemplate;
         pParameter->listListTemplateParameters.append(listTemplateParameters);
 
         if(bAddToList)
@@ -931,7 +954,7 @@ qint32 XDemangle::Microsoft_handleParamStrings(HDATA *pHdata, QString sString, M
     return nResult;
 }
 
-qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStringRefs, bool bFirst, bool bSplit)
+qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode, QList<XDemangle::PARAMETER> *pListParameters, QList<QString> *pListStringRefs, bool bFirst, SYMBOL *pSymbol, bool bSplit)
 {
     qint32 nResult=0;
 
@@ -943,6 +966,17 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
     while(sString!="")
     {
+        if(_compare(sString,"St"))
+        {
+            sString=sString.mid(2,-1);
+            parameter.sRecord+="St";
+            nResult+=2;
+
+            parameter.listNames.append("std");
+            QList<PARAMETER> _list;
+            parameter.listListTemplateParameters.append(_list);
+        }
+
         if(_compare(sString,"S"))
         {
             SIGNATURE signatureReplace=Itanium_getReplaceSignature(pHdata,sString,mode);
@@ -953,7 +987,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 sString=sString.mid(signatureReplace.nSize,-1);
                 parameter.sRecord+=sRecord;
 
-                Itanium_handleParams(pHdata,parameter.sRecord,mode,pListParameters,pListStringRefs,(pListParameters->count()==0)&(bFirst),false);
+                Itanium_handleParams(pHdata,parameter.sRecord,mode,pListParameters,pListStringRefs,(pListParameters->count()==0)&(bFirst),pSymbol,false);
 
                 nResult+=signatureReplace.nSize;
             }
@@ -1040,7 +1074,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
             sRawRecord+=sString.leftRef(1);
             sString=sString.mid(1,-1);
 
-            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false,true);
+            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(parameter.listFunctionParameters),pListStringRefs,false,pSymbol,true);
 
             parameter.functionConvention=FC_NONE;
 
@@ -1140,7 +1174,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
         }
         else
         {
-            quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,false,nullptr,bSplit);
+            quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&parameter,pListStringRefs,false,pSymbol,bSplit);
 
             if(nNameSize)
             {
@@ -1162,7 +1196,19 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
         if(bParameter)
         {
-            if((pListParameters->count()==0)&&(bFirst))
+            bool bLastTemplate=false;
+
+            if(pSymbol->paramMain.bTemplate)
+            {
+                int nTP=pSymbol->paramMain.listListTemplateParameters.count();
+
+                if(pSymbol->paramMain.listListTemplateParameters.at(nTP-1).count())
+                {
+                    bLastTemplate=true;
+                }
+            }
+
+            if((pListParameters->count()==0)&&(bFirst)&&(!bLastTemplate))
             {
                 // Return
                 PARAMETER paramReturn={};
@@ -1250,7 +1296,16 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
         }
         else
         {
-            if(_compare(sString,"S")&&(pParameter->listNames.count()==0))
+            if(_compare(sString,"St"))
+            {
+                sString=sString.mid(2,-1);
+                nResult+=2;
+
+                pParameter->listNames.append("std");
+                QList<PARAMETER> _list;
+                pParameter->listListTemplateParameters.append(_list);
+            }
+            else if(_compare(sString,"S")&&(pParameter->listNames.count()==0))
             {
                 SIGNATURE signatureReplace=Itanium_getReplaceSignature(pHdata,sString,mode);
 
@@ -1302,7 +1357,7 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
                     {
                         bAdd=false;
                     }
-                    else if(!bNamespace)
+                    else if((!bNamespace)&&(!_compare(sString,"I")))
                     {
                         bAdd=false;
                     }
@@ -1333,7 +1388,7 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
 
             nResult+=1;
 
-            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&listTemplateParameters,pListStringRefs,false,true);
+            qint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&listTemplateParameters,pListStringRefs,false,pSymbol,true);
 
             sString=sString.mid(nParamSize,-1);
             nResult+=nParamSize;
@@ -1343,6 +1398,8 @@ qint32 XDemangle::Itanium_handleParamStrings(XDemangle::HDATA *pHdata, QString s
                 sString=sString.mid(1,-1);
                 nResult+=1;
             }
+
+            pParameter->bTemplate=true;
         }
 
         pParameter->listListTemplateParameters.append(listTemplateParameters);
@@ -1458,6 +1515,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapObjectClasses=getObjectClasses(mode);
     result.mapTypes=getTypes(mode);
     result.mapNameTypes=getNameTypes(mode);
+    result.mapSymbolTypes=getSymbolTypes(mode);
     result.mapStorageClasses=getStorageClasses(mode);
     result.mapFunctionMods=getFunctionMods(mode);
     result.mapFunctionConventions=getFunctionConventions(mode);
@@ -1572,19 +1630,37 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
         }
         else if(symbol.symbolType==ST_VTABLE)
         {
-            QString sStorage=storageClassIdToString(symbol.storageClass,symbol.mode);
-            QString sName=_getNameFromSymbol(symbol);
-
-            if(symbol.storageClass!=SC_UNKNOWN)
+            if(getSyntaxFromMode(symbol.mode)==SYNTAX_MICROSOFT)
             {
-                if(sStorage!="") sResult+=QString("%1 ").arg(sStorage);
+                QString sStorage=storageClassIdToString(symbol.storageClass,symbol.mode);
+                QString sName=_getNameFromSymbol(symbol);
+
+                if(symbol.storageClass!=SC_UNKNOWN)
+                {
+                    if(sStorage!="") sResult+=QString("%1 ").arg(sStorage);
+                }
+
+                sResult+=sName;
+
+                if(symbol.bParamTable)
+                {
+                    sResult+=QString("{for `%1'}").arg(_getStringFromParameter(symbol.paramTable,symbol.mode));
+                }
             }
-
-            sResult+=sName;
-
-            if(symbol.bParamTable)
+            else if(getSyntaxFromMode(symbol.mode)==SYNTAX_ITANIUM)
             {
-                sResult+=QString("{for `%1'}").arg(_getStringFromParameter(symbol.paramTable,symbol.mode));
+                QString sName=_getNameFromSymbol(symbol);
+
+                sResult=QString("vtable for %1").arg(sName);
+            }
+        }
+        else if(symbol.symbolType==ST_TYPEINFO)
+        {
+            if(getSyntaxFromMode(symbol.mode)==SYNTAX_ITANIUM)
+            {
+                QString sName=_getNameFromSymbol(symbol);
+
+                sResult=QString("typeinfo for %1").arg(sName);
             }
         }
 
@@ -1965,6 +2041,19 @@ QMap<QString, qint32> XDemangle::getNameTypes(XDemangle::MODE mode)
         mapResult.insert("U",TYPE_STRUCT);
         mapResult.insert("V",TYPE_CLASS);
         mapResult.insert("W4",TYPE_ENUM);
+    }
+
+    return mapResult;
+}
+
+QMap<QString, qint32> XDemangle::getSymbolTypes(XDemangle::MODE mode)
+{
+    QMap<QString,qint32> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    {
+        mapResult.insert("TI",ST_TYPEINFO);
+        mapResult.insert("TV",ST_VTABLE);
     }
 
     return mapResult;
@@ -2582,11 +2671,19 @@ XDemangle::SYMBOL XDemangle::Itanium_handle(XDemangle::HDATA *pHdata, QString sS
             sString=sString.mid(2,-1);
         }
 
+        if(isSignaturePresent(sString,&(pHdata->mapSymbolTypes)))
+        {
+            SIGNATURE signature=getSignature(sString,&(pHdata->mapSymbolTypes));
+            result.symbolType=(ST)signature.nValue;
+
+            sString=sString.mid(signature.nSize,-1);
+        }
+
         quint32 nNameSize=Itanium_handleParamStrings(pHdata,sString,mode,&(result.paramMain),&listStringRefs,true,&result,true);
 
         sString=sString.mid(nNameSize,-1);
 
-        quint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(result.listParameters),&listStringRefs,true,true);
+        quint32 nParamSize=Itanium_handleParams(pHdata,sString,mode,&(result.listParameters),&listStringRefs,true,&result,true);
 
         if(nParamSize)
         {
@@ -2691,6 +2788,14 @@ QString XDemangle::_getTemplatesFromParameters(QList<PARAMETER> *pListParameters
             }
         }
 
+        if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+        {
+            if(_getStringEnd(sResult)==QChar('>'))
+            {
+                sResult+=" ";
+            }
+        }
+
         sResult+=">";
     }
 
@@ -2741,6 +2846,17 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
         QString sReturn=_getStringFromParameter(parameter.listFunctionParameters.at(0),mode,sFunction,true);
 
         sResult=sReturn;
+
+        if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+        {
+            if(sResult!="")
+            {
+                if(_getStringEnd(sResult)!=QChar(')'))
+                {
+                    sResult+=" ";
+                }
+            }
+        }
 
         sResult+="(";
 
@@ -2876,6 +2992,10 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
                 {
                     sMod=" const*";
                 }
+            }
+            else if(sMod=="const **")
+            {
+                sMod=" const**";
             }
             else if(sMod=="const")
             {

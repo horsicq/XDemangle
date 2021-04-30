@@ -166,7 +166,8 @@ public:
         ST_UNKNOWN=0,
         ST_VARIABLE,
         ST_FUNCTION,
-        ST_VTABLE
+        ST_VTABLE,
+        ST_TYPEINFO
     };
 
     enum PM
@@ -255,6 +256,7 @@ public:
         QList<QString> listNames;
         QList<PARAMETER> listMods;
         QList<qint64> listIndexes; // For var[x][y]
+        bool bTemplate;
         QList<QList<PARAMETER>> listListTemplateParameters; // Template mb TODO flags;
         QList<PARAMETER> listFunctionParameters; // if pointer to a function
         FC functionConvention; // if function
@@ -268,6 +270,7 @@ public:
         QMap<QString,qint32> mapObjectClasses;
         QMap<QString,qint32> mapTypes;
         QMap<QString,qint32> mapNameTypes;
+        QMap<QString,qint32> mapSymbolTypes;
         QMap<QString,qint32> mapStorageClasses;
         QMap<QString,qint32> mapFunctionMods;
         QMap<QString,qint32> mapFunctionConventions;
@@ -318,6 +321,8 @@ public:
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
+    QString ms_demangle(QString sString,MODE mode);
+
     MODE detectMode(QString sString);
 
     static QList<MODE> getAllModes();
@@ -362,6 +367,7 @@ private:
     QMap<QString,qint32> getObjectClasses(MODE mode);
     QMap<QString,qint32> getTypes(MODE mode);
     QMap<QString,qint32> getNameTypes(MODE mode);
+    QMap<QString,qint32> getSymbolTypes(MODE mode);
     QMap<QString,qint32> getParamMods(MODE mode);
     QMap<QString,qint32> getStorageClasses(MODE mode);
     QMap<QString,qint32> getFunctionMods(MODE mode);
@@ -377,7 +383,7 @@ private:
     qint32 Microsoft_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
     qint32 Microsoft_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs,bool bFirst);
 
-    qint32 Itanium_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStringRefs,bool bFirst,bool bSplit);
+    qint32 Itanium_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStringRefs,bool bFirst,SYMBOL *pSymbol,bool bSplit);
     qint32 Itanium_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,bool bFirst,SYMBOL *pSymbol,bool bSplit);
 
     QString _getNameFromSymbol(SYMBOL symbol);
