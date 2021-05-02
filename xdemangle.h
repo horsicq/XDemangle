@@ -317,6 +317,24 @@ public:
         QString sPrep;
     };
 
+    struct DPARAMETER;
+
+    struct DNAME
+    {
+        QString sSimpleName;
+        QList<DPARAMETER> listTemplateDparams;
+    };
+
+    struct DPARAMETER
+    {
+        QList<DNAME> listDnames;
+    };
+
+    struct DSYMBOL
+    {
+        DPARAMETER dparamMain;
+    };
+
     explicit XDemangle(QObject *pParent=nullptr);
     static QString modeIdToString(MODE mode);
     static QString typeIdToString(TYPE type,MODE mode);
