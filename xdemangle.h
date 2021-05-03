@@ -322,17 +322,22 @@ public:
     struct DNAME
     {
         QString sSimpleName;
+        OP operand;
         QList<DPARAMETER> listTemplateDparams;
     };
 
     struct DPARAMETER
     {
         QList<DNAME> listDnames;
+        quint32 nQualifier;
+        TYPE type;
     };
 
     struct DSYMBOL
     {
-        DPARAMETER dparamMain;
+        MODE mode;
+        DPARAMETER paramMain;
+        ST st;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
@@ -349,6 +354,7 @@ public:
     QString convert(QString sString,MODE mode);
 
     QString ms_demangle(QString sString,MODE mode);
+    DSYMBOL getDSymbol(QString sString,MODE mode);
 
     MODE detectMode(QString sString);
 
@@ -375,10 +381,12 @@ private:
     {
         qint32 nSize;
         QString sKey;
-        qint32 nValue;
+        quint32 nValue;
     };
 
     QString symbolToString(SYMBOL symbol);
+    QString dsymbolToString(DSYMBOL symbol);
+
     STRING readString(HDATA *pHdata,QString sString,MODE mode);
     NUMBER readNumber(HDATA *pHdata,QString sString,MODE mode);
     NUMBER readSymNumber(HDATA *pHdata,QString sString,MODE mode);
@@ -423,12 +431,18 @@ private:
 //    static void reverseList(QList<MOD> *pList);
     static void reverseList(QList<PARAMETER> *pList);
     static void reverseList(QList<QList<PARAMETER>> *pListList);
+    static void reverseList(QList<DNAME> *pList);
 
     static SYNTAX getSyntaxFromMode(MODE mode);
 
-    qint32 ms_demangle_FullName(HDATA *pHdata,QString sString,MODE mode);
-    qint32 ms_demangle_UnkName(HDATA *pHdata,QString sString,MODE mode);
-    qint32 ms_demangle_NameScope(HDATA *pHdata,QString sString,MODE mode);
+    qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    qint32 ms_demangle_FullName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    qint32 ms_demangle_UnkName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+
+    QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pDParameter,MODE mode);
 };
 
 #endif // XDEMANGLE_H
