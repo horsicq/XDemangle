@@ -167,35 +167,52 @@ QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mo
     return sResult;
 }
 
-QString XDemangle::functionModIdToString(XDemangle::FM functionMod, XDemangle::MODE mode)
+QString XDemangle::functionModIdToString(quint32 nFunctionMod, XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown"; // mb TODO translate
+    QString sResult;
 
-    switch(functionMod)
+//    switch(functionMod)
+//    {
+//        case FM_UNKNOWN:                sResult=QString("Unknown");             break; // mb TODO translate
+//        case FM_NEAR:                   sResult=QString("");                    break;
+//        case FM_FAR:                    sResult=QString("");                    break;
+//        case FM_PUBLIC_NEAR:            sResult=QString("public:");             break;
+//        case FM_PUBLIC_FAR:             sResult=QString("public:");             break;
+//        case FM_PUBLIC_STATICNEAR:      sResult=QString("public: static");      break;
+//        case FM_PUBLIC_STATICFAR:       sResult=QString("public: static");      break;
+//        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public: virtual");     break;
+//        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public: virtual");     break;
+//        case FM_PROTECTED_NEAR:         sResult=QString("protected:");          break;
+//        case FM_PROTECTED_FAR:          sResult=QString("protected:");          break;
+//        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected: static");   break;
+//        case FM_PROTECTED_STATICFAR:    sResult=QString("protected: static");   break;
+//        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected: virtual");  break;
+//        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected: virtual");  break;
+//        case FM_PRIVATE_NEAR:           sResult=QString("private:");            break;
+//        case FM_PRIVATE_FAR:            sResult=QString("private:");            break;
+//        case FM_PRIVATE_STATICNEAR:     sResult=QString("private: static");     break;
+//        case FM_PRIVATE_STATICFAR:      sResult=QString("private: static");     break;
+//        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private: virtual");    break;
+//        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private: virtual");    break;
+//    }
+
+    if(nFunctionMod==0)
     {
-        case FM_UNKNOWN:                sResult=QString("Unknown");             break; // mb TODO translate
-        case FM_NEAR:                   sResult=QString("");                    break;
-        case FM_FAR:                    sResult=QString("");                    break;
-        case FM_PUBLIC_NEAR:            sResult=QString("public:");             break;
-        case FM_PUBLIC_FAR:             sResult=QString("public:");             break;
-        case FM_PUBLIC_STATICNEAR:      sResult=QString("public: static");      break;
-        case FM_PUBLIC_STATICFAR:       sResult=QString("public: static");      break;
-        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public: virtual");     break;
-        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public: virtual");     break;
-        case FM_PROTECTED_NEAR:         sResult=QString("protected:");          break;
-        case FM_PROTECTED_FAR:          sResult=QString("protected:");          break;
-        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected: static");   break;
-        case FM_PROTECTED_STATICFAR:    sResult=QString("protected: static");   break;
-        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected: virtual");  break;
-        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected: virtual");  break;
-        case FM_PRIVATE_NEAR:           sResult=QString("private:");            break;
-        case FM_PRIVATE_FAR:            sResult=QString("private:");            break;
-        case FM_PRIVATE_STATICNEAR:     sResult=QString("private: static");     break;
-        case FM_PRIVATE_STATICFAR:      sResult=QString("private: static");     break;
-        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private: virtual");    break;
-        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private: virtual");    break;
+        sResult=QString("Unknown");
+    }
+
+    if      (nFunctionMod&FM_PRIVATE)       sResult+=QString("private:");
+    else if (nFunctionMod&FM_PROTECTED)     sResult+=QString("protected:");
+    else if (nFunctionMod&FM_PUBLIC)        sResult+=QString("public:");
+
+    if((nFunctionMod&FM_STATIC)||(nFunctionMod&FM_VIRTUAL))
+    {
+        if(sResult!="")     sResult+=" ";
+
+        if      (nFunctionMod&FM_STATIC)        sResult+=QString("static");
+        else if (nFunctionMod&FM_VIRTUAL)       sResult+=QString("virtual");
     }
 
     return sResult;
@@ -474,7 +491,7 @@ qint32 XDemangle::ms_demangle_Declarator(DSYMBOL *pSymbol, XDemangle::HDATA *pHd
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Parameters(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pDParameter, QString sString, XDemangle::MODE mode)
+qint32 XDemangle::ms_demangle_Parameters(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, XDemangle::MODE mode)
 {
     qint32 nResult=0;
 
@@ -487,7 +504,60 @@ qint32 XDemangle::ms_demangle_Parameters(DSYMBOL *pSymbol, XDemangle::HDATA *pHd
     {
         // Functions
         pSymbol->st=ST_FUNCTION;
+
+        qint32 nFSize=ms_demangle_Function(pSymbol,pHdata,pParameter,sString,mode);
+        nResult+=nFSize;
     }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, XDemangle::MODE mode)
+{
+    qint32 nResult=0;
+
+    if(_compare(sString,"$$J0"))
+    {
+        nResult+=4;
+        sString=sString.mid(4,-1);
+        pSymbol->functionMode=FM_EXTERNC;
+    }
+
+    if(isSignaturePresent(sString,&(pHdata->mapFunctionMods)))
+    {
+        SIGNATURE signature=getSignature(sString,&(pHdata->mapFunctionMods));
+        pSymbol->functionMode|=signature.nValue;
+
+        nResult+=signature.nSize;
+        sString=sString.mid(signature.nSize,-1);
+    }
+
+    if(pSymbol->functionMode&FM_STATICTHISADJUST)
+    {
+        qDebug("TODO: FM_STATICTHISADJUST");
+    }
+
+    if(pSymbol->functionMode&FM_VIRTUALTHISADJUST)
+    {
+        qDebug("TODO: FM_VIRTUALTHISADJUST");
+    }
+
+    if(!(pSymbol->functionMode&FM_NOPARAMETERLIST))
+    {
+        bool bThisQual=!(pSymbol->functionMode&(FM_GLOBAL|FM_STATIC));
+
+        qint32 nFSize=ms_demangle_FunctionType(pSymbol,pHdata,pParameter,sString,mode,bThisQual);
+
+        nResult+=nFSize;
+        sString=sString.mid(nFSize,-1);
+    }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_FunctionType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, XDemangle::MODE mode, bool bHThisQual)
+{
+    qint32 nResult=0;
 
     return nResult;
 }
@@ -2388,26 +2458,36 @@ QMap<QString, quint32> XDemangle::getFunctionMods(XDemangle::MODE mode)
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        mapResult.insert("A",FM_PRIVATE_NEAR);
-        mapResult.insert("B",FM_PRIVATE_FAR);
-        mapResult.insert("C",FM_PRIVATE_STATICNEAR);
-        mapResult.insert("D",FM_PRIVATE_STATICFAR);
-        mapResult.insert("E",FM_PRIVATE_VIRTUALNEAR);
-        mapResult.insert("F",FM_PRIVATE_VIRTUALFAR);
-        mapResult.insert("I",FM_PROTECTED_NEAR);
-        mapResult.insert("J",FM_PROTECTED_FAR);
-        mapResult.insert("K",FM_PROTECTED_STATICNEAR);
-        mapResult.insert("L",FM_PROTECTED_STATICFAR);
-        mapResult.insert("M",FM_PROTECTED_VIRTUALNEAR);
-        mapResult.insert("N",FM_PROTECTED_VIRTUALFAR);
-        mapResult.insert("Q",FM_PUBLIC_NEAR);
-        mapResult.insert("R",FM_PUBLIC_FAR);
-        mapResult.insert("S",FM_PUBLIC_STATICNEAR);
-        mapResult.insert("T",FM_PUBLIC_STATICFAR);
-        mapResult.insert("U",FM_PUBLIC_VIRTUALNEAR);
-        mapResult.insert("V",FM_PUBLIC_VIRTUALFAR);
-        mapResult.insert("Y",FM_NEAR);
-        mapResult.insert("Z",FM_FAR);
+        mapResult.insert("9",FM_EXTERNC|FM_NOPARAMETERLIST);
+        mapResult.insert("A",FM_PRIVATE);
+        mapResult.insert("B",FM_PRIVATE|FM_FAR);
+        mapResult.insert("C",FM_PRIVATE|FM_STATIC);
+        mapResult.insert("D",FM_PRIVATE|FM_STATIC|FM_FAR);
+        mapResult.insert("E",FM_PRIVATE|FM_VIRTUAL);
+        mapResult.insert("F",FM_PRIVATE|FM_VIRTUAL|FM_FAR);
+        mapResult.insert("I",FM_PROTECTED);
+        mapResult.insert("J",FM_PROTECTED|FM_FAR);
+        mapResult.insert("K",FM_PROTECTED|FM_STATIC);
+        mapResult.insert("L",FM_PROTECTED|FM_STATIC|FM_FAR);
+        mapResult.insert("M",FM_PROTECTED|FM_VIRTUAL);
+        mapResult.insert("N",FM_PROTECTED|FM_VIRTUAL|FM_FAR);
+        mapResult.insert("Q",FM_PUBLIC);
+        mapResult.insert("R",FM_PUBLIC|FM_FAR);
+        mapResult.insert("S",FM_PUBLIC|FM_STATIC);
+        mapResult.insert("T",FM_PUBLIC|FM_STATIC|FM_FAR);
+        mapResult.insert("U",FM_PUBLIC|FM_VIRTUAL);
+        mapResult.insert("V",FM_PUBLIC|FM_VIRTUAL|FM_FAR);
+        mapResult.insert("W",FM_PUBLIC|FM_VIRTUAL|FM_STATICTHISADJUST);
+        mapResult.insert("X",FM_PUBLIC|FM_VIRTUAL|FM_STATICTHISADJUST|FM_FAR);
+        mapResult.insert("Y",FM_GLOBAL);
+        mapResult.insert("Z",FM_GLOBAL|FM_FAR);
+        mapResult.insert("$",FM_VIRTUALTHISADJUST);
+        mapResult.insert("$R0",FM_VIRTUALTHISADJUST|FM_VIRTUALTHISADJUSTEX|FM_PRIVATE|FM_VIRTUAL);
+        mapResult.insert("$R1",FM_VIRTUALTHISADJUST|FM_VIRTUALTHISADJUSTEX|FM_PRIVATE|FM_VIRTUAL|FM_FAR);
+        mapResult.insert("$R2",FM_VIRTUALTHISADJUST|FM_VIRTUALTHISADJUSTEX|FM_PROTECTED|FM_VIRTUAL);
+        mapResult.insert("$R3",FM_VIRTUALTHISADJUST|FM_VIRTUALTHISADJUSTEX|FM_PROTECTED|FM_VIRTUAL|FM_FAR);
+        mapResult.insert("$R4",FM_VIRTUALTHISADJUST|FM_VIRTUALTHISADJUSTEX|FM_PUBLIC|FM_VIRTUAL|FM_FAR);
+        mapResult.insert("$R5",FM_VIRTUALTHISADJUST|FM_VIRTUALTHISADJUSTEX|FM_PUBLIC|FM_VIRTUAL|FM_FAR);
     }
 
     return mapResult;
@@ -2766,12 +2846,7 @@ XDemangle::SYMBOL XDemangle::Microsoft_handle(XDemangle::HDATA *pHdata, QString 
 
             if( (result.functionMod!=FM_FAR)&&
                 (result.functionMod!=FM_NEAR)&&
-                (result.functionMod!=FM_PUBLIC_STATICNEAR)&&
-                (result.functionMod!=FM_PUBLIC_STATICFAR)&&
-                (result.functionMod!=FM_PROTECTED_STATICNEAR)&&
-                (result.functionMod!=FM_PROTECTED_STATICFAR)&&
-                (result.functionMod!=FM_PRIVATE_STATICNEAR)&&
-                (result.functionMod!=FM_PRIVATE_STATICFAR))
+                (!(result.functionMod&FM_STATIC)))
             {
                 if((mode==MODE_MSVC)||(mode==MODE_MSVC64))
                 {

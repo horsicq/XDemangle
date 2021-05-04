@@ -121,26 +121,19 @@ public:
     enum FM
     {
         FM_UNKNOWN=0,
-        FM_NEAR,
-        FM_FAR,
-        FM_PUBLIC_NEAR,
-        FM_PUBLIC_FAR,
-        FM_PUBLIC_STATICNEAR,
-        FM_PUBLIC_STATICFAR,
-        FM_PUBLIC_VIRTUALNEAR,
-        FM_PUBLIC_VIRTUALFAR,
-        FM_PROTECTED_NEAR,
-        FM_PROTECTED_FAR,
-        FM_PROTECTED_STATICNEAR,
-        FM_PROTECTED_STATICFAR,
-        FM_PROTECTED_VIRTUALNEAR,
-        FM_PROTECTED_VIRTUALFAR,
-        FM_PRIVATE_NEAR,
-        FM_PRIVATE_FAR,
-        FM_PRIVATE_STATICNEAR,
-        FM_PRIVATE_STATICFAR,
-        FM_PRIVATE_VIRTUALNEAR,
-        FM_PRIVATE_VIRTUALFAR,
+        FM_PUBLIC               =0x00000001,
+        FM_PROTECTED            =0x00000002,
+        FM_PRIVATE              =0x00000004,
+        FM_STATIC               =0x00000010,
+        FM_VIRTUAL              =0x00000020,
+        FM_NEAR                 =0x00000100,
+        FM_FAR                  =0x00000200,
+        FM_STATICTHISADJUST     =0x00001000,
+        FM_VIRTUALTHISADJUST    =0x00002000,
+        FM_VIRTUALTHISADJUSTEX  =0x00004000,
+        FM_GLOBAL               =0x10000000,
+        FM_EXTERNC              =0x20000000,
+        FM_NOPARAMETERLIST      =0x40000000,
     };
 
     enum FC
@@ -338,6 +331,7 @@ public:
         MODE mode;
         DPARAMETER paramMain;
         ST st;
+        quint32 functionMode;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
@@ -346,7 +340,7 @@ public:
     static QString storageClassIdToString(SC storageClass,MODE mode);
     static QString objectClassIdToString(OC objectClass,MODE mode);
     static QString paramModIdToString(PM paramMod,MODE mode);
-    static QString functionModIdToString(FM functionMod,MODE mode);
+    static QString functionModIdToString(quint32 nFunctionMod, MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
 
@@ -441,6 +435,8 @@ private:
     qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    qint32 ms_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode,bool bHThisQual);
 
     QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pDParameter,MODE mode);
 };
