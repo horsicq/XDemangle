@@ -58,7 +58,7 @@ public:
     enum TYPE
     {
         TYPE_UNKNOWN=0,
-        TYPE_EMPTY, // For Constructors & Destructors
+        TYPE_NONE, // For Constructors & Destructors
         TYPE_BOOL,
         TYPE_VOID,
         TYPE_INT,
@@ -163,17 +163,6 @@ public:
         ST_TYPEINFO
     };
 
-    enum PM
-    {
-        PM_NONE,
-        PM_POINTER,
-        PM_REFERENCE,
-        PM_POINTERCONST, // Check
-        PM_POINTERVOLATILE,
-        PM_POINTERCONSTVOLATILE,
-        PM_DOUBLEREFERENCE
-    };
-
     enum OP
     {
         OP_UNKNOWN=0,
@@ -240,19 +229,26 @@ public:
         OP_TYPE
     };
 
-    enum Q
+    enum QUAL
     {
-        Q_NONE      =0x00000000,
-        Q_MEMBER    =0x80000000,
-        Q_CONST     =0x00000001,
-        Q_VOLATILE  =0x00000002,
+        QUAL_NONE               =0x00000000,
+        QUAL_CONST              =0x00000001,
+        QUAL_VOLATILE           =0x00000002,
+        QUAL_REFERENCE          =0x01000000,
+        QUAL_RVALUEREF          =0x02000000,
+        QUAL_POINTER            =0x04000000,
+        QUAL_DOUBLEREFERENCE    =0x08000000,
+        QUAL_MEMBER             =0x10000000,
+        QUAL_POINTER64          =0x20000000,
+        QUAL_RESTRICT           =0x40000000,
+        QUAL_UNALIGNED          =0x80000000,
     };
 
     struct PARAMETER
     {
         QString sRecord;
         TYPE type;
-        PM paramMod;
+        quint32 nParamMod;
         SC storageClass;
         QList<QString> listNames;
         QList<PARAMETER> listMods;
@@ -267,7 +263,7 @@ public:
 
     struct HDATA
     {
-        QMap<QString,quint32> mapParamMods;
+        QMap<QString,quint32> mapPointerTypes;
         QMap<QString,quint32> mapObjectClasses;
         QMap<QString,quint32> mapTypes;
         QMap<QString,quint32> mapTagTypes;
@@ -302,7 +298,7 @@ public:
         PARAMETER paramTable;
         bool bExtra;
         OC extraObjectClass;
-        PM extraParamMod;
+        quint32 nExtraParamMod;
         SC extraStorageClass1;
         TYPE extraType;
         SC extraStorageClass2;
@@ -322,16 +318,20 @@ public:
     struct DPARAMETER
     {
         QList<DNAME> listDnames;
-        quint32 nQualifier;
         TYPE type;
+        ST st;
+        quint32 nQualifier;
+        quint32 nRefQualifier;
+        quint32 functionMode;
+        FC functionConvention;
+        QList<DPARAMETER> listParameters;
     };
 
     struct DSYMBOL
     {
+        bool bIsValid;
         MODE mode;
         DPARAMETER paramMain;
-        ST st;
-        quint32 functionMode;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
@@ -339,7 +339,7 @@ public:
     static QString typeIdToString(TYPE type,MODE mode);
     static QString storageClassIdToString(SC storageClass,MODE mode);
     static QString objectClassIdToString(OC objectClass,MODE mode);
-    static QString paramModIdToString(PM paramMod,MODE mode);
+    static QString paramModIdToString(quint32 nParamMod,MODE mode); // TODO rename
     static QString functionModIdToString(quint32 nFunctionMod, MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
@@ -397,7 +397,7 @@ private:
     QMap<QString,quint32> getTypes(MODE mode);
     QMap<QString,quint32> getTagTypes(MODE mode);
     QMap<QString,quint32> getSymbolTypes(MODE mode);
-    QMap<QString,quint32> getParamMods(MODE mode);
+    QMap<QString,quint32> getPointerTypes(MODE mode);
     QMap<QString,quint32> getStorageClasses(MODE mode);
     QMap<QString,quint32> getFunctionMods(MODE mode);
     QMap<QString,quint32> getFunctionConventions(MODE mode);
@@ -429,14 +429,21 @@ private:
 
     static SYNTAX getSyntaxFromMode(MODE mode);
 
-    qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
+    enum MSDT
+    {
+        MSDT_DROP=0,
+        MSDT_MANGLE,
+        MSDT_RESULT
+    };
+
+    qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode,MSDT msdt);
     qint32 ms_demangle_FullName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_UnkName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
-    qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode,bool bHThisQual);
+    qint32 ms_demangle_FunctionEncoded(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode,bool bThisQual);
 
     QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pDParameter,MODE mode);
 };

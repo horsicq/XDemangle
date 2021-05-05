@@ -53,7 +53,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
     switch(type)
     {
         case TYPE_UNKNOWN:          sResult=QString("");                    break;
-        case TYPE_EMPTY:            sResult=QString("");                    break;
+        case TYPE_NONE:            sResult=QString("");                    break;
         case TYPE_VOID:             sResult=QString("void");                break;
         case TYPE_BOOL:             sResult=QString("bool");                break;
         case TYPE_INT:              sResult=QString("int");                 break;
@@ -147,21 +147,21 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
     return sResult;
 }
 
-QString XDemangle::paramModIdToString(XDemangle::PM paramMod, XDemangle::MODE mode)
+QString XDemangle::paramModIdToString(quint32 nParamMod, XDemangle::MODE mode)
 {
     Q_UNUSED(mode)
 
     QString sResult="Unknown"; // mb TODO translate
 
-    switch(paramMod)
+    switch(nParamMod)
     {
-        case PM_NONE:                   sResult=QString("");                    break; // mb TODO translate
-        case PM_POINTER:                sResult=QString("*");                   break;
-        case PM_REFERENCE:              sResult=QString("&");                   break;
-        case PM_POINTERCONST:           sResult=QString("*const");              break;
-        case PM_POINTERVOLATILE:        sResult=QString("*volatile");           break;
-        case PM_POINTERCONSTVOLATILE:   sResult=QString("*const volatile");     break;
-        case PM_DOUBLEREFERENCE:        sResult=QString("&&");                  break;
+//        case PM_NONE:                   sResult=QString("");                    break; // mb TODO translate
+//        case PM_POINTER:                sResult=QString("*");                   break;
+//        case PM_REFERENCE:              sResult=QString("&");                   break;
+//        case PM_POINTERCONST:           sResult=QString("*const");              break;
+//        case PM_POINTERVOLATILE:        sResult=QString("*volatile");           break;
+//        case PM_POINTERCONSTVOLATILE:   sResult=QString("*const volatile");     break;
+//        case PM_DOUBLEREFERENCE:        sResult=QString("&&");                  break;
     }
 
     return sResult;
@@ -172,31 +172,6 @@ QString XDemangle::functionModIdToString(quint32 nFunctionMod, XDemangle::MODE m
     Q_UNUSED(mode) // TODO
 
     QString sResult;
-
-//    switch(functionMod)
-//    {
-//        case FM_UNKNOWN:                sResult=QString("Unknown");             break; // mb TODO translate
-//        case FM_NEAR:                   sResult=QString("");                    break;
-//        case FM_FAR:                    sResult=QString("");                    break;
-//        case FM_PUBLIC_NEAR:            sResult=QString("public:");             break;
-//        case FM_PUBLIC_FAR:             sResult=QString("public:");             break;
-//        case FM_PUBLIC_STATICNEAR:      sResult=QString("public: static");      break;
-//        case FM_PUBLIC_STATICFAR:       sResult=QString("public: static");      break;
-//        case FM_PUBLIC_VIRTUALNEAR:     sResult=QString("public: virtual");     break;
-//        case FM_PUBLIC_VIRTUALFAR:      sResult=QString("public: virtual");     break;
-//        case FM_PROTECTED_NEAR:         sResult=QString("protected:");          break;
-//        case FM_PROTECTED_FAR:          sResult=QString("protected:");          break;
-//        case FM_PROTECTED_STATICNEAR:   sResult=QString("protected: static");   break;
-//        case FM_PROTECTED_STATICFAR:    sResult=QString("protected: static");   break;
-//        case FM_PROTECTED_VIRTUALNEAR:  sResult=QString("protected: virtual");  break;
-//        case FM_PROTECTED_VIRTUALFAR:   sResult=QString("protected: virtual");  break;
-//        case FM_PRIVATE_NEAR:           sResult=QString("private:");            break;
-//        case FM_PRIVATE_FAR:            sResult=QString("private:");            break;
-//        case FM_PRIVATE_STATICNEAR:     sResult=QString("private: static");     break;
-//        case FM_PRIVATE_STATICFAR:      sResult=QString("private: static");     break;
-//        case FM_PRIVATE_VIRTUALNEAR:    sResult=QString("private: virtual");    break;
-//        case FM_PRIVATE_VIRTUALFAR:     sResult=QString("private: virtual");    break;
-//    }
 
     if(nFunctionMod==0)
     {
@@ -330,15 +305,12 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     return result;
 }
 
-qint32 XDemangle::ms_demangle_Type(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pDParameter, QString sString, XDemangle::MODE mode)
+qint32 XDemangle::ms_demangle_Type(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pDParameter, QString sString, XDemangle::MODE mode, MSDT msdt)
 {
     qint32 nResult=0;
 
-    if(_compare(sString,"?"))
+    if(msdt==MSDT_MANGLE)
     {
-        sString=sString.mid(1,-1);
-        nResult+=1;
-
         if(isSignaturePresent(sString,&(pHdata->mapQualifiers)))
         {
             SIGNATURE signature=getSignature(sString,&(pHdata->mapQualifiers));
@@ -347,6 +319,24 @@ qint32 XDemangle::ms_demangle_Type(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, D
 
             nResult+=signature.nSize;
             sString=sString.mid(signature.nSize,-1);
+        }
+    }
+    else if(msdt==MSDT_RESULT)
+    {
+        if(_compare(sString,"?"))
+        {
+            sString=sString.mid(1,-1);
+            nResult+=1;
+
+            if(isSignaturePresent(sString,&(pHdata->mapQualifiers)))
+            {
+                SIGNATURE signature=getSignature(sString,&(pHdata->mapQualifiers));
+
+                pDParameter->nQualifier=signature.nValue;
+
+                nResult+=signature.nSize;
+                sString=sString.mid(signature.nSize,-1);
+            }
         }
     }
 
@@ -498,12 +488,12 @@ qint32 XDemangle::ms_demangle_Parameters(DSYMBOL *pSymbol, XDemangle::HDATA *pHd
     if(isSignaturePresent(sString,&(pHdata->mapObjectClasses)))
     {
         // Variables
-        pSymbol->st=ST_VARIABLE;
+        pParameter->st=ST_VARIABLE;
     }
     else
     {
         // Functions
-        pSymbol->st=ST_FUNCTION;
+        pParameter->st=ST_FUNCTION;
 
         qint32 nFSize=ms_demangle_Function(pSymbol,pHdata,pParameter,sString,mode);
         nResult+=nFSize;
@@ -520,33 +510,33 @@ qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::H
     {
         nResult+=4;
         sString=sString.mid(4,-1);
-        pSymbol->functionMode=FM_EXTERNC;
+        pParameter->functionMode=FM_EXTERNC;
     }
 
     if(isSignaturePresent(sString,&(pHdata->mapFunctionMods)))
     {
         SIGNATURE signature=getSignature(sString,&(pHdata->mapFunctionMods));
-        pSymbol->functionMode|=signature.nValue;
+        pParameter->functionMode|=signature.nValue;
 
         nResult+=signature.nSize;
         sString=sString.mid(signature.nSize,-1);
     }
 
-    if(pSymbol->functionMode&FM_STATICTHISADJUST)
+    if(pParameter->functionMode&FM_STATICTHISADJUST)
     {
         qDebug("TODO: FM_STATICTHISADJUST");
     }
 
-    if(pSymbol->functionMode&FM_VIRTUALTHISADJUST)
+    if(pParameter->functionMode&FM_VIRTUALTHISADJUST)
     {
         qDebug("TODO: FM_VIRTUALTHISADJUST");
     }
 
-    if(!(pSymbol->functionMode&FM_NOPARAMETERLIST))
+    if(!(pParameter->functionMode&FM_NOPARAMETERLIST))
     {
-        bool bThisQual=!(pSymbol->functionMode&(FM_GLOBAL|FM_STATIC));
+        bool bThisQual=!(pParameter->functionMode&(FM_GLOBAL|FM_STATIC));
 
-        qint32 nFSize=ms_demangle_FunctionType(pSymbol,pHdata,pParameter,sString,mode,bThisQual);
+        qint32 nFSize=ms_demangle_FunctionEncoded(pSymbol,pHdata,pParameter,sString,mode,bThisQual);
 
         nResult+=nFSize;
         sString=sString.mid(nFSize,-1);
@@ -555,9 +545,101 @@ qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::H
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_FunctionType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, XDemangle::MODE mode, bool bHThisQual)
+qint32 XDemangle::ms_demangle_FunctionEncoded(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, XDemangle::MODE mode, bool bThisQual)
 {
     qint32 nResult=0;
+
+    if(bThisQual)
+    {
+        if(_compare(sString,"E"))
+        {
+            pParameter->nQualifier|=QUAL_POINTER64;
+            sString=sString.mid(1,-1);
+            nResult+=1;
+        }
+        if(_compare(sString,"I"))
+        {
+            pParameter->nQualifier|=QUAL_RESTRICT;
+            sString=sString.mid(1,-1);
+            nResult+=1;
+        }
+        if(_compare(sString,"F"))
+        {
+            pParameter->nQualifier|=QUAL_UNALIGNED;
+            sString=sString.mid(1,-1);
+            nResult+=1;
+        }
+
+        if(_compare(sString,"G"))
+        {
+            pParameter->nRefQualifier|=QUAL_REFERENCE;
+            sString=sString.mid(1,-1);
+            nResult+=1;
+        }
+        else if(_compare(sString,"H"))
+        {
+            pParameter->nRefQualifier|=QUAL_RVALUEREF;
+            sString=sString.mid(1,-1);
+            nResult+=1;
+        }
+
+        if(isSignaturePresent(sString,&(pHdata->mapQualifiers)))
+        {
+            SIGNATURE signature=getSignature(sString,&(pHdata->mapQualifiers));
+
+            pParameter->nRefQualifier|=signature.nValue;
+            sString=sString.mid(signature.nSize,-1);
+            nResult+=signature.nSize;
+        }
+    }
+
+    if(isSignaturePresent(sString,&(pHdata->mapFunctionConventions)))
+    {
+        SIGNATURE signature=getSignature(sString,&(pHdata->mapFunctionConventions));
+
+        pParameter->functionConvention=(FC)signature.nValue;
+        sString=sString.mid(signature.nSize,-1);
+        nResult+=signature.nSize;
+    }
+
+    if(_compare(sString,"@"))
+    {
+        pParameter->type=TYPE_NONE;
+        sString=sString.mid(1,-1);
+        nResult+=1;
+    }
+    else
+    {
+        qDebug("TODO: return");
+    }
+
+    if(_compare(sString,"X"))
+    {
+        sString=sString.mid(1,-1);
+        nResult+=1;
+    }
+    else
+    {
+        while(sString!="")
+        {
+            // TODO replace
+
+            DPARAMETER parameter={};
+
+            qint32 nTSize=ms_demangle_Type(pSymbol,pHdata,&parameter,sString,mode,MSDT_DROP);
+
+            pParameter->listParameters.append(parameter);
+
+            nResult+=nTSize;
+            sString=sString.mid(nResult-1);
+            // TODO save
+
+            if(_compare(sString,"X")||_compare(sString,"Z"))
+            {
+                break;
+            }
+        }
+    }
 
     return nResult;
 }
@@ -666,11 +748,11 @@ XDemangle::DSYMBOL XDemangle::getDSymbol(QString sString, XDemangle::MODE mode)
     {
         sString=sString.mid(1,-1);
 
-        qint32 nTSize=ms_demangle_Type(&result,&hdata,&(result.paramMain),sString,mode);
+        qint32 nTSize=ms_demangle_Type(&result,&hdata,&(result.paramMain),sString,mode,MSDT_RESULT);
 
         sString=sString.mid(nTSize,-1);
 
-        result.st=ST_TYPEINFO;
+        result.paramMain.st=ST_TYPEINFO;
     }
     else if(_compare(sString,"??@"))
     {
@@ -893,9 +975,9 @@ qint32 XDemangle::Microsoft_handleParams(HDATA *pHdata, QString sString, XDemang
             while(sString!="")
             {
                 // TODO names
-                if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+                if(isSignaturePresent(sString,&(pHdata->mapPointerTypes)))
                 {
-                    SIGNATURE signatureParamMod=getSignature(sString,&(pHdata->mapParamMods));
+                    SIGNATURE signatureParamMod=getSignature(sString,&(pHdata->mapPointerTypes));
 
                     if(bAddToRecord)
                     {
@@ -930,7 +1012,7 @@ qint32 XDemangle::Microsoft_handleParams(HDATA *pHdata, QString sString, XDemang
                     sString=sString.mid(signatureStorageClass.nSize,-1);
 
                     PARAMETER mod={};
-                    mod.paramMod=(PM)signatureParamMod.nValue;
+                    mod.nParamMod=signatureParamMod.nValue;
                     mod.storageClass=(SC)signatureStorageClass.nValue;
 
                     if(isSignaturePresent(sString,&(pHdata->mapNumbers)))
@@ -1320,15 +1402,15 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
 
             bClear=true;
         }
-        else if(isSignaturePresent(sString,&(pHdata->mapParamMods)))
+        else if(isSignaturePresent(sString,&(pHdata->mapPointerTypes)))
         {
             PARAMETER paramMod={};
 
-            SIGNATURE signatureMod=getSignature(sString,&(pHdata->mapParamMods));
+            SIGNATURE signatureMod=getSignature(sString,&(pHdata->mapPointerTypes));
 
             listPos.append(signatureMod.sKey);
 
-            paramMod.paramMod=(PM)signatureMod.nValue;
+            paramMod.nParamMod=signatureMod.nValue;
 
             parameter.sRecord+=sString.leftRef(signatureMod.nSize);
             nResult+=signatureMod.nSize;
@@ -1530,7 +1612,7 @@ qint32 XDemangle::Itanium_handleParams(XDemangle::HDATA *pHdata, QString sString
                 // Return
                 PARAMETER paramReturn={};
 
-                paramReturn.type=TYPE_EMPTY;
+                paramReturn.type=TYPE_NONE;
                 paramReturn.storageClass=SC_NEAR;
 
                 pListParameters->append(paramReturn);
@@ -1838,7 +1920,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
 {
     XDemangle::HDATA result={};
 
-    result.mapParamMods=getParamMods(mode);
+    result.mapPointerTypes=getPointerTypes(mode);
     result.mapObjectClasses=getObjectClasses(mode);
     result.mapTypes=getTypes(mode);
     result.mapTagTypes=getTagTypes(mode);
@@ -2001,7 +2083,7 @@ QString XDemangle::symbolToString(XDemangle::SYMBOL symbol)
                 sResult.prepend(QString("%1 %2 %3 ")
                         .arg(typeIdToString(symbol.extraType,symbol.mode))
                         .arg(storageClassIdToString(symbol.extraStorageClass1,symbol.mode))
-                        .arg(paramModIdToString(symbol.extraParamMod,symbol.mode)));
+                        .arg(paramModIdToString(symbol.nExtraParamMod,symbol.mode)));
             }
         }
 
@@ -2027,7 +2109,7 @@ QString XDemangle::dsymbolToString(XDemangle::DSYMBOL symbol)
 
     sResult=ms_parameterToString(&symbol,&(symbol.paramMain),symbol.mode);
 
-    if(symbol.st==ST_TYPEINFO)
+    if(symbol.paramMain.st==ST_TYPEINFO)
     {
         sResult=sResult+QString(" `RTTI Type Descriptor Name'");
     }
@@ -2320,7 +2402,7 @@ QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        mapResult.insert("@",TYPE_EMPTY);
+        mapResult.insert("@",TYPE_NONE);
         mapResult.insert("X",TYPE_VOID);
         mapResult.insert("C",TYPE_SCHAR);
         mapResult.insert("D",TYPE_CHAR);
@@ -2401,25 +2483,25 @@ QMap<QString, quint32> XDemangle::getSymbolTypes(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, quint32> XDemangle::getParamMods(XDemangle::MODE mode)
+QMap<QString, quint32> XDemangle::getPointerTypes(XDemangle::MODE mode)
 {
     QMap<QString,quint32> mapResult;
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        mapResult.insert("?",PM_NONE); // For classes return
-        mapResult.insert("P",PM_POINTER);
-        mapResult.insert("A",PM_REFERENCE);
-        mapResult.insert("Q",PM_POINTERCONST);
-        mapResult.insert("R",PM_POINTERVOLATILE);
-        mapResult.insert("S",PM_POINTERCONSTVOLATILE);
-        mapResult.insert("$$Q",PM_DOUBLEREFERENCE);
+//        mapResult.insert("?",PM_NONE); // For classes return
+        mapResult.insert("P",QUAL_POINTER);
+        mapResult.insert("A",QUAL_REFERENCE);
+        mapResult.insert("Q",QUAL_POINTER|QUAL_CONST);
+        mapResult.insert("R",QUAL_POINTER|QUAL_VOLATILE);
+        mapResult.insert("S",QUAL_POINTER|QUAL_CONST|QUAL_VOLATILE);
+        mapResult.insert("$$Q",QUAL_DOUBLEREFERENCE);
     }
     else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
-        mapResult.insert("O",PM_DOUBLEREFERENCE);
-        mapResult.insert("P",PM_POINTER);
-        mapResult.insert("R",PM_REFERENCE);
+        mapResult.insert("O",QUAL_DOUBLEREFERENCE);
+        mapResult.insert("P",QUAL_POINTER);
+        mapResult.insert("R",QUAL_REFERENCE);
     }
 
     return mapResult;
@@ -2714,14 +2796,14 @@ QMap<QString, quint32> XDemangle::getQualifiers(XDemangle::MODE mode)
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        mapResult.insert("A",Q_NONE);
-        mapResult.insert("B",Q_CONST);
-        mapResult.insert("C",Q_VOLATILE);
-        mapResult.insert("D",Q_CONST|Q_VOLATILE);
-        mapResult.insert("Q",Q_MEMBER|Q_NONE);
-        mapResult.insert("R",Q_MEMBER|Q_CONST);
-        mapResult.insert("S",Q_MEMBER|Q_VOLATILE);
-        mapResult.insert("T",Q_MEMBER|Q_CONST|Q_VOLATILE);
+        mapResult.insert("A",QUAL_NONE);
+        mapResult.insert("B",QUAL_CONST);
+        mapResult.insert("C",QUAL_VOLATILE);
+        mapResult.insert("D",QUAL_CONST|QUAL_VOLATILE);
+        mapResult.insert("Q",QUAL_MEMBER|QUAL_NONE);
+        mapResult.insert("R",QUAL_MEMBER|QUAL_CONST);
+        mapResult.insert("S",QUAL_MEMBER|QUAL_VOLATILE);
+        mapResult.insert("T",QUAL_MEMBER|QUAL_CONST|QUAL_VOLATILE);
     }
 
     return mapResult;
@@ -2971,8 +3053,8 @@ XDemangle::SYMBOL XDemangle::Microsoft_handle(XDemangle::HDATA *pHdata, QString 
                 result.extraObjectClass=(OC)signatureOC.nValue;
                 sString=sString.mid(signatureOC.nSize,-1);
 
-                SIGNATURE signaturePM=getSignature(sString,&(pHdata->mapParamMods));
-                result.extraParamMod=(PM)signaturePM.nValue;
+                SIGNATURE signaturePM=getSignature(sString,&(pHdata->mapPointerTypes));
+                result.nExtraParamMod=signaturePM.nValue;
                 sString=sString.mid(signaturePM.nSize,-1);
 
                 SIGNATURE signatureSC1=getSignature(sString,&(pHdata->mapStorageClasses));
@@ -3276,7 +3358,7 @@ QString XDemangle::_getStringFromParameter(XDemangle::PARAMETER parameter, MODE 
                 sStorageClass=storageClassIdToString(parameter.listMods.at(i).storageClass,mode);
             }
 
-            QString sParamMod=paramModIdToString(parameter.listMods.at(i).paramMod,mode);
+            QString sParamMod=paramModIdToString(parameter.listMods.at(i).nParamMod,mode);
 
             bParamMod=(sParamMod!="");
 
