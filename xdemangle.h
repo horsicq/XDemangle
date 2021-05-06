@@ -159,6 +159,7 @@ public:
         ST_UNKNOWN=0,
         ST_VARIABLE,
         ST_FUNCTION,
+        ST_POINTER,
         ST_VTABLE,
         ST_TYPEINFO
     };
@@ -324,7 +325,9 @@ public:
         quint32 nRefQualifier;
         quint32 functionMode;
         FC functionConvention;
+        QList<DPARAMETER> listReturn;
         QList<DPARAMETER> listParameters;
+        QList<DPARAMETER> listPointer;
     };
 
     struct DSYMBOL
@@ -444,6 +447,7 @@ private:
     qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
     qint32 ms_demangle_FunctionEncoded(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode,bool bThisQual);
+    qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol,QString sString,MODE mode,quint32 *pnQual);
 
     QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pDParameter,MODE mode);
 };

@@ -354,6 +354,10 @@ qint32 XDemangle::ms_demangle_Type(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, D
         nResult+=nFNSize;
         sString=sString.mid(nFNSize,-1);
     }
+    else if(isSignaturePresent(sString,&(pHdata->mapPointerTypes)))
+    {
+        // TODO check if it is member
+    }
     else
     {
         qDebug("TODO");
@@ -550,25 +554,11 @@ qint32 XDemangle::ms_demangle_FunctionEncoded(XDemangle::DSYMBOL *pSymbol, XDema
     qint32 nResult=0;
 
     if(bThisQual)
-    {
-        if(_compare(sString,"E"))
-        {
-            pParameter->nQualifier|=QUAL_POINTER64;
-            sString=sString.mid(1,-1);
-            nResult+=1;
-        }
-        if(_compare(sString,"I"))
-        {
-            pParameter->nQualifier|=QUAL_RESTRICT;
-            sString=sString.mid(1,-1);
-            nResult+=1;
-        }
-        if(_compare(sString,"F"))
-        {
-            pParameter->nQualifier|=QUAL_UNALIGNED;
-            sString=sString.mid(1,-1);
-            nResult+=1;
-        }
+    {       
+        qint32 nESize=ms_demangle_ExtQualifiers(pSymbol,sString,mode,&(pParameter->nQualifier));
+
+        sString=sString.mid(nESize,-1);
+        nResult+=nESize;
 
         if(_compare(sString,"G"))
         {
@@ -639,6 +629,35 @@ qint32 XDemangle::ms_demangle_FunctionEncoded(XDemangle::DSYMBOL *pSymbol, XDema
                 break;
             }
         }
+    }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_ExtQualifiers(XDemangle::DSYMBOL *pSymbol, QString sString, XDemangle::MODE mode, quint32 *pnQual)
+{
+    Q_UNUSED(pSymbol)
+    Q_UNUSED(mode)
+
+    qint32 nResult=0;
+
+    if(_compare(sString,"E"))
+    {
+        (*pnQual)|=QUAL_POINTER64;
+        sString=sString.mid(1,-1);
+        nResult+=1;
+    }
+    if(_compare(sString,"I"))
+    {
+        (*pnQual)|=QUAL_RESTRICT;
+        sString=sString.mid(1,-1);
+        nResult+=1;
+    }
+    if(_compare(sString,"F"))
+    {
+        (*pnQual)|=QUAL_UNALIGNED;
+        sString=sString.mid(1,-1);
+        nResult+=1;
     }
 
     return nResult;
