@@ -323,11 +323,12 @@ public:
         ST st;
         quint32 nQualifier;
         quint32 nRefQualifier;
-        quint32 functionMode;
+        quint32 functionMod;
         FC functionConvention;
         QList<DPARAMETER> listReturn;
         QList<DPARAMETER> listParameters;
         QList<DPARAMETER> listPointer;
+        QList<DPARAMETER> listTypeinfo;
     };
 
     struct DSYMBOL
@@ -346,6 +347,7 @@ public:
     static QString functionModIdToString(quint32 nFunctionMod, MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
+    static QString qualIdToPointerString(quint32 nQual,MODE mode);
 
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
@@ -439,17 +441,19 @@ private:
         MSDT_RESULT
     };
 
-    qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode,MSDT msdt);
-    qint32 ms_demangle_FullName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
-    qint32 ms_demangle_UnkName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
-    qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
-    qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
-    qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
-    qint32 ms_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode);
-    qint32 ms_demangle_FunctionEncoded(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MODE mode,bool bThisQual);
-    qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol,QString sString,MODE mode,quint32 *pnQual);
+    qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
+    qint32 ms_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_FullName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_UnkName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bThisQual);
+    qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol,QString sString,quint32 *pnQual);
+    bool ms_isPointerMember(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
-    QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pDParameter,MODE mode);
+    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter); // TODO rename for generic
 };
 
 #endif // XDEMANGLE_H
