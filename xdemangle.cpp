@@ -680,8 +680,15 @@ qint32 XDemangle::ms_demangle_FunctionType(XDemangle::DSYMBOL *pSymbol, XDemangl
 
     if(_compare(sString,"X"))
     {
-        sString=sString.mid(1,-1);
-        nResult+=1;
+        // Void
+        DPARAMETER parameter={};
+
+        qint32 nTSize=ms_demangle_Type(pSymbol,pHdata,&parameter,sString,MSDT_DROP);
+
+        pParameter->listParameters.append(parameter);
+
+        sString=sString.mid(nTSize,-1);
+        nResult+=nTSize;
     }
     else
     {
@@ -834,7 +841,9 @@ QString XDemangle::ms_parameterToString(DSYMBOL *pSymbol, XDemangle::DPARAMETER 
     {
         QString sType=typeIdToString(pParameter->type,pSymbol->mode);
 
-        sResult=QString("%1 %2").arg(sType).arg(sName);
+        sResult+=sType;
+
+        if(sName!="")   sResult=QString(" %1").arg(sName);
     }
     else if(pParameter->st==ST_POINTER)
     {
