@@ -276,6 +276,7 @@ public:
         QMap<QString,quint32> mapNumbers;
         QMap<QString,quint32> mapSymNumbers;
         QMap<QString,quint32> mapQualifiers;
+        QList<QString> listStringRef;
     };
 
     struct SYMBOL
@@ -348,6 +349,7 @@ public:
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
     static QString qualIdToPointerString(quint32 nQual,MODE mode);
+    static QString qualIdToStorageString(quint32 nQual,MODE mode);
 
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
@@ -452,6 +454,10 @@ private:
     qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bThisQual);
     qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol,QString sString,quint32 *pnQual);
     bool ms_isPointerMember(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+
+    void addStringRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    bool isReplaceString(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    SIGNATURE getReplaceSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
     QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter); // TODO rename for generic
 };
