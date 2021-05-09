@@ -161,7 +161,8 @@ public:
         ST_FUNCTION,
         ST_POINTER,
         ST_VTABLE,
-        ST_TYPEINFO
+        ST_TYPEINFO,
+        ST_TEMPLATE
     };
 
     enum OP
@@ -312,9 +313,8 @@ public:
 
     struct DNAME
     {
-        QString sSimpleName;
+        QString sName;
         OP operand;
-        QList<DPARAMETER> listTemplateDparams;
     };
 
     struct DPARAMETER
@@ -443,21 +443,29 @@ private:
         MSDT_RESULT
     };
 
+    enum NB
+    {
+        NB_TEMPLATE=1,
+        NB_SIMPLE=2
+    };
+
     qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
     qint32 ms_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_FullName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_UnkName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_UnkName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,NB nb);
     qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bThisQual);
+    qint32 ms_demangle_FunctionParameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_Template(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,NB nb);
     qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol,QString sString,quint32 *pnQual);
     bool ms_isPointerMember(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
     void addStringRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    bool isReplaceString(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    SIGNATURE getReplaceSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    bool isReplaceStringPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
     QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter); // TODO rename for generic
 };
