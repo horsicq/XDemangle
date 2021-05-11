@@ -161,8 +161,9 @@ public:
         ST_FUNCTION,
         ST_POINTER,
         ST_VTABLE,
-        ST_TYPEINFO,
-        ST_TEMPLATE
+        ST_TYPEINFO, // TODO
+        ST_TEMPLATE,
+        ST_CONST
     };
 
     enum OP
@@ -214,8 +215,6 @@ public:
         OP_BITWISEXOREQUAL,
         OP_ARRAYNEW,
         OP_ARRAYDELETE,
-        OP_VIRTUALTABLE,
-        OP_VBTABLE,
         OP_VBASEDTOR,
         OP_VECDELDTOR,
         OP_DEFAULTCTORCLOSURE,
@@ -321,6 +320,7 @@ public:
     {
         QList<DNAME> listDnames;
         TYPE type;
+        QVariant varConst;
         ST st;
         quint32 nQualifier;
         quint32 nRefQualifier;
@@ -460,6 +460,7 @@ private:
     qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bThisQual);
     qint32 ms_demangle_FunctionParameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Template(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,NB nb);
+    qint32 ms_demangle_TemplateParameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol,QString sString,quint32 *pnQual);
     bool ms_isPointerMember(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 

@@ -267,8 +267,6 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_BITWISEANDEQUAL:        sResult=QString("operator&=");                      break;
         case OP_BITWISEOREQUAL:         sResult=QString("operator|=");                      break;
         case OP_BITWISEXOREQUAL:        sResult=QString("operator^=");                      break;
-        case OP_VIRTUALTABLE:           sResult=QString("`vftable'");                       break;
-        case OP_VBTABLE:                sResult=QString("`vbtable'");                       break;
         case OP_VBASEDTOR:              sResult=QString("`vbase dtor'");                    break;
         case OP_VECDELDTOR:             sResult=QString("`vector deleting dtor'");          break;
         case OP_DEFAULTCTORCLOSURE:     sResult=QString("`default ctor closure'");          break;
@@ -801,15 +799,9 @@ qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::H
         sString=sString.mid(nNName,-1);
         nResult+=nNName;
 
-        qint32 nTName=ms_demangle_FunctionParameters(pSymbol,&hdata,&parameter,sString); // TODO TemplatesPrameters
+        qint32 nTName=ms_demangle_TemplateParameters(pSymbol,&hdata,&parameter,sString);
         sString=sString.mid(nTName,-1);
         nResult+=nTName;
-
-        if(_compare(sString,"@"))
-        {
-            sString=sString.mid(1,-1);
-            nResult+=1;
-        }
 
         QString sTemplate=ms_parameterToString(pSymbol,&parameter);
 
@@ -822,6 +814,120 @@ qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::H
         {
             addStringRef(pSymbol,pHdata,sTemplate);
         }
+    }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    while(sString!="")
+    {
+        if(_compare(sString,"@"))
+        {
+            break;
+        }
+
+        if(_compare(sString,"$S"))
+        {
+            nResult+=2;
+            sString=sString.mid(2,-1);
+        }
+
+        if(_compare(sString,"$$V")||_compare(sString,"$$Z"))
+        {
+            nResult+=3;
+            sString=sString.mid(3,-1);
+        }
+
+        if(_compare(sString,"$$$V"))
+        {
+            nResult+=4;
+            sString=sString.mid(4,-1);
+        }
+
+        if(_compare(sString,"$$Y"))
+        {
+            nResult+=3;
+            sString=sString.mid(3,-1);
+
+            pSymbol->bIsValid=false;
+            qDebug("TODO: Template alias");
+        }
+        else if(_compare(sString,"$$B"))
+        {
+            nResult+=3;
+            sString=sString.mid(3,-1);
+
+            pSymbol->bIsValid=false;
+            qDebug("TODO: Template array");
+        }
+        else if(_compare(sString,"$$C"))
+        {
+            nResult+=3;
+            sString=sString.mid(3,-1);
+
+            pSymbol->bIsValid=false;
+            qDebug("TODO: Template Type has qualifiers.");
+        }
+        else if(_compare(sString,"$1")||_compare(sString,"$H")||
+                _compare(sString,"$I")||_compare(sString,"$J"))
+        {
+            nResult+=2;
+            sString=sString.mid(2,-1);
+
+            pSymbol->bIsValid=false;
+            qDebug("TODO: Template");
+        }
+        else if(_compare(sString,"$E?"))
+        {
+            nResult+=3;
+            sString=sString.mid(3,-1);
+
+            pSymbol->bIsValid=false;
+            qDebug("TODO: Reference to symbol");
+        }
+        else if(_compare(sString,"$0"))
+        {
+            nResult+=2;
+            sString=sString.mid(2,-1);
+
+            NUMBER number=readNumber(pHdata,sString,pSymbol->mode);
+
+            DPARAMETER parameter={};
+
+            parameter.st=ST_CONST;
+            parameter.varConst=QString::number(number.nValue);
+
+            pParameter->listParameters.append(parameter);
+
+            nResult+=number.nSize;
+            sString=sString.mid(number.nSize,-1);
+        }
+        else
+        {
+            DPARAMETER parameter={};
+
+            qint32 nTSize=ms_demangle_Type(pSymbol,pHdata,&parameter,sString,MSDT_DROP);
+
+            pParameter->listParameters.append(parameter);
+
+            nResult+=nTSize;
+            sString=sString.mid(nTSize,-1);
+
+            if(!(pSymbol->bIsValid))
+            {
+                break;
+            }
+        }
+    }
+
+    if(_compare(sString,"@"))
+    {
+        sString=sString.mid(1,-1);
+        nResult+=1;
     }
 
     return nResult;
@@ -1010,6 +1116,10 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         if(sName!="")   sResult+=QString(" %1").arg(sName);
         if(sSC!="")     sResult+=QString(" %1").arg(sSC);
     }
+    else if(pParameter->st==ST_CONST)
+    {
+        sResult=pParameter->varConst.toString();
+    }
     else if(pParameter->st==ST_POINTER)
     {
         if(pParameter->listPointer.count())
@@ -1069,7 +1179,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         {
             DPARAMETER parameter=pParameter->listTypeinfo.at(0);
 
-            sResult=QString("%1 `RTTI Type Descriptor Name'").arg(ms_parameterToString(pSymbol,&parameter));
+            sResult=QString("%1 `RTTI Type Descriptor Name'").arg(ms_parameterToString(pSymbol,&parameter)); // TODO
         }
     }
     else if(pParameter->st==ST_TEMPLATE)
@@ -1087,7 +1197,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
             if(i!=(nNumberOfParameters-1))
             {
-                sResult+=",";
+                sResult+=", ";
             }
         }
 
@@ -3073,8 +3183,6 @@ QMap<QString, quint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("?_4",OP_BITWISEANDEQUAL);
         mapResult.insert("?_5",OP_BITWISEOREQUAL);
         mapResult.insert("?_6",OP_BITWISEXOREQUAL);
-        mapResult.insert("?_7",OP_VIRTUALTABLE);
-        mapResult.insert("?_8",OP_VBTABLE);
         mapResult.insert("?_D",OP_VBASEDTOR);
         mapResult.insert("?_E",OP_VECDELDTOR);
         mapResult.insert("?_F",OP_DEFAULTCTORCLOSURE);
