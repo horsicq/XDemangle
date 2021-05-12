@@ -689,6 +689,9 @@ qint32 XDemangle::ms_demangle_Parameters(DSYMBOL *pSymbol, XDemangle::HDATA *pHd
     {
         // Variables
         pParameter->st=ST_VARIABLE;
+
+        qint32 nVSize=ms_demangle_Variable(pSymbol,pHdata,pParameter,sString);
+        nResult+=nVSize;
     }
     else
     {
@@ -739,6 +742,23 @@ qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::H
 
         nResult+=nFSize;
         sString=sString.mid(nFSize,-1);
+    }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_Variable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    if(isSignaturePresent(sString,&(pHdata->mapObjectClasses)))
+    {
+        SIGNATURE signature=getSignature(sString,&(pHdata->mapObjectClasses));
+
+        pParameter->objectClass=(OC)signature.nValue;
+
+        nResult+=signature.nSize;
+        sString=sString.mid(signature.nSize,-1);
     }
 
     return nResult;
