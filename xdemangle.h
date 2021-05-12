@@ -160,7 +160,7 @@ public:
         ST_VARIABLE,
         ST_FUNCTION,
         ST_POINTER,
-        ST_VTABLE,
+        ST_VFTABLE,
         ST_TYPEINFO, // TODO
         ST_TEMPLATE,
         ST_CONST
@@ -277,6 +277,7 @@ public:
         QMap<QString,quint32> mapSymNumbers;
         QMap<QString,quint32> mapQualifiers;
         QList<QString> listStringRef;
+        QList<QString> listArgRef;
     };
 
     struct SYMBOL
@@ -449,6 +450,7 @@ private:
         NB_SIMPLE=2
     };
 
+    qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
     qint32 ms_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_FullName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
@@ -465,10 +467,14 @@ private:
     bool ms_isPointerMember(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
     void addStringRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    void addArgRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     bool isReplaceStringPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    bool isReplaceArgPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
-    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter); // TODO rename for generic
+    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName); // TODO rename for generic
+    QString ms_nameToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
 };
 
 #endif // XDEMANGLE_H
