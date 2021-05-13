@@ -442,6 +442,7 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
         if(ms_isPointerMember(pSymbol,pHdata,sString))
         {
             qDebug("TODO: PointerMember");
+            pSymbol->bIsValid=false;
         }
         else if(pSymbol->bIsValid)
         {
@@ -450,6 +451,11 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
             nResult+=nPTSize;
             sString=sString.mid(nPTSize,-1);
         }
+    }
+    else if(_compare(sString,"Y")) // Array
+    {
+        qDebug("TODO: Array");
+        pSymbol->bIsValid=false;
     }
     else if(isSignaturePresent(sString,&(pHdata->mapTypes)))
     {
@@ -760,6 +766,11 @@ qint32 XDemangle::ms_demangle_Variable(XDemangle::DSYMBOL *pSymbol, XDemangle::H
         nResult+=signature.nSize;
         sString=sString.mid(signature.nSize,-1);
     }
+
+    qint32 nTSize=ms_demangle_Type(pSymbol,pHdata,pParameter,sString,MSDT_DROP);
+
+    nResult+=nTSize;
+    sString=sString.mid(nTSize,-1);
 
     return nResult;
 }
