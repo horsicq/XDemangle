@@ -22,6 +22,7 @@
 #define XDEMANGLE_H
 
 #include <QObject>
+#include <QVariant>
 #include <QMap>
 #ifdef QT_DEBUG
 #include <QDebug>
@@ -131,6 +132,7 @@ public:
         FM_STATICTHISADJUST     =0x00001000,
         FM_VIRTUALTHISADJUST    =0x00002000,
         FM_VIRTUALTHISADJUSTEX  =0x00004000,
+        FM_FUNCTIONLOCAL        =0x01000000,
         FM_GLOBAL               =0x10000000,
         FM_EXTERNC              =0x20000000,
         FM_NOPARAMETERLIST      =0x40000000,
@@ -158,6 +160,7 @@ public:
     {
         ST_UNKNOWN=0,
         ST_VARIABLE,
+        ST_TYPE,
         ST_FUNCTION,
         ST_POINTER,
         ST_VFTABLE,
@@ -270,7 +273,7 @@ public:
         QMap<QString,quint32> mapTagTypes;
         QMap<QString,quint32> mapSymbolTypes;
         QMap<QString,quint32> mapStorageClasses;
-        QMap<QString,quint32> mapFunctionMods;
+        QMap<QString,quint32> mapAccessMods;
         QMap<QString,quint32> mapFunctionConventions;
         QMap<QString,quint32> mapOperators;
         QMap<QString,quint32> mapNumbers;
@@ -309,8 +312,6 @@ public:
         QString sPrep;
     };
 
-    struct DPARAMETER;
-
     struct DNAME
     {
         QString sName;
@@ -326,12 +327,13 @@ public:
         OC objectClass;
         quint32 nQualifier;
         quint32 nRefQualifier;
-        quint32 functionMod;
+        quint32 nAccess;
         FC functionConvention;
         QList<DPARAMETER> listReturn;
         QList<DPARAMETER> listParameters;
         QList<DPARAMETER> listPointer;
         QList<DPARAMETER> listTypeinfo;
+        QList<qint64> listIndexes; // For var[x][y]
     };
 
     struct DSYMBOL
@@ -347,7 +349,7 @@ public:
     static QString storageClassIdToString(SC storageClass,MODE mode);
     static QString objectClassIdToString(OC objectClass,MODE mode);
     static QString paramModIdToString(quint32 nParamMod,MODE mode); // TODO rename
-    static QString functionModIdToString(quint32 nFunctionMod, MODE mode);
+    static QString accessIdToString(quint32 nFunctionMod, MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
     static QString qualIdToPointerString(quint32 nQual,MODE mode);
@@ -408,7 +410,7 @@ private:
     QMap<QString,quint32> getSymbolTypes(MODE mode);
     QMap<QString,quint32> getPointerTypes(MODE mode);
     QMap<QString,quint32> getStorageClasses(MODE mode);
-    QMap<QString,quint32> getFunctionMods(MODE mode);
+    QMap<QString,quint32> getAccessMods(MODE mode);
     QMap<QString,quint32> getFunctionConventions(MODE mode);
     QMap<QString,quint32> getOperators(MODE mode);
     QMap<QString,quint32> getNumbers(MODE mode);
@@ -454,8 +456,10 @@ private:
     qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
     qint32 ms_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_FullName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_UnkName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,NB nb);
+    qint32 ms_demangle_FullTypeName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_FullSymbolName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_UnkTypeName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bSave);
+    qint32 ms_demangle_UnkSymbolName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,NB nb);
     qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
