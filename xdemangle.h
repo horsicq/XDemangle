@@ -164,6 +164,7 @@ public:
         ST_FUNCTION,
         ST_POINTER,
         ST_VFTABLE,
+        ST_VBTABLE,
         ST_TYPEINFO, // TODO
         ST_TEMPLATE,
         ST_CONST

@@ -349,8 +349,17 @@ qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangl
         nResult+=3;
         sString=sString.mid(3,-1);
     }
+    else if(_compare(sString,"?_8"))
+    {
+        pSymbol->paramMain.st=ST_VBTABLE;
+
+        nResult+=3;
+        sString=sString.mid(3,-1);
+    }
 
     qint32 nNSSize=ms_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
+
+    reverseList(&(pParameter->listDnames));
 
     nResult+=nNSSize;
     sString=sString.mid(nNSSize,-1);
@@ -1409,10 +1418,16 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
     {
         if(pParameter->listParameters.count())
         {
+            DPARAMETER parameter=pParameter->listParameters.at(0);
+
             QString sAccess=accessIdToString(pParameter->nAccess,pSymbol->mode);
             QString sQual=qualIdToStorageString(pParameter->nQualifier,pSymbol->mode);
 
-            DPARAMETER parameter=pParameter->listParameters.at(0);
+            if((pParameter->nQualifier&QUAL_CONST)&&(parameter.nQualifier&QUAL_CONST))
+            {
+                sQual="";
+            }
+
             QString sType=ms_parameterToString(pSymbol,&parameter,sName);
 
             if(sAccess!="") sResult+=QString("%1 ").arg(sAccess);
@@ -1470,6 +1485,11 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
                 if(sName!="")
                 {
+                    if(_getStringEnd(sResult)!=QChar('*')&&_getStringEnd(sResult)!=QChar('&')&&_getStringEnd(sResult)!=QChar('_'))
+                    {
+                        sResult+=QString(" ");
+                    }
+
                     sResult+=sName;
                 }
 
@@ -1570,12 +1590,19 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
             sResult=QString("%1 `RTTI Type Descriptor Name'").arg(ms_parameterToString(pSymbol,&parameter,"")); // TODO
         }
     }
-    else if(pParameter->st==ST_VFTABLE)
+    else if((pParameter->st==ST_VFTABLE)||(pParameter->st==ST_VBTABLE))
     {
         QString sSC=qualIdToStorageString(pParameter->nQualifier,pSymbol->mode);
         if(sSC!="")    sResult+=QString("%1 ").arg(sSC);
 
-        sResult+=sName+QString("::`vftable'");
+        if(pParameter->st==ST_VFTABLE)
+        {
+            sResult+=sName+QString("::`vftable'");
+        }
+        else if(pParameter->st==ST_VBTABLE)
+        {
+            sResult+=sName+QString("::`vbtable'");
+        }
     }
     else if(pParameter->st==ST_TEMPLATE)
     {
@@ -1730,7 +1757,7 @@ XDemangle::DSYMBOL XDemangle::getDSymbol(QString sString, XDemangle::MODE mode)
 
         // TODO demangleSpecialIntrinsic
 
-        if(_compare(sString,"?_7"))
+        if(_compare(sString,"?_7")||_compare(sString,"?_8"))
         {
             qint32 nSTSize=ms_demangle_SpecialTable(&result,&hdata,&(result.paramMain),sString);
 
