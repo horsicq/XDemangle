@@ -1460,18 +1460,18 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
     {
         if(pParameter->listPointer.count())
         {
-            DPARAMETER parameter=pParameter->listPointer.at(0);
+            DPARAMETER parameter=pParameter->listPointer.at(0); // TODO get the last parameter
 
             bool bArray=parameter.listIndexes.count();
 
 //            sResult=ms_parameterToString(pSymbol,&parameter,sName);
             sResult=ms_parameterToString(pSymbol,&parameter,sName);
 
-            QString sPointer=qualIdToPointerString(pParameter->nQualifier,pSymbol->mode);
+            QString sPointer=qualIdToPointerString(pParameter->nQualifier,pSymbol->mode); // TODO get all till the last parameter
 
             if((sPointer!="")&&(pParameter->type!=TYPE_POINTERTOFUNCTION))
             {
-                if(_getStringEnd(sResult)!=QChar('*')&&_getStringEnd(sResult)!=QChar('&')&&_getStringEnd(sResult)!=QChar('_'))
+                if(_getStringEnd(sResult)!=QChar('*')&&_getStringEnd(sResult)!=QChar('&')&&_getStringEnd(sResult)!=QChar('_')) // TODO Function
                 {
                     sResult+=QString(" ");
                 }
@@ -1516,7 +1516,8 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
     {
         QString sAccess=accessIdToString(pParameter->nAccess,pSymbol->mode);
         QString sConv=functionConventionIdToString(pParameter->functionConvention,pSymbol->mode);
-        QString sRefQual=qualIdToStorageString(pParameter->nRefQualifier,pSymbol->mode);
+        QString sRefQualStorage=qualIdToStorageString(pParameter->nRefQualifier,pSymbol->mode);
+        QString sRefQualPointer=qualIdToPointerString((pParameter->nRefQualifier)&(~(QUAL_CONST)),pSymbol->mode);
         QString sReturn;
         QString sArgs;
 
@@ -1551,16 +1552,33 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         {
             DPARAMETER parameter=pParameter->listReturn.at(0);
             typeReturn=parameter.type;
+        }
+
+        QString sPrefix;
+
+        if(pParameter->type==TYPE_FUNCTION) sPrefix+="(";
+
+        if(typeReturn==TYPE_POINTERTOFUNCTION)
+        {
+            sPrefix+=QString("* ");
+        }
+
+        if(sConv!="")   sPrefix+=QString("%1 ").arg(sConv);
+        if(sName!="")   sPrefix+=QString("%1").arg(sName);
+        if(pParameter->type==TYPE_FUNCTION) sPrefix+=")";
+        sPrefix+=sArgs;
+        if(sRefQualStorage!="")    sPrefix+=QString(" %1").arg(sRefQualStorage);
+        if(sRefQualPointer!="")    sPrefix+=QString(" %1").arg(sRefQualPointer);
+
+        if(pParameter->listReturn.count())
+        {
+            DPARAMETER parameter=pParameter->listReturn.at(0);
 
             QString _sName;
 
             if(typeReturn==TYPE_POINTERTOFUNCTION)
             {
-                _sName+=QString("* ");
-                if(sConv!="")   _sName+=QString("%1 ").arg(sConv);
-                if(sName!="")   _sName+=QString("%1").arg(sName);
-                _sName+=sArgs;
-                if(sRefQual!="")    _sName+=QString(" %1").arg(sRefQual);
+                _sName=sPrefix;
             }
 
             sReturn=ms_parameterToString(pSymbol,&parameter,_sName);
@@ -1573,12 +1591,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         {
             if(_getStringEnd(sResult)!=QChar(' ')) sResult+=" ";
 
-            if(pParameter->type==TYPE_FUNCTION) sResult+="(";
-            if(sConv!="")   sResult+=QString("%1 ").arg(sConv);
-            if(sName!="")   sResult+=QString("%1").arg(sName);
-            if(pParameter->type==TYPE_FUNCTION) sResult+=")";
-            sResult+=sArgs;
-            if(sRefQual!="")    sResult+=QString(" %1").arg(sRefQual);
+            sResult+=sPrefix;
         }
     }
     else if(pParameter->st==ST_TYPEINFO)
