@@ -480,8 +480,11 @@ private:
     SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
-    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName); // TODO rename for generic
+    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName,QString sPrefix); // TODO rename for generic
     QString ms_nameToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+
+    DPARAMETER getLastParameter(DPARAMETER *pParameter);
+    QString getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName);
 };
 
 #endif // XDEMANGLE_H
