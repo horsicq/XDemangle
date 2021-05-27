@@ -390,8 +390,17 @@ qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangl
         }
         else
         {
-            pSymbol->bIsValid=false;
-            qDebug("TODO: ms_demangle_SpecialTable");
+            DPARAMETER parameter={};
+            parameter.st=ST_NAME;
+
+            qint32 nPSize=ms_demangle_NameScope(pSymbol,pHdata,&parameter,sString);
+
+            nResult+=nPSize;
+            sString=sString.mid(nPSize,-1);
+
+            reverseList(&(parameter.listDnames));
+
+            pParameter->listTarget.append(parameter);
         }
     }
 
@@ -451,8 +460,10 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
     {
         if(ms_isPointerMember(pSymbol,pHdata,sString))
         {
-            qDebug("TODO: PointerMember");
-            pSymbol->bIsValid=false;
+            qint32 nPTSize=ms_demangle_MemberPointerType(pSymbol,pHdata,pParameter,sString);
+
+            nResult+=nPTSize;
+            sString=sString.mid(nPTSize,-1);
         }
         else if(pSymbol->bIsValid)
         {
@@ -512,13 +523,35 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
         nResult+=signature.nSize;
         sString=sString.mid(signature.nSize,-1);
     }
+    else if(_compare(sString,"$$A8@@")) // Function
+    {
+        sString=sString.mid(6,-1);
+        nResult+=6;
+
+        pParameter->st=ST_FUNCTION;
+
+        qint32 nFSize=ms_demangle_FunctionType(pSymbol,pHdata,pParameter,sString,true);
+
+        sString=sString.mid(nFSize,-1);
+        nResult+=nFSize;
+    }
+    else if(_compare(sString,"$$A6")) // Function
+    {
+        sString=sString.mid(4,-1);
+        nResult+=4;
+
+        pParameter->st=ST_FUNCTION;
+
+        qint32 nFSize=ms_demangle_FunctionType(pSymbol,pHdata,pParameter,sString,false);
+
+        sString=sString.mid(nFSize,-1);
+        nResult+=nFSize;
+    }
     else
     {
         qDebug("TODO: TYPE");
         pSymbol->bIsValid=false;
     }
-
-    // TODO Check isValid
 
     return nResult;
 }
@@ -565,6 +598,77 @@ qint32 XDemangle::ms_demangle_PointerType(XDemangle::DSYMBOL *pSymbol, XDemangle
         DPARAMETER parameter={};
 
         qint32 nPSize=ms_demangle_Type(pSymbol,pHdata,&parameter,sString,MSDT_MANGLE);
+
+        pParameter->listPointer.append(parameter);
+
+        nResult+=nPSize;
+        sString=sString.mid(nPSize,-1);
+    }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_MemberPointerType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    pParameter->st=ST_POINTER;
+
+    if(isSignaturePresent(sString,&(pHdata->mapPointerTypes)))
+    {
+        SIGNATURE signature=getSignature(sString,&(pHdata->mapPointerTypes));
+
+        pParameter->nQualifier=signature.nValue;
+
+        nResult+=signature.nSize;
+        sString=sString.mid(signature.nSize,-1);
+    }
+
+    qint32 nESize=ms_demangle_ExtQualifiers(pSymbol,sString,&(pParameter->nQualifier));
+
+    nResult+=nESize;
+    sString=sString.mid(nESize,-1);
+
+    if(_compare(sString,"8"))
+    {
+        nResult+=1;
+        sString=sString.mid(1,-1);
+
+        DPARAMETER parameter={};
+        parameter.st=ST_FUNCTION;
+
+        qint32 nFTSize=ms_demangle_FullTypeName(pSymbol,pHdata,pParameter,sString);
+
+        nResult+=nFTSize;
+        sString=sString.mid(nFTSize,-1);
+
+        qint32 nPSize=ms_demangle_FunctionType(pSymbol,pHdata,&parameter,sString,true);
+
+        pParameter->listPointer.append(parameter);
+
+        nResult+=nPSize;
+        sString=sString.mid(nPSize,-1);
+    }
+    else
+    {
+        DPARAMETER parameter={};
+
+        if(isSignaturePresent(sString,&(pHdata->mapQualifiers)))
+        {
+            SIGNATURE signature=getSignature(sString,&(pHdata->mapQualifiers));
+
+            parameter.nQualifier=signature.nValue;
+
+            nResult+=signature.nSize;
+            sString=sString.mid(signature.nSize,-1);
+        }
+
+        qint32 nFTSize=ms_demangle_FullTypeName(pSymbol,pHdata,pParameter,sString);
+
+        nResult+=nFTSize;
+        sString=sString.mid(nFTSize,-1);
+
+        qint32 nPSize=ms_demangle_Type(pSymbol,pHdata,&parameter,sString,MSDT_DROP);
 
         pParameter->listPointer.append(parameter);
 
@@ -685,7 +789,7 @@ qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemang
     {
         DNAME dname={};
         SIGNATURE signature=getSignature(sString,&(pHdata->mapOperators));
-        dname.operand=(OP)signature.nValue;
+        dname._operator=(OP)signature.nValue;
         nResult+=signature.nSize;
 
         pParameter->listDnames.append(dname);
@@ -714,7 +818,7 @@ qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemang
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pDParameter, QString sString)
+qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, QString sString)
 {
     qint32 nResult=0;
 
@@ -727,14 +831,14 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
             DNAME dname={};
             dname.sName=signature.sKey;
 
-            pDParameter->listDnames.append(dname);
+            pParameter->listDnames.append(dname);
 
             sString=sString.mid(signature.nSize,-1);
             nResult+=signature.nSize;
         }
         else if(_compare(sString,"?$"))
         {
-            qint32 nTSize=ms_demangle_Template(pSymbol,pHdata,pDParameter,sString,NB_TEMPLATE);
+            qint32 nTSize=ms_demangle_Template(pSymbol,pHdata,pParameter,sString,NB_TEMPLATE);
             sString=sString.mid(nTSize,-1);
             nResult+=nTSize;
         }
@@ -745,7 +849,22 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
             sString=sString.mid(2,-1);
             nResult+=2;
         }
-        // TODO LocallyScopedNamePiece
+        else if(isLocalScopePresent(pSymbol,pHdata,sString))
+        {
+            SIGNATURE signature=getLocalScopeSignature(pSymbol,pHdata,sString);
+
+            sString=sString.mid(signature.nSize,-1);
+            nResult+=signature.nSize;
+
+            pParameter->sLocalScope=signature.sValue;
+
+            DSYMBOL symbol=ms_getSymbol(sString,pSymbol->mode);
+
+            pSymbol->listSymbols.append(symbol);
+
+            sString=sString.mid(symbol.nSize,-1);
+            nResult+=symbol.nSize;
+        }
         else
         {
             STRING string=readString(pHdata,sString,pSymbol->mode);
@@ -757,7 +876,7 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
                 DNAME dname={};
                 dname.sName=string.sString;
 
-                pDParameter->listDnames.append(dname);
+                pParameter->listDnames.append(dname);
 
                 sString=sString.mid(string.nSize,-1);
                 nResult+=string.nSize;
@@ -1083,9 +1202,9 @@ qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::H
         sString=sString.mid(nTName,-1);
         nResult+=nTName;
 
-//        QString sName=ms_nameToString(pSymbol,&parameter);
+        QString sName=ms_nameToString(pSymbol,&parameter);
 //        QString sTemplate=ms_parameterToString(pSymbol,&parameter,sName);
-        QString sTemplate=ms_parameterToString(pSymbol,&parameter,"","");
+        QString sTemplate=ms_parameterToString(pSymbol,&parameter,sName,"");
 
         DNAME dname={};
         dname.sName=sTemplate;
@@ -1140,19 +1259,32 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
         }
         else if(_compare(sString,"$$B"))
         {
+            // TODO CHeck
             nResult+=3;
             sString=sString.mid(3,-1);
 
-            pSymbol->bIsValid=false;
-            qDebug("TODO: Template array");
+            DPARAMETER parameter={};
+
+            qint32 nTSize=ms_demangle_Type(pSymbol,pHdata,&parameter,sString,MSDT_DROP);
+
+            pParameter->listParameters.append(parameter);
+
+            nResult+=nTSize;
+            sString=sString.mid(nTSize,-1);
         }
         else if(_compare(sString,"$$C"))
         {
             nResult+=3;
             sString=sString.mid(3,-1);
 
-            pSymbol->bIsValid=false;
-            qDebug("TODO: Template Type has qualifiers.");
+            DPARAMETER parameter={};
+
+            qint32 nTSize=ms_demangle_Type(pSymbol,pHdata,&parameter,sString,MSDT_MANGLE);
+
+            pParameter->listParameters.append(parameter);
+
+            nResult+=nTSize;
+            sString=sString.mid(nTSize,-1);
         }
         else if(_compare(sString,"$1")||_compare(sString,"$H")||
                 _compare(sString,"$I")||_compare(sString,"$J"))
@@ -1353,6 +1485,33 @@ bool XDemangle::isReplaceArgPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDAT
     return bResult;
 }
 
+bool XDemangle::isLocalScopePresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+{
+    bool bResult=false;
+
+    if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
+    {
+        if(_compare(sString,"?"))
+        {
+            sString=sString.mid(1,-1);
+
+            NUMBER number=readNumber(pHdata,sString,pSymbol->mode);
+
+            if(number.nSize)
+            {
+                sString=sString.mid(number.nSize,-1);
+
+                if(_compare(sString,"?"))
+                {
+                    bResult=true;
+                }
+            }
+        }
+    }
+
+    return bResult;
+}
+
 XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
 {
     SIGNATURE result={};
@@ -1405,14 +1564,45 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
     return result;
 }
 
+XDemangle::SIGNATURE XDemangle::getLocalScopeSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+{
+    SIGNATURE result={};
+
+    QString _sString=sString;
+
+    if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
+    {
+        if(_compare(_sString,"?"))
+        {
+            _sString=_sString.mid(1,-1);
+
+            NUMBER number=readNumber(pHdata,_sString,pSymbol->mode);
+
+            if(number.nSize)
+            {
+                _sString=_sString.mid(number.nSize,-1);
+
+                if(_compare(_sString,"?"))
+                {
+                    result.nSize=number.nSize+2;
+                    result.sKey=sString.left(result.nSize);
+                    result.sValue=QString::number(number.nValue);
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, QString sName, QString sPrefix)
 {
     QString sResult;
 
-    if(sName=="")
-    {
-        sName=ms_nameToString(pSymbol,pParameter);
-    }
+//    if(sName=="")
+//    {
+//        sName=ms_nameToString(pSymbol,pParameter); // TODO Check
+//    }
 
     if(pParameter->st==ST_VARIABLE)
     {
@@ -1456,13 +1646,15 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
     {
         sResult=pParameter->varConst.toString();
     }
+    else if(pParameter->st==ST_NAME)
+    {
+        sResult=ms_nameToString(pSymbol,pParameter);
+    }
     else if(pParameter->st==ST_POINTER)
     {
         if(pParameter->listPointer.count())
         {
             DPARAMETER lastParameter=getLastParameter(pParameter);
-
-            bool bArray=lastParameter.listIndexes.count();
 
             QString sPointer=getPointerString(pSymbol,pParameter,sName);
 
@@ -1473,69 +1665,17 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
                 _sPrefix+=sPrefix;
             }
 
-            sResult=ms_parameterToString(pSymbol,&lastParameter,sName,_sPrefix);
+            sResult=ms_parameterToString(pSymbol,&lastParameter,"",_sPrefix);
 
             if(lastParameter.st!=ST_FUNCTION)
             {
-                if(_getStringEnd(sResult)!=QChar('*')&&_getStringEnd(sResult)!=QChar('&')&&_getStringEnd(sResult)!=QChar('_')) // TODO Function
+                if(!isPointerEnd(sResult)) // TODO Function
                 {
                     sResult+=QString(" ");
                 }
 
                 sResult+=QString("%1").arg(sPointer);
-
-                if(sName!="")
-                {
-                    if(_getStringEnd(sResult)!=QChar('*')&&_getStringEnd(sResult)!=QChar('&')&&_getStringEnd(sResult)!=QChar('_'))
-                    {
-                        sResult+=QString(" ");
-                    }
-
-                    sResult+=sName;
-                }
             }
-
-//            if((sPointer!="")&&(pParameter->type!=TYPE_POINTERTOFUNCTION)) // TODO remake
-//            {
-//                if(_getStringEnd(sResult)!=QChar('*')&&_getStringEnd(sResult)!=QChar('&')&&_getStringEnd(sResult)!=QChar('_')) // TODO Function
-//                {
-//                    sResult+=QString(" ");
-//                }
-
-//                if(bArray)
-//                {
-//                    sResult+=QString("(");
-//                }
-
-//                sResult+=QString("%1").arg(sPointer);
-
-//                if(sName!="")
-//                {
-//                    if(_getStringEnd(sResult)!=QChar('*')&&_getStringEnd(sResult)!=QChar('&')&&_getStringEnd(sResult)!=QChar('_'))
-//                    {
-//                        sResult+=QString(" ");
-//                    }
-
-//                    sResult+=sName;
-//                }
-
-//                if(bArray)
-//                {
-//                    sResult+=QString(")");
-//                }
-//            }
-
-//            if(bArray)
-//            {
-//                int nNumberOfIndexes=lastParameter.listIndexes.count();
-
-//                int nStartIndex=1;
-
-//                for(int i=nStartIndex;i<nNumberOfIndexes;i++)
-//                {
-//                    sResult+=QString("[%1]").arg(lastParameter.listIndexes.at(i));
-//                }
-//            }
         }
     }
     else if(pParameter->st==ST_FUNCTION)
@@ -1577,9 +1717,15 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         if(sPrefix!="") _sPrefix+="(";
 
-        if(sConv!="")   _sPrefix+=QString("%1 ").arg(sConv);
-        if(sPrefix!="") _sPrefix+=QString("%1").arg(sPrefix);
-        if(sName!="")   _sPrefix+=QString("%1").arg(sName);
+        if(sConv!="") _sPrefix+=sConv;
+
+        if((sPrefix!="")||(sName!=""))
+        {
+            if(sConv!="") _sPrefix+=" ";
+
+            if(sPrefix!="") _sPrefix+=QString("%1").arg(sPrefix);
+            if(sName!="")   _sPrefix+=QString("%1").arg(sName);
+        }
 
         if(sPrefix!="") _sPrefix+=")";
         _sPrefix+=sArgs;
@@ -1609,9 +1755,9 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
     }
     else if(pParameter->st==ST_TYPEINFO)
     {
-        if(pParameter->listTypeinfo.count())
+        if(pParameter->listTarget.count())
         {
-            DPARAMETER parameter=pParameter->listTypeinfo.at(0);
+            DPARAMETER parameter=pParameter->listTarget.at(0);
 
             sResult=QString("%1 `RTTI Type Descriptor Name'").arg(ms_parameterToString(pSymbol,&parameter,"","")); // TODO
         }
@@ -1628,6 +1774,13 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         else if(pParameter->st==ST_VBTABLE)
         {
             sResult+=sName+QString("::`vbtable'");
+        }
+
+        if(pParameter->listTarget.count())
+        {
+            DPARAMETER parameter=pParameter->listTarget.at(0);
+
+            sResult+=QString("{for `%1'}").arg(ms_parameterToString(pSymbol,&parameter,"",""));
         }
     }
     else if(pParameter->st==ST_TEMPLATE)
@@ -1666,15 +1819,23 @@ QString XDemangle::ms_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARA
     {
         QString _sName;
 
-        if(pParameter->listDnames.at(i).operand!=OP_UNKNOWN)
+        if(pParameter->listDnames.at(i)._operator!=OP_UNKNOWN)
         {
-            _sName=operatorIdToString(pParameter->listDnames.at(i).operand,pSymbol->mode);
+            _sName=operatorIdToString(pParameter->listDnames.at(i)._operator,pSymbol->mode);
 
-            if((pParameter->listDnames.at(i).operand==OP_CONSTRUCTOR)||(pParameter->listDnames.at(i).operand==OP_DESTRUCTOR))
+            if((pParameter->listDnames.at(i)._operator==OP_CONSTRUCTOR)||(pParameter->listDnames.at(i)._operator==OP_DESTRUCTOR))
             {
                 if(nNumberOfNames>1)
                 {
                     _sName+=pParameter->listDnames.at(nNumberOfNames-2).sName;
+                }
+            }
+            else if(pParameter->listDnames.at(i)._operator==OP_TYPE)
+            {
+                if(pSymbol->paramMain.listReturn.count())
+                {
+                    DPARAMETER parameter=pSymbol->paramMain.listReturn.at(0);
+                    _sName+=ms_parameterToString(pSymbol,&parameter,"","");
                 }
             }
         }
@@ -1715,13 +1876,45 @@ XDemangle::DPARAMETER XDemangle::getLastParameter(XDemangle::DPARAMETER *pParame
 
 QString XDemangle::getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, QString sName)
 {
-    QString sResult=sName;
+    QString sResult;
 
     DPARAMETER parameter=*pParameter;
 
+    int i=0;
+
+    QString sMain=sName;
+    QString sPrefix;
+    QString sIndexes;
+    bool bArray=false;
+
     while(parameter.st==ST_POINTER)
     {
-        sResult=sResult.prepend(qualIdToPointerString(parameter.nQualifier,pSymbol->mode));
+        QString _sName=ms_nameToString(pSymbol,&parameter);
+        QString sPointer=qualIdToPointerString(parameter.nQualifier,pSymbol->mode);
+
+        if(_sName!="")
+        {
+            sPointer=QString("%1::%2").arg(_sName,sPointer);
+        }
+
+        if(i==0)
+        {
+            if((sMain!="")&&(!isPointerEnd(sPointer)))
+            {
+                sPointer+=" ";
+            }
+
+            sMain=sMain.prepend(sPointer);
+        }
+        else
+        {
+            if((sPrefix!="")&&(!isPointerEnd(sPointer)))
+            {
+                sPointer+=" ";
+            }
+
+            sPrefix=sPrefix.prepend(sPointer);
+        }
 
         if(parameter.listPointer.count())
         {
@@ -1731,6 +1924,34 @@ QString XDemangle::getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPAR
         {
             break;
         }
+
+        int nNumberOfIndexes=parameter.listIndexes.count();
+
+        for(int j=1;j<nNumberOfIndexes;j++)
+        {
+            bArray=true;
+            sIndexes+=QString("[%1]").arg(parameter.listIndexes.at(j));
+        }
+
+        i++;
+    }
+
+    if(bArray)
+    {
+        sMain=QString("(%1)").arg(sMain);
+        sMain+=sIndexes;
+    }
+
+    sResult=sPrefix;
+
+    if(sMain!="")
+    {
+        if((sResult!="")&&(!isPointerEnd(sResult)))
+        {
+            sResult+=" ";
+        }
+
+        sResult+=sMain;
     }
 
     return sResult;
@@ -1779,7 +2000,7 @@ QString XDemangle::ms_demangle(QString sString, XDemangle::MODE mode)
 {
     QString sResult;
 
-    DSYMBOL symbol=getDSymbol(sString,mode);
+    DSYMBOL symbol=ms_getSymbol(sString,mode);
 
     sResult=dsymbolToString(symbol);
 
@@ -1791,7 +2012,7 @@ QString XDemangle::ms_demangle(QString sString, XDemangle::MODE mode)
     return sResult;
 }
 
-XDemangle::DSYMBOL XDemangle::getDSymbol(QString sString, XDemangle::MODE mode)
+XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString, XDemangle::MODE mode)
 {
     DSYMBOL result={};
 
@@ -1802,15 +2023,17 @@ XDemangle::DSYMBOL XDemangle::getDSymbol(QString sString, XDemangle::MODE mode)
 
     if(_compare(sString,"."))
     {
+        result.nSize+=1;
         sString=sString.mid(1,-1);
 
         DPARAMETER parameter={};
 
         qint32 nTSize=ms_demangle_Type(&result,&hdata,&parameter,sString,MSDT_RESULT);
 
-        result.paramMain.listTypeinfo.append(parameter);
+        result.paramMain.listTarget.append(parameter);
 
         sString=sString.mid(nTSize,-1);
+        result.nSize+=nTSize;
 
         result.paramMain.st=ST_TYPEINFO;
     }
@@ -1821,6 +2044,7 @@ XDemangle::DSYMBOL XDemangle::getDSymbol(QString sString, XDemangle::MODE mode)
     }
     else if(_compare(sString,"?"))
     {
+        result.nSize+=1;
         sString=sString.mid(1,-1);
 
         // TODO demangleSpecialIntrinsic
@@ -1830,12 +2054,14 @@ XDemangle::DSYMBOL XDemangle::getDSymbol(QString sString, XDemangle::MODE mode)
             qint32 nSTSize=ms_demangle_SpecialTable(&result,&hdata,&(result.paramMain),sString);
 
             sString=sString.mid(nSTSize,-1);
+            result.nSize+=nSTSize;
         }
         else
         {
             qint32 nDSize=ms_demangle_Declarator(&result,&hdata,&(result.paramMain),sString);
 
             sString=sString.mid(nDSize,-1);
+            result.nSize+=nDSize;
         }
     }
 
@@ -3178,9 +3404,9 @@ QString XDemangle::dsymbolToString(XDemangle::DSYMBOL symbol)
 
     if(symbol.bIsValid)
     {
-//        QString sName=ms_nameToString(&symbol,&(symbol.paramMain));
+        QString sName=ms_nameToString(&symbol,&(symbol.paramMain));
 //        sResult=ms_parameterToString(&symbol,&(symbol.paramMain),sName);
-        sResult=ms_parameterToString(&symbol,&(symbol.paramMain),"","");
+        sResult=ms_parameterToString(&symbol,&(symbol.paramMain),sName,"");
     }
 
     return sResult;
@@ -3371,6 +3597,15 @@ QString XDemangle::_removeLastSymbol(QString sString)
     }
 
     return sString;
+}
+
+bool XDemangle::isPointerEnd(QString sString)
+{
+    bool bResult=false;
+
+    bResult=(_getStringEnd(sString)==QChar('*'))||(_getStringEnd(sString)==QChar('&'))||(_getStringEnd(sString)==QChar('_'));
+
+    return bResult;
 }
 
 bool XDemangle::isSignaturePresent(QString sString, QMap<QString, quint32> *pMap)
@@ -3828,7 +4063,7 @@ QMap<QString, quint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
     {  
         for(quint32 i=0;i<10;i++)
         {
-            mapResult.insert(QString("?%1??").arg(i),i+1);
+            mapResult.insert(QString("?%1?").arg(i),i+1);
         }
     }
 

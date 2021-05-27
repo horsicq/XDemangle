@@ -167,7 +167,8 @@ public:
         ST_VBTABLE,
         ST_TYPEINFO, // TODO
         ST_TEMPLATE,
-        ST_CONST
+        ST_CONST,
+        ST_NAME
     };
 
     enum OP
@@ -316,7 +317,7 @@ public:
     struct DNAME
     {
         QString sName;
-        OP operand;
+        OP _operator;
     };
 
     struct DPARAMETER
@@ -333,15 +334,18 @@ public:
         QList<DPARAMETER> listReturn;
         QList<DPARAMETER> listParameters;
         QList<DPARAMETER> listPointer;
-        QList<DPARAMETER> listTypeinfo;
+        QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
+        QString sLocalScope;
     };
 
     struct DSYMBOL
     {
         bool bIsValid;
+        qint32 nSize;
         MODE mode;
         DPARAMETER paramMain;
+        QList<DSYMBOL> listSymbols;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
@@ -360,7 +364,7 @@ public:
     QString convert(QString sString,MODE mode);
 
     QString ms_demangle(QString sString,MODE mode);
-    DSYMBOL getDSymbol(QString sString,MODE mode);
+    DSYMBOL ms_getSymbol(QString sString,MODE mode);
 
     MODE detectMode(QString sString);
 
@@ -388,6 +392,7 @@ private:
         qint32 nSize;
         QString sKey;
         quint32 nValue;
+        QString sValue;
     };
 
     QString symbolToString(SYMBOL symbol);
@@ -399,6 +404,7 @@ private:
     bool _compare(QString sString,QString sSignature);
     QChar _getStringEnd(QString sString);
     QString _removeLastSymbol(QString sString);
+    bool isPointerEnd(QString sString);
 
     bool isSignaturePresent(QString sString,QMap<QString,quint32> *pMap);
     SIGNATURE getSignature(QString sString,QMap<QString,quint32> *pMap);
@@ -457,6 +463,7 @@ private:
     qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
     qint32 ms_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_MemberPointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_FullTypeName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_FullSymbolName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_UnkTypeName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bSave);
@@ -477,8 +484,10 @@ private:
     void addArgRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     bool isReplaceStringPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     bool isReplaceArgPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    bool isLocalScopePresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    SIGNATURE getLocalScopeSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
     QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName,QString sPrefix); // TODO rename for generic
     QString ms_nameToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
