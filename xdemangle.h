@@ -168,7 +168,8 @@ public:
         ST_TYPEINFO, // TODO
         ST_TEMPLATE,
         ST_CONST,
-        ST_NAME
+        ST_NAME,
+        ST_LOCALSTATICGUARD
     };
 
     enum OP
@@ -336,7 +337,7 @@ public:
         QList<DPARAMETER> listPointer;
         QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
-        QString sLocalScope;
+        QString sScope;
     };
 
     struct DSYMBOL
@@ -345,7 +346,6 @@ public:
         qint32 nSize;
         MODE mode;
         DPARAMETER paramMain;
-        QList<DSYMBOL> listSymbols;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
@@ -363,8 +363,10 @@ public:
     SYMBOL getSymbol(QString sString,MODE mode);
     QString convert(QString sString,MODE mode);
 
-    QString ms_demangle(QString sString,MODE mode);
-    DSYMBOL ms_getSymbol(QString sString,MODE mode);
+    QString demangle(QString sString,MODE mode);
+    DSYMBOL _getSymbol(QString sString,MODE mode);
+    DSYMBOL ms_getSymbol(QString sString,MODE mode,HDATA *pHdata=nullptr);
+    DSYMBOL itanium_getSymbol(QString sString,MODE mode);
 
     MODE detectMode(QString sString);
 
@@ -425,11 +427,7 @@ private:
     QMap<QString,quint32> getSymNumbers(MODE mode);
     QMap<QString,quint32> getQualifiers(MODE mode);
 
-    SYMBOL Microsoft_handle(HDATA *pHdata,QString sString,MODE mode);
     SYMBOL Itanium_handle(HDATA *pHdata,QString sString,MODE mode);
-
-    qint32 Microsoft_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,qint32 nLimit,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs);
-    qint32 Microsoft_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,QList<QString> *plistArgRefs,bool bFirst);
 
     qint32 Itanium_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStringRefs,bool bFirst,SYMBOL *pSymbol,bool bSplit);
     qint32 Itanium_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,bool bFirst,SYMBOL *pSymbol,bool bSplit);
@@ -461,6 +459,7 @@ private:
     };
 
     qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 ms_demangle_LocalStaticGuard(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
     qint32 ms_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_MemberPointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
@@ -489,11 +488,18 @@ private:
     SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     SIGNATURE getLocalScopeSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
 
-    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName,QString sPrefix); // TODO rename for generic
-    QString ms_nameToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName,QString sPrefix);
+    QString _nameToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
 
-    DPARAMETER getLastParameter(DPARAMETER *pParameter);
-    QString getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName);
+    DPARAMETER getLastPointerParameter(DPARAMETER *pParameter);
+    QString ms_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName);
+
+    QString itanium_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+    qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 itanium_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    QString itanium_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
 };
 
 #endif // XDEMANGLE_H
