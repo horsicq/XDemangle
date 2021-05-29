@@ -343,24 +343,34 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     return result;
 }
 
-qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_UntypedVariable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
 {
     qint32 nResult=0;
 
-    if(_compare(sString,"?_7"))
-    {
-        pSymbol->paramMain.st=ST_VFTABLE;
+    qint32 nPSize=ms_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
 
-        nResult+=3;
-        sString=sString.mid(3,-1);
-    }
-    else if(_compare(sString,"?_8"))
-    {
-        pSymbol->paramMain.st=ST_VBTABLE;
+    nResult+=nPSize;
+    sString=sString.mid(nPSize,-1);
 
-        nResult+=3;
-        sString=sString.mid(3,-1);
+    reverseList(&(pParameter->listDnames));
+
+    if(!_compare(sString,"8"))
+    {
+        pSymbol->bIsValid=false;
     }
+
+    if(pSymbol->bIsValid)
+    {
+        nResult+=1;
+        sString=sString.mid(1,-1);
+    }
+
+    return nResult;
+}
+
+qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
 
     qint32 nNSSize=ms_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
 
@@ -416,11 +426,6 @@ qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangl
 qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
 {
     qint32 nResult=0;
-
-    pSymbol->paramMain.st=ST_LOCALSTATICGUARD;
-
-    nResult+=3;
-    sString=sString.mid(3,-1);
 
     qint32 nNSSize=ms_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
 
@@ -1883,7 +1888,10 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
             sResult=QString("%1 `RTTI Type Descriptor Name'").arg(ms_parameterToString(pSymbol,&parameter,"","")); // TODO
         }
     }
-    else if((pParameter->st==ST_VFTABLE)||(pParameter->st==ST_VBTABLE))
+    else if((pParameter->st==ST_VFTABLE)||
+            (pParameter->st==ST_VBTABLE)||
+            (pParameter->st==ST_LOCALVFTABLE)||
+            (pParameter->st==ST_RTTICOMPLETEOBJLOCATOR))
     {
         QString sSC=qualIdToStorageString(pParameter->nQualifier,pSymbol->mode);
         if(sSC!="")    sResult+=QString("%1 ").arg(sSC);
@@ -1896,6 +1904,14 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         {
             sResult+=sName+QString("::`vbtable'");
         }
+        else if(pParameter->st==ST_LOCALVFTABLE)
+        {
+            sResult+=sName+QString("::`local vftable'");
+        }
+        else if(pParameter->st==ST_RTTICOMPLETEOBJLOCATOR)
+        {
+            sResult+=sName+QString("::`RTTI Complete Object Locator'");
+        }
 
         if(pParameter->listTarget.count())
         {
@@ -1904,14 +1920,37 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
             sResult+=QString("{for `%1'}").arg(ms_parameterToString(pSymbol,&parameter,"",""));
         }
     }
-    else if(pParameter->st==ST_LOCALSTATICGUARD)
+    else if((pParameter->st==ST_LOCALSTATICGUARD)||
+            (pParameter->st==ST_LOCALSTATICTHREADGUARD))
     {
         sResult=(_nameToString(pSymbol,pParameter));
-        sResult+=QString("::`local static guard'");
+
+        if(pParameter->st==ST_LOCALSTATICGUARD)
+        {
+            sResult+=QString("::`local static guard'");
+        }
+        else if(pParameter->st==ST_LOCALSTATICTHREADGUARD)
+        {
+            sResult+=sName+QString("::`local static thread guard'");
+        }
 
         if(pParameter->sScope!="")
         {
             sResult+=QString("{%1}").arg(pParameter->sScope);
+        }
+    }
+    else if((pParameter->st==ST_RTTIBASECLASSARRAY)||
+            (pParameter->st==ST_RTTICLASSHIERARCHYDESCRIPTOR))
+    {
+        sResult=(_nameToString(pSymbol,pParameter));
+
+        if(pParameter->st==ST_RTTIBASECLASSARRAY)
+        {
+            sResult+=QString("::`RTTI Base Class Array'");
+        }
+        else if(pParameter->st==ST_RTTICLASSHIERARCHYDESCRIPTOR)
+        {
+            sResult+=QString("::`RTTI Class Hierarchy Descriptor'");
         }
     }
     else if(pParameter->st==ST_TEMPLATE)
@@ -2645,20 +2684,40 @@ XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString, XDemangle::MODE mode
 
         // TODO demangleSpecialIntrinsic
 
-        if( _compare(sString,"?_7")||
-            _compare(sString,"?_8"))
+        if(isSignaturePresent(sString,&(hdata.mapSpecInstr)))
         {
-            qint32 nSTSize=ms_demangle_SpecialTable(&result,&hdata,&(result.paramMain),sString);
+            SIGNATURE signature=getSignature(sString,&(hdata.mapSpecInstr));
+            result.paramMain.st=(ST)signature.nValue;
 
-            sString=sString.mid(nSTSize,-1);
-            result.nSize+=nSTSize;
-        }
-        else if(_compare(sString,"?_B"))
-        {
-            qint32 nSTSize=ms_demangle_LocalStaticGuard(&result,&hdata,&(result.paramMain),sString);
+            sString=sString.mid(signature.nSize,-1);
+            result.nSize+=signature.nSize;
 
-            sString=sString.mid(nSTSize,-1);
-            result.nSize+=nSTSize;
+            if( (result.paramMain.st==ST_VBTABLE)||
+                (result.paramMain.st==ST_VFTABLE)||
+                (result.paramMain.st==ST_LOCALVFTABLE)||
+                (result.paramMain.st==ST_RTTICOMPLETEOBJLOCATOR))
+            {
+                qint32 nSTSize=ms_demangle_SpecialTable(&result,&hdata,&(result.paramMain),sString);
+
+                sString=sString.mid(nSTSize,-1);
+                result.nSize+=nSTSize;
+            }
+            else if((result.paramMain.st==ST_LOCALSTATICGUARD)||
+                    (result.paramMain.st==ST_LOCALSTATICTHREADGUARD))
+            {
+                qint32 nSTSize=ms_demangle_LocalStaticGuard(&result,&hdata,&(result.paramMain),sString);
+
+                sString=sString.mid(nSTSize,-1);
+                result.nSize+=nSTSize;
+            }
+            else if((result.paramMain.st==ST_RTTIBASECLASSARRAY)||
+                    (result.paramMain.st==ST_RTTICLASSHIERARCHYDESCRIPTOR))
+            {
+                qint32 nSTSize=ms_demangle_UntypedVariable(&result,&hdata,&(result.paramMain),sString);
+
+                sString=sString.mid(nSTSize,-1);
+                result.nSize+=nSTSize;
+            }
         }
         else
         {
@@ -3307,6 +3366,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapNumbers=getNumbers(mode);
     result.mapSymNumbers=getSymNumbers(mode);
     result.mapQualifiers=getQualifiers(mode);
+    result.mapSpecInstr=getSpecInstr(mode);
 
     return result;
 }
@@ -4198,6 +4258,25 @@ QMap<QString, quint32> XDemangle::getQualifiers(XDemangle::MODE mode)
         mapResult.insert("R",QUAL_MEMBER|QUAL_CONST);
         mapResult.insert("S",QUAL_MEMBER|QUAL_VOLATILE);
         mapResult.insert("T",QUAL_MEMBER|QUAL_CONST|QUAL_VOLATILE);
+    }
+
+    return mapResult;
+}
+
+QMap<QString, quint32> XDemangle::getSpecInstr(XDemangle::MODE mode)
+{
+    QMap<QString,quint32> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+    {
+        mapResult.insert("?_7",ST_VFTABLE);
+        mapResult.insert("?_8",ST_VBTABLE);
+        mapResult.insert("?_S",ST_LOCALVFTABLE);
+        mapResult.insert("?_R4",ST_RTTICOMPLETEOBJLOCATOR);
+        mapResult.insert("?_B",ST_LOCALSTATICGUARD);
+        mapResult.insert("?__J",ST_LOCALSTATICTHREADGUARD);
+        mapResult.insert("?_R2",ST_RTTIBASECLASSARRAY);
+        mapResult.insert("?_R3",ST_RTTICLASSHIERARCHYDESCRIPTOR);
     }
 
     return mapResult;

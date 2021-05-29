@@ -169,7 +169,12 @@ public:
         ST_TEMPLATE,
         ST_CONST,
         ST_NAME,
-        ST_LOCALSTATICGUARD
+        ST_LOCALSTATICGUARD,
+        ST_LOCALSTATICTHREADGUARD,
+        ST_LOCALVFTABLE,
+        ST_RTTICOMPLETEOBJLOCATOR,
+        ST_RTTIBASECLASSARRAY,
+        ST_RTTICLASSHIERARCHYDESCRIPTOR
     };
 
     enum OP
@@ -282,6 +287,7 @@ public:
         QMap<QString,quint32> mapNumbers;
         QMap<QString,quint32> mapSymNumbers;
         QMap<QString,quint32> mapQualifiers;
+        QMap<QString,quint32> mapSpecInstr;
         QList<QString> listStringRef;
         QList<QString> listArgRef;
     };
@@ -426,6 +432,7 @@ private:
     QMap<QString,quint32> getLineNumbers(MODE mode);
     QMap<QString,quint32> getSymNumbers(MODE mode);
     QMap<QString,quint32> getQualifiers(MODE mode);
+    QMap<QString,quint32> getSpecInstr(MODE mode);
 
     SYMBOL Itanium_handle(HDATA *pHdata,QString sString,MODE mode);
 
@@ -458,6 +465,7 @@ private:
         NB_SIMPLE=2
     };
 
+    qint32 ms_demangle_UntypedVariable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_LocalStaticGuard(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
