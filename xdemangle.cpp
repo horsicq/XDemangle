@@ -2277,6 +2277,18 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
     return nResult;
 }
 
+qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    qint32 nFSize=itanium_demangle_Parameters(pSymbol,pHdata,pParameter,sString);
+
+    nResult+=nFSize;
+    sString=sString.mid(nFSize,-1);
+
+    return nResult;
+}
+
 qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
 {
     qint32 nResult=0;
@@ -2358,7 +2370,6 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         }
         else
         {
-            qDebug("TODO: array");
             pSymbol->bIsValid=false;
         }
 
@@ -2696,7 +2707,7 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
         sString=sString.mid(nNSSize,-1);
         result.nSize+=nNSSize;
 
-        qint32 nPSize=itanium_demangle_Parameters(&result,&hdata,&(result.paramMain),sString);
+        qint32 nPSize=itanium_demangle_Function(&result,&hdata,&(result.paramMain),sString);
 
         if(nPSize)
         {
