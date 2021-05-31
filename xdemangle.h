@@ -163,6 +163,7 @@ public:
         ST_TYPE,
         ST_FUNCTION,
         ST_POINTER,
+        ST_VTABLE,
         ST_VFTABLE,
         ST_VBTABLE,
         ST_TYPEINFO, // TODO
@@ -174,7 +175,8 @@ public:
         ST_LOCALVFTABLE,
         ST_RTTICOMPLETEOBJLOCATOR,
         ST_RTTIBASECLASSARRAY,
-        ST_RTTICLASSHIERARCHYDESCRIPTOR
+        ST_RTTICLASSHIERARCHYDESCRIPTOR,
+        ST_STRINGLITERALSYMBOL
     };
 
     enum OP
@@ -256,30 +258,12 @@ public:
         QUAL_UNALIGNED          =0x80000000,
     };
 
-    struct PARAMETER
-    {
-        QString sRecord;
-        TYPE type;
-        quint32 nParamMod;
-        SC storageClass;
-        QList<QString> listNames;
-        QList<PARAMETER> listMods;
-        QList<qint64> listIndexes; // For var[x][y]
-        bool bTemplate;
-        QList<QList<PARAMETER>> listListTemplateParameters; // Template mb TODO flags;
-        QList<PARAMETER> listFunctionParameters; // if pointer to a function
-        FC functionConvention; // if function
-        qint64 nConstValue;
-        SC extraStorageClass;
-    };
-
     struct HDATA
     {
         QMap<QString,quint32> mapPointerTypes;
         QMap<QString,quint32> mapObjectClasses;
         QMap<QString,quint32> mapTypes;
         QMap<QString,quint32> mapTagTypes;
-        QMap<QString,quint32> mapSymbolTypes;
         QMap<QString,quint32> mapStorageClasses;
         QMap<QString,quint32> mapAccessMods;
         QMap<QString,quint32> mapFunctionConventions;
@@ -290,35 +274,6 @@ public:
         QMap<QString,quint32> mapSpecInstr;
         QList<QString> listStringRef;
         QList<QString> listArgRef;
-    };
-
-    struct SYMBOL
-    {
-        bool bValid;
-        MODE mode;
-        ST symbolType;
-        OP _operator;
-        PARAMETER paramMain;
-        QList<PARAMETER> listParameters; // 0 - return
-        // Variable
-        OC objectClass;
-        SC storageClass;
-        // Function
-        SC classStorageClass;
-        FM functionMod;
-        FC functionConvention;
-        bool bRef;
-        bool bDoubleRef;
-        bool bParamTable;
-        PARAMETER paramTable;
-        bool bExtra;
-        OC extraObjectClass;
-        quint32 nExtraParamMod;
-        SC extraStorageClass1;
-        TYPE extraType;
-        SC extraStorageClass2;
-        QList<QString> listPreps;
-        QString sPrep;
     };
 
     struct DNAME
@@ -344,6 +299,7 @@ public:
         QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
         QString sScope;
+        bool bIsTemplatesPresent;
     };
 
     struct DSYMBOL
@@ -365,9 +321,6 @@ public:
     static QString operatorIdToString(OP _operator,MODE mode);
     static QString qualIdToPointerString(quint32 nQual,MODE mode);
     static QString qualIdToStorageString(quint32 nQual,MODE mode);
-
-    SYMBOL getSymbol(QString sString,MODE mode);
-    QString convert(QString sString,MODE mode);
 
     QString demangle(QString sString,MODE mode);
     DSYMBOL _getSymbol(QString sString,MODE mode);
@@ -403,7 +356,6 @@ private:
         QString sValue;
     };
 
-    QString symbolToString(SYMBOL symbol);
     QString dsymbolToString(DSYMBOL symbol);
 
     STRING readString(HDATA *pHdata,QString sString,MODE mode);
@@ -417,12 +369,9 @@ private:
     bool isSignaturePresent(QString sString,QMap<QString,quint32> *pMap);
     SIGNATURE getSignature(QString sString,QMap<QString,quint32> *pMap);
 
-    SIGNATURE Itanium_getReplaceSignature(HDATA *pHdata,QString sString,MODE mode);
-
     QMap<QString,quint32> getObjectClasses(MODE mode);
     QMap<QString,quint32> getTypes(MODE mode);
     QMap<QString,quint32> getTagTypes(MODE mode);
-    QMap<QString,quint32> getSymbolTypes(MODE mode);
     QMap<QString,quint32> getPointerTypes(MODE mode);
     QMap<QString,quint32> getStorageClasses(MODE mode);
     QMap<QString,quint32> getAccessMods(MODE mode);
@@ -434,20 +383,7 @@ private:
     QMap<QString,quint32> getQualifiers(MODE mode);
     QMap<QString,quint32> getSpecInstr(MODE mode);
 
-    SYMBOL Itanium_handle(HDATA *pHdata,QString sString,MODE mode);
-
-    qint32 Itanium_handleParams(HDATA *pHdata,QString sString,MODE mode,QList<PARAMETER> *pListParameters,QList<QString> *pListStringRefs,bool bFirst,SYMBOL *pSymbol,bool bSplit);
-    qint32 Itanium_handleParamStrings(HDATA *pHdata,QString sString,MODE mode,PARAMETER *pParameter,QList<QString> *pListStringRefs,bool bFirst,SYMBOL *pSymbol,bool bSplit);
-
-    QString _getNameFromSymbol(SYMBOL symbol);
-    QString _getNameFromParameter(PARAMETER *pParameter,MODE mode);
-    QString _getTemplatesFromParameters(QList<PARAMETER> *pListParameters,MODE mode);
-    QString _getStringFromParameter(PARAMETER parameter,MODE mode,QString sName="",bool bFuncRet=false);
-
     static void reverseList(QList<QString> *pList);
-//    static void reverseList(QList<MOD> *pList);
-    static void reverseList(QList<PARAMETER> *pList);
-    static void reverseList(QList<QList<PARAMETER>> *pListList);
     static void reverseList(QList<DNAME> *pList);
 
     static SYNTAX getSyntaxFromMode(MODE mode);
@@ -465,6 +401,7 @@ private:
         NB_SIMPLE=2
     };
 
+    qint32 ms_demangle_StringLiteralSymbol(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_UntypedVariable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 ms_demangle_LocalStaticGuard(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
@@ -502,9 +439,10 @@ private:
     DPARAMETER getLastPointerParameter(DPARAMETER *pParameter);
     QString ms_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName);
 
-    QString itanium_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+    QString itanium_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sPrefix);
+    qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 itanium_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 itanium_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bReturn);
     qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 itanium_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
