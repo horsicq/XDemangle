@@ -41,6 +41,8 @@ public:
         MODE_MSVC32,
         MODE_MSVC64,
         MODE_GCC, // Generic
+        MODE_GCC_WIN32,
+        MODE_GCC_MAC,
         MODE_BORLAND32,
         MODE_BORLAND64,
         MODE_WATCOM
@@ -176,7 +178,8 @@ public:
         ST_RTTICOMPLETEOBJLOCATOR,
         ST_RTTIBASECLASSARRAY,
         ST_RTTICLASSHIERARCHYDESCRIPTOR,
-        ST_STRINGLITERALSYMBOL
+        ST_STRINGLITERALSYMBOL,
+        ST_NONVIRTUALTHUNK
     };
 
     enum OP
@@ -327,7 +330,7 @@ public:
     DSYMBOL ms_getSymbol(QString sString,MODE mode,HDATA *pHdata=nullptr);
     DSYMBOL itanium_getSymbol(QString sString,MODE mode);
 
-    MODE detectMode(QString sString);
+    static MODE detectMode(QString sString);
 
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
@@ -360,8 +363,9 @@ private:
 
     STRING readString(HDATA *pHdata,QString sString,MODE mode);
     NUMBER readNumber(HDATA *pHdata,QString sString,MODE mode);
+    NUMBER readNumberS(HDATA *pHdata,QString sString,MODE mode);
     NUMBER readSymNumber(HDATA *pHdata,QString sString,MODE mode);
-    bool _compare(QString sString,QString sSignature);
+    static bool _compare(QString sString,QString sSignature);
     QChar _getStringEnd(QString sString);
     QString _removeLastSymbol(QString sString);
     bool isPointerEnd(QString sString);
