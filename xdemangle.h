@@ -179,7 +179,10 @@ public:
         ST_RTTIBASECLASSARRAY,
         ST_RTTICLASSHIERARCHYDESCRIPTOR,
         ST_STRINGLITERALSYMBOL,
-        ST_NONVIRTUALTHUNK
+        ST_NONVIRTUALTHUNK,
+        ST_TARGET,
+        ST_GUARDVARIABLE,
+        ST_TRANSACTIONCLONE
     };
 
     enum OP
@@ -276,7 +279,7 @@ public:
         QMap<QString,quint32> mapQualifiers;
         QMap<QString,quint32> mapSpecInstr;
         QList<QString> listStringRef;
-        QList<QString> listArgRef;
+        QList<QString> listArgRef; // function arg for MS, templates for Itanium
     };
 
     struct DNAME
@@ -302,7 +305,6 @@ public:
         QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
         QString sScope;
-        bool bIsTemplatesPresent;
     };
 
     struct DSYMBOL
@@ -443,6 +445,7 @@ private:
     DPARAMETER getLastPointerParameter(DPARAMETER *pParameter);
     QString ms_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName);
 
+    // libelftc_dem_gnu3.c
     QString itanium_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sPrefix);
     qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
