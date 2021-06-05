@@ -278,8 +278,10 @@ public:
         QMap<QString,quint32> mapSymNumbers;
         QMap<QString,quint32> mapQualifiers;
         QMap<QString,quint32> mapSpecInstr;
-        QList<QString> listStringRef;
-        QList<QString> listArgRef; // function arg for MS, templates for Itanium
+        QList<QString> listStringRef; // MS
+        QList<QString> listArgRef; // MS
+        QList<QList<QString>> listListStringRef; // Itanium
+        QList<QList<QString>> listListTemplateArgRef; // Itanium
     };
 
     struct DNAME

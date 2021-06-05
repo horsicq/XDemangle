@@ -655,7 +655,9 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
     }
     else
     {
+    #ifdef QT_DEBUG
         qDebug("TODO: TYPE");
+    #endif
         pSymbol->bIsValid=false;
     }
 
@@ -950,8 +952,9 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
         }
         else if(_compare(sString,"?A"))
         {
-            // TODO AnonymousNamespaceName
+        #ifdef QT_DEBUG
             qDebug("TODO: AnonymousNamespaceName");
+        #endif
             sString=sString.mid(2,-1);
             nResult+=2;
         }
@@ -1078,12 +1081,16 @@ qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::H
 
     if(pParameter->nAccess&FM_STATICTHISADJUST)
     {
+    #ifdef QT_DEBUG
         qDebug("TODO: FM_STATICTHISADJUST");
+    #endif
     }
 
     if(pParameter->nAccess&FM_VIRTUALTHISADJUST)
     {
+    #ifdef QT_DEBUG
         qDebug("TODO: FM_VIRTUALTHISADJUST");
+    #endif
     }
 
     if(!(pParameter->nAccess&FM_NOPARAMETERLIST))
@@ -1223,7 +1230,9 @@ qint32 XDemangle::ms_demangle_FunctionType(XDemangle::DSYMBOL *pSymbol, XDemangl
     }
     else if(_compare(sString,"_E"))
     {
+    #ifdef QT_DEBUG
         qDebug("TODO: function exception");
+    #endif
 
         pSymbol->bIsValid=false;
 
@@ -1373,7 +1382,9 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
             sString=sString.mid(3,-1);
 
             pSymbol->bIsValid=false;
+        #ifdef QT_DEBUG
             qDebug("TODO: Template alias");
+        #endif
         }
         else if(_compare(sString,"$$B"))
         {
@@ -1411,7 +1422,9 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
             sString=sString.mid(2,-1);
 
             pSymbol->bIsValid=false;
+        #ifdef QT_DEBUG
             qDebug("TODO: Template");
+        #endif
         }
         else if(_compare(sString,"$E?"))
         {
@@ -1419,7 +1432,9 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
             sString=sString.mid(3,-1);
 
             pSymbol->bIsValid=false;
+        #ifdef QT_DEBUG
             qDebug("TODO: Reference to symbol");
+        #endif
         }
         else if(_compare(sString,"$0"))
         {
@@ -1562,7 +1577,7 @@ void XDemangle::addStringRef(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHda
     }
     else if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
     {
-        if(!pHdata->listStringRef.contains(sString))
+        if(!pHdata->listStringRef.contains(sString)) // TODO rewrite!
         {
             pHdata->listStringRef.append(sString);
         }
@@ -1742,7 +1757,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
     if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
     {
         SIGNATURE signature=getSignature(sString,&(pHdata->mapNumbers));
-
+        result.nSize=1;
         nIndex=signature.nValue;
     }
     else if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
@@ -2096,9 +2111,12 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                 {
                     QString sBasic=pParameter->listDnames.at(nNumberOfNames-2).sName;
 
-                    if(sBasic.contains("<")) //Template
+                    if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
                     {
-                        sBasic=sBasic.section("<",0,0);
+                        if(sBasic.contains("<")) //Template
+                        {
+                            sBasic=sBasic.section("<",0,0);
+                        }
                     }
 
                     _sName+=sBasic;
@@ -2602,7 +2620,10 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             nResult++;
             sString=sString.mid(1,-1);
 
-            addStringRef(pSymbol,pHdata,sAddString);
+            if(bAdd)
+            {
+                addStringRef(pSymbol,pHdata,sAddString);
+            }
 
             DPARAMETER parameter={};
             parameter.st=ST_TEMPLATE;
@@ -3076,7 +3097,9 @@ XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString, XDemangle::MODE mode
     else if(_compare(sString,"??@"))
     {
         // TODO MD5
-        qDebug("MD5");
+    #ifdef QT_DEBUG
+        qDebug("TODO: MD5");
+    #endif
     }
     else if(_compare(sString,"?"))
     {
