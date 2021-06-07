@@ -2838,6 +2838,9 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         if(_compare(sString,"i")) // Number
         {
+            nResult+=1;
+            sString=sString.mid(1,-1);
+
             NUMBER number=readNumberS(pHdata,sString,pSymbol->mode);
 
             pParameter->varConst=number.nValue;
