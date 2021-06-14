@@ -103,6 +103,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_ENUM:             sResult=QString("enum");                break;
         case TYPE_POINTERTOFUNCTION:sResult=QString("");                    break;
         case TYPE_NULLPTR:          sResult=QString("std::nullptr_t");      break; // TODO Check !!!
+        dafault:                    sResult="Unknown";
     }
 
     return sResult;
@@ -145,6 +146,7 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
         case OC_PRIVATESTATICCLASSMEMBER:   sResult=QString("private: static");     break;
         case OC_PROTECTEDSTATICCLASSMEMBER: sResult=QString("protected: static");   break;
         case OC_PUBLICSTATICCLASSMEMBER:    sResult=QString("public: static");      break;
+        default:                            sResult="Unknown";
     }
 
     return sResult;
@@ -216,6 +218,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_FASTCALL:           sResult=QString("__fastcall");                  break;
         case FC_CLRCALL:            sResult=QString("__clrcall");                   break;
         case FC_VECTORCALL:         sResult=QString("__vectorcall");                break;
+        default:                    sResult="Unknown";
     }
 
     return sResult;
