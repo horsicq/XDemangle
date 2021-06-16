@@ -103,7 +103,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_ENUM:             sResult=QString("enum");                break;
         case TYPE_POINTERTOFUNCTION:sResult=QString("");                    break;
         case TYPE_NULLPTR:          sResult=QString("std::nullptr_t");      break; // TODO Check !!!
-        dafault:                    sResult="Unknown";
+        default:                    sResult="Unknown";
     }
 
     return sResult;
