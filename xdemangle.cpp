@@ -359,6 +359,8 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
 
 qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
 {
+    Q_UNUSED(pParameter)
+
     qint32 nResult=0;
 
     if(_compare(sString,"@_"))
@@ -388,6 +390,10 @@ qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol, X
     {
         pSymbol->bIsValid=false;
     }
+
+    Q_UNUSED(bWchar)
+
+    // TODO
 
     if(pSymbol->bIsValid)
     {
@@ -1932,7 +1938,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         QString sReturn;
         QString sArgs;
 
-        TYPE typeReturn=TYPE_NONE;
+//        TYPE typeReturn=TYPE_NONE;
 
         sArgs+="(";
 
@@ -1955,7 +1961,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         if(pParameter->listReturn.count())
         {
             DPARAMETER parameter=pParameter->listReturn.at(0);
-            typeReturn=parameter.type;
+//            typeReturn=parameter.type;
         }
 
         QString _sPrefix;
