@@ -278,15 +278,16 @@ public:
         QMap<QString,quint32> mapSymNumbers;
         QMap<QString,quint32> mapQualifiers;
         QMap<QString,quint32> mapSpecInstr;
+        QMap<QString,QString> mapStd; // Itanium
         QList<QString> listStringRef; // MS
-        QList<QString> listArgRef; // MS
+        QList<QString> listArgRef; // MS Itanium templates
         QList<QList<QString>> listListStringRef; // Itanium
-        QList<QList<QString>> listListTemplateArgRef; // Itanium
     };
 
     struct DNAME
     {
         QString sName;
+//        QList<QString> listNames;
         OP _operator;
     };
 
@@ -307,6 +308,7 @@ public:
         QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
         QString sScope;
+        bool bTemplateArgs; // Itanium
     };
 
     struct DSYMBOL
@@ -358,7 +360,8 @@ private:
     struct SIGNATURE
     {
         qint32 nSize;
-        QString sKey;
+        QString sString;
+        QList<QString> listStrings;
         quint32 nValue;
         QString sValue;
     };
@@ -390,6 +393,7 @@ private:
     QMap<QString,quint32> getSymNumbers(MODE mode);
     QMap<QString,quint32> getQualifiers(MODE mode);
     QMap<QString,quint32> getSpecInstr(MODE mode);
+    QMap<QString,QString> getStd(MODE mode);
 
     static void reverseList(QList<QString> *pList);
     static void reverseList(QList<DNAME> *pList);
@@ -434,6 +438,7 @@ private:
 
     void addStringRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     void addArgRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    void addStringListRef(DSYMBOL *pSymbol,HDATA *pHdata,QList<QString> listString);
     bool isReplaceStringPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     bool isReplaceArgPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
     bool isLocalScopePresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
@@ -456,6 +461,8 @@ private:
     qint32 itanium_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     QString itanium_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+
+    static QString join(QList<QString> *pListStrings,QString sJoin);
 };
 
 #endif // XDEMANGLE_H

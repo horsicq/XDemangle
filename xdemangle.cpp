@@ -847,7 +847,7 @@ qint32 XDemangle::ms_demangle_UnkTypeName(XDemangle::DSYMBOL *pSymbol, XDemangle
         SIGNATURE signature=getReplaceStringSignature(pSymbol,pHdata,sString);
         // TODO Error empty String
         DNAME dname={};
-        dname.sName=signature.sKey;
+        dname.sName=signature.sString;
 
         pParameter->listDnames.append(dname);
 
@@ -893,7 +893,7 @@ qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemang
         SIGNATURE signature=getReplaceStringSignature(pSymbol,pHdata,sString);
         // TODO Error empty String
         DNAME dname={};
-        dname.sName=signature.sKey;
+        dname.sName=signature.sString;
 
         pParameter->listDnames.append(dname);
 
@@ -950,7 +950,7 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
             SIGNATURE signature=getReplaceStringSignature(pSymbol,pHdata,sString);
             // TODO Error empty String
             DNAME dname={};
-            dname.sName=signature.sKey;
+            dname.sName=signature.sString;
 
             pParameter->listDnames.append(dname);
 
@@ -1282,7 +1282,7 @@ qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XD
 
             DPARAMETER parameter={};
 
-            ms_demangle_Type(pSymbol,pHdata,&parameter,signature.sKey,MSDT_DROP);
+            ms_demangle_Type(pSymbol,pHdata,&parameter,signature.sString,MSDT_DROP);
 
             pParameter->listParameters.append(parameter);
 
@@ -1590,10 +1590,7 @@ void XDemangle::addStringRef(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHda
     }
     else if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
     {
-        if(!pHdata->listStringRef.contains(sString)) // TODO rewrite!
-        {
-            pHdata->listStringRef.append(sString);
-        }
+        qFatal("Remove");
     }
 }
 
@@ -1611,6 +1608,18 @@ void XDemangle::addArgRef(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata,
                 }
             }
         }
+    }
+    else if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
+    {
+        pHdata->listArgRef.append(sString);
+    }
+}
+
+void XDemangle::addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString> listString)
+{
+    if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
+    {
+        pHdata->listListStringRef.append(listString);
     }
 }
 
@@ -1746,16 +1755,33 @@ XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pS
         }
     }
 
-    if((nIndex!=-1)&&(nIndex<pHdata->listStringRef.count()))
+    if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
     {
-        result.sKey=pHdata->listStringRef.at(nIndex);
+        if((nIndex!=-1)&&(nIndex<pHdata->listStringRef.count()))
+        {
+            result.sString=pHdata->listStringRef.at(nIndex);
+        }
+        else
+        {
+            pSymbol->bIsValid=false;
+        #ifdef QT_DEBUG
+            qDebug("Replace String Error!!!");
+        #endif
+        }
     }
-    else
+    else if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
     {
-        pSymbol->bIsValid=false;
-    #ifdef QT_DEBUG
-        qDebug("Replace String Error!!!");
-    #endif
+        if((nIndex!=-1)&&(nIndex<pHdata->listListStringRef.count()))
+        {
+            result.listStrings=pHdata->listListStringRef.at(nIndex);
+        }
+        else
+        {
+            pSymbol->bIsValid=false;
+        #ifdef QT_DEBUG
+            qDebug("Replace String Error!!!");
+        #endif
+        }
     }
 
     return result;
@@ -1800,7 +1826,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
 
     if(nIndex<pHdata->listArgRef.count())
     {
-        result.sKey=pHdata->listArgRef.at(nIndex);
+        result.sString=pHdata->listArgRef.at(nIndex);
         result.nValue=nIndex;
     }
     else
@@ -1835,7 +1861,7 @@ XDemangle::SIGNATURE XDemangle::getLocalScopeSignature(XDemangle::DSYMBOL *pSymb
                 if(_compare(_sString,"?"))
                 {
                     result.nSize=number.nSize+2;
-                    result.sKey=sString.left(result.nSize);
+                    result.sString=sString.left(result.nSize);
                     result.sValue=QString::number(number.nValue);
                 }
             }
@@ -2136,7 +2162,7 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                 }
             }
             else if(pParameter->listDnames.at(i)._operator==OP_TYPE)
-            {
+            {                
                 if(pSymbol->paramMain.listReturn.count())
                 {
                     DPARAMETER parameter=pSymbol->paramMain.listReturn.at(0);
@@ -2458,7 +2484,7 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
     sString=sString.mid(nNSSize,-1);
     nResult+=nNSSize;
 
-    qint32 nPSize=itanium_demangle_Function(pSymbol,pHdata,pParameter,sString,pHdata->listArgRef.count());
+    qint32 nPSize=itanium_demangle_Function(pSymbol,pHdata,pParameter,sString,pParameter->bTemplateArgs);
 
     sString=sString.mid(nPSize,-1);
     nResult+=nPSize;
@@ -2482,7 +2508,6 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
 qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
 {
     qint32 nResult=0;
-
 
     if(_compare(sString,"Z"))
     {
@@ -2519,11 +2544,12 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
         pParameter->nQualifier=QUAL_CONST;
     }
 
-    QString sAddString;
+    QList<QString> listAddString;
 
     while(sString!="")
     {
-        pHdata->listArgRef.clear();
+//        pHdata->listArgRef.clear();
+        pParameter->bTemplateArgs=false;
 
         DNAME dname={};
 
@@ -2534,7 +2560,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
         {
             SIGNATURE signature=getReplaceStringSignature(pSymbol,pHdata,sString);
 
-            dname.sName=signature.sKey;
+            dname.sName=join(&signature.listStrings,"::");
 
             nResult+=signature.nSize;
             sString=sString.mid(signature.nSize,-1);
@@ -2551,32 +2577,14 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             bAdd=false;
             bSpecial=true;
         }
-        else if(_compare(sString,"Sa"))
+        else if(pHdata->mapStd.contains(sString.left(2)))
         {
+            QString sStd=pHdata->mapStd.value(sString.left(2));
+
             nResult+=2;
             sString=sString.mid(2,-1);
 
-            dname.sName="std::allocator";
-
-            bAdd=false;
-            bSpecial=false;
-        }
-        else if(_compare(sString,"Sb"))
-        {
-            nResult+=2;
-            sString=sString.mid(2,-1);
-
-            dname.sName="std::basic_string";
-
-            bAdd=false;
-            bSpecial=false;
-        }
-        else if(_compare(sString,"Ss"))
-        {
-            nResult+=2;
-            sString=sString.mid(2,-1);
-
-            dname.sName="std::string";
+            dname.sName=sStd;
 
             bAdd=false;
             bSpecial=false;
@@ -2621,12 +2629,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             }
         }
 
-        if(sAddString!="")
-        {
-            sAddString+="::";
-        }
-
-        sAddString+=dname.sName;
+        listAddString.append(dname.sName);
 
         if(_compare(sString,"I")) // Template
         {
@@ -2635,7 +2638,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
             if(bAdd)
             {
-                addStringRef(pSymbol,pHdata,sAddString);
+                addStringListRef(pSymbol,pHdata,listAddString);
             }
 
             DPARAMETER parameter={};
@@ -2648,14 +2651,24 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             QString sTemplate=itanium_parameterToString(pSymbol,&parameter,"");
 
             dname.sName+=sTemplate;
-            sAddString+=sTemplate;
+
+            if(listAddString.count())
+            {
+                listAddString[listAddString.count()-1]+=sTemplate;
+            }
 
             int nNumberOfArgs=parameter.listParameters.count();
+
+            if(nNumberOfArgs)
+            {
+                pParameter->bTemplateArgs=true;
+            }
 
             for(int i=0;i<nNumberOfArgs;i++)
             {
                 DPARAMETER _parameter=parameter.listParameters.at(i);
-                pHdata->listArgRef.append(itanium_parameterToString(pSymbol,&_parameter,""));
+                QString sParameter=itanium_parameterToString(pSymbol,&_parameter,"");
+                addArgRef(pSymbol,pHdata,sParameter);
             }
         }
 
@@ -2678,9 +2691,9 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             break;
         }
 
-        if((sAddString!="")&&(bAdd))
+        if(listAddString.count()&&(bAdd))
         {
-            addStringRef(pSymbol,pHdata,sAddString);
+            addStringListRef(pSymbol,pHdata,listAddString);
         }
     }
 
@@ -2757,12 +2770,14 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
 {
     qint32 nResult=0;
 
+    bool bAdd=true;
+
     if(isReplaceArgPresent(pSymbol,pHdata,sString))
     {
         SIGNATURE signature=getReplaceArgSignature(pSymbol,pHdata,sString);
 
         DNAME dname={};
-        dname.sName=signature.sKey;
+        dname.sName=signature.sString;
 
         pParameter->listDnames.append(dname);
 
@@ -2924,6 +2939,11 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
     {
         pParameter->st=ST_NAME;
 
+        if(isReplaceStringPresent(pSymbol,pHdata,sString))
+        {
+            bAdd=false;
+        }
+
         qint32 nNSSize=itanium_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
 
         nResult+=nNSSize;
@@ -2938,11 +2958,22 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         }
     }
 
-    if((nResult>1)&&(pParameter->st!=ST_CONST))
+    if((pParameter->st!=ST_TYPE)&&(pParameter->st!=ST_CONST)&&bAdd)
     {
         QString sParam=itanium_parameterToString(pSymbol,pParameter,"");
 
-        addStringRef(pSymbol,pHdata,sParam);
+        QList<QString> listArgs;
+
+        if(sParam.contains("::")) // TODO Check // TODO if not std::
+        {
+            listArgs.append(sParam.split("::"));
+        }
+        else
+        {
+            listArgs.append(sParam);
+        }
+
+        addStringListRef(pSymbol,pHdata,listArgs);
     }
 
     return nResult;
@@ -3039,6 +3070,25 @@ QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemang
     else
     {
         sResult+=sMain;
+    }
+
+    return sResult;
+}
+
+QString XDemangle::join(QList<QString> *pListStrings, QString sJoin)
+{
+    QString sResult;
+
+    int nCount=pListStrings->count();
+
+    for(int i=0;i<nCount;i++)
+    {
+        sResult+=pListStrings->at(i);
+
+        if(i!=(nCount-1))
+        {
+            sResult+=sJoin;
+        }
     }
 
     return sResult;
@@ -3263,9 +3313,9 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
         }
 
 //    #ifdef QT_DEBUG
-//        for(int i=0;i<hdata.listStringRef.count();i++)
+//        for(int i=0;i<hdata.listListStringRef.count();i++)
 //        {
-//            qDebug("%d: %s",i,hdata.listStringRef.at(i).toLatin1().data());
+//            qDebug("%d: %s",i,hdata.listListStringRef.at(i).join("<>").toLatin1().data());
 //        }
 //    #endif
     }
@@ -3363,6 +3413,7 @@ XDemangle::HDATA XDemangle::getHdata(XDemangle::MODE mode)
     result.mapSymNumbers=getSymNumbers(mode);
     result.mapQualifiers=getQualifiers(mode);
     result.mapSpecInstr=getSpecInstr(mode);
+    result.mapStd=getStd(mode);
 
     return result;
 }
@@ -3650,7 +3701,7 @@ XDemangle::SIGNATURE XDemangle::getSignature(QString sString, QMap<QString, quin
         {
             result.nSize=sKey.size();
             result.nValue=nValue;
-            result.sKey=sKey;
+            result.sString=sKey;
 
             break;
         }
@@ -4096,14 +4147,29 @@ QMap<QString, quint32> XDemangle::getSpecInstr(XDemangle::MODE mode)
         mapResult.insert("?_S",ST_LOCALVFTABLE);
         mapResult.insert("?__J",ST_LOCALSTATICTHREADGUARD);
     }
-    else
-    if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
         mapResult.insert("TI",ST_TYPEINFO);
         mapResult.insert("TV",ST_VTABLE);
         mapResult.insert("Th",ST_NONVIRTUALTHUNK);
         mapResult.insert("GV",ST_GUARDVARIABLE);
         mapResult.insert("GT",ST_TRANSACTIONCLONE);
+    }
+
+    return mapResult;
+}
+
+QMap<QString, QString> XDemangle::getStd(MODE mode)
+{
+    QMap<QString,QString> mapResult;
+
+    if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
+    {
+        mapResult.insert("Sa","std::allocator");
+        mapResult.insert("Sb","std::basic_string");
+        mapResult.insert("Ss","std::string");
+        mapResult.insert("Si","std::istream");
+        mapResult.insert("So","std::ostream");
     }
 
     return mapResult;
