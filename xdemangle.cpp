@@ -1824,17 +1824,42 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
         }
     }
 
-    if(nIndex<pHdata->listArgRef.count())
+    if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
     {
-        result.sString=pHdata->listArgRef.at(nIndex);
-        result.nValue=nIndex;
+        if(nIndex<pHdata->listArgRef.count())
+        {
+            result.sString=pHdata->listArgRef.at(nIndex);
+            result.nValue=nIndex;
+        }
+        else
+        {
+            pSymbol->bIsValid=false;
+        #ifdef QT_DEBUG
+            qDebug("Replace Arg Error!!!");
+        #endif
+        }
     }
-    else
+    else if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
     {
-        pSymbol->bIsValid=false;
-    #ifdef QT_DEBUG
-        qDebug("Replace Arg Error!!!");
-    #endif
+        bool bSuccess=false;
+
+        if(pSymbol->paramMain.listDnames.count())
+        {
+            bSuccess=(nIndex<pSymbol->paramMain.listDnames.last().listTemplates.count());
+        }
+
+        if(bSuccess)
+        {
+            result.sString=pSymbol->paramMain.listDnames.last().listTemplates.at(nIndex);
+            result.nValue=nIndex;
+        }
+        else
+        {
+            pSymbol->bIsValid=false;
+        #ifdef QT_DEBUG
+            qDebug("Replace Arg Error!!!");
+        #endif
+        }
     }
 
     return result;
@@ -2142,7 +2167,7 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
 
         if(pParameter->listDnames.at(i)._operator!=OP_UNKNOWN)
         {
-            _sName=operatorIdToString(pParameter->listDnames.at(i)._operator,pSymbol->mode);
+            _sName+=operatorIdToString(pParameter->listDnames.at(i)._operator,pSymbol->mode);
 
             if((pParameter->listDnames.at(i)._operator==OP_CONSTRUCTOR)||(pParameter->listDnames.at(i)._operator==OP_DESTRUCTOR))
             {
@@ -2170,9 +2195,10 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                 }
             }
         }
-        else if(pParameter->listDnames.at(i).sName!="")
+
+        if(pParameter->listDnames.at(i).sName!="")
         {
-            _sName=pParameter->listDnames.at(i).sName;
+            _sName+=pParameter->listDnames.at(i).sName;
         }
 
         sResult+=_sName;
@@ -2484,7 +2510,14 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
     sString=sString.mid(nNSSize,-1);
     nResult+=nNSSize;
 
-    qint32 nPSize=itanium_demangle_Function(pSymbol,pHdata,pParameter,sString,pParameter->bTemplateArgs);
+    bool bReturn=false;
+
+    if(pSymbol->paramMain.listDnames.count())
+    {
+        bReturn=pSymbol->paramMain.listDnames.last().listTemplates.count();
+    }
+
+    qint32 nPSize=itanium_demangle_Function(pSymbol,pHdata,pParameter,sString,bReturn);
 
     sString=sString.mid(nPSize,-1);
     nResult+=nPSize;
@@ -2549,7 +2582,6 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
     while(sString!="")
     {
 //        pHdata->listArgRef.clear();
-        pParameter->bTemplateArgs=false;
 
         DNAME dname={};
 
@@ -2659,16 +2691,13 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
             int nNumberOfArgs=parameter.listParameters.count();
 
-            if(nNumberOfArgs)
-            {
-                pParameter->bTemplateArgs=true;
-            }
-
             for(int i=0;i<nNumberOfArgs;i++)
             {
                 DPARAMETER _parameter=parameter.listParameters.at(i);
                 QString sParameter=itanium_parameterToString(pSymbol,&_parameter,"");
-                addArgRef(pSymbol,pHdata,sParameter);
+//                addArgRef(pSymbol,pHdata,sParameter);
+
+                dname.listTemplates.append(sParameter);
             }
         }
 
@@ -3316,6 +3345,11 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
 //        for(int i=0;i<hdata.listListStringRef.count();i++)
 //        {
 //            qDebug("%d: %s",i,hdata.listListStringRef.at(i).join("<>").toLatin1().data());
+//        }
+
+//        for(int i=0;i<hdata.listArgRef.count();i++)
+//        {
+//            qDebug("%d: %s",i,hdata.listArgRef.at(i).toLatin1().data());
 //        }
 //    #endif
     }

@@ -289,6 +289,7 @@ public:
         QString sName;
 //        QList<QString> listNames;
         OP _operator;
+        QList<QString> listTemplates; // Itanium
     };
 
     struct DPARAMETER
@@ -308,7 +309,6 @@ public:
         QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
         QString sScope;
-        bool bTemplateArgs; // Itanium
     };
 
     struct DSYMBOL
