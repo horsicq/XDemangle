@@ -2587,6 +2587,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
         bool bAdd=true;
         bool bSpecial=false;
+        bool bOperator=false;
 
         if(isReplaceStringPresent(pSymbol,pHdata,sString))
         {
@@ -2645,6 +2646,8 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
             nResult+=signature.nSize;
             sString=sString.mid(signature.nSize,-1);
+
+            bOperator=true;
         }
         else
         {
@@ -2661,7 +2664,14 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             }
         }
 
-        listAddString.append(dname.sName);
+        if(bOperator)
+        {
+            listAddString.append(operatorIdToString(dname._operator,pSymbol->mode));
+        }
+        else
+        {
+            listAddString.append(dname.sName);
+        }
 
         if(_compare(sString,"I")) // Template
         {
@@ -2672,6 +2682,8 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             {
                 addStringListRef(pSymbol,pHdata,listAddString);
             }
+
+            bAdd=true;
 
             DPARAMETER parameter={};
             parameter.st=ST_TEMPLATE;
@@ -2975,6 +2987,11 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         qint32 nNSSize=itanium_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
 
+        if(pHdata->mapStd.contains(sString.left(2))&&(nNSSize==2))
+        {
+            bAdd=false;
+        }
+
         nResult+=nNSSize;
         sString=sString.mid(nNSSize,-1);
 
@@ -2986,6 +3003,8 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
             pSymbol->bIsValid=false;
         }
     }
+
+    QString _sParam=itanium_parameterToString(pSymbol,pParameter,"");
 
     if((pParameter->st!=ST_TYPE)&&(pParameter->st!=ST_CONST)&&bAdd)
     {
