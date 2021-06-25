@@ -2181,6 +2181,11 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                         {
                             sBasic=sBasic.section("<",0,0);
                         }
+
+                        if(sBasic.contains("::"))
+                        {
+                            sBasic=sBasic.section("::",-1,-1);
+                        }
                     }
 
                     _sName+=sBasic;
@@ -2319,6 +2324,14 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
     QString sResult;
 
     QString sName=_nameToString(pSymbol,pParameter);
+
+    if(pParameter->listClass.count())
+    {
+        DPARAMETER parameter=pParameter->listClass.at(0);
+        QString sClass=_nameToString(pSymbol,&parameter);
+
+        sName=QString("(%1::*)").arg(sClass);
+    }
 
     if(pParameter->st==ST_TYPE)
     {
@@ -2899,6 +2912,30 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         nResult+=nFSize;
         sString=sString.mid(nFSize,-1);
     }
+    else if(_compare(sString,"M")) // Pointer to member
+    {
+        nResult+=1;
+        sString=sString.mid(1,-1);
+
+        pParameter->st=ST_POINTER;
+
+        DPARAMETER parameterClass={};
+
+        qint32 nClassSize=itanium_demangle_Type(pSymbol,pHdata,&parameterClass,sString);
+
+        nResult+=nClassSize;
+        sString=sString.mid(nClassSize,-1);
+
+        DPARAMETER parameterMember={};
+
+        qint32 nMemberSize=itanium_demangle_Type(pSymbol,pHdata,&parameterMember,sString);
+
+        nResult+=nMemberSize;
+        sString=sString.mid(nMemberSize,-1);
+
+        parameterMember.listClass.append(parameterClass);
+        pParameter->listPointer.append(parameterMember);
+    }
     else if(_compare(sString,"L")) // Const
     {
         pParameter->st=ST_CONST;
@@ -2998,13 +3035,13 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         if(nNSSize==0)
         {
         #ifdef QT_DEBUG
-            qDebug("TODO: type");
+            qDebug("TODO: type %s",sString.toLatin1().data());
         #endif
             pSymbol->bIsValid=false;
         }
     }
 
-    QString _sParam=itanium_parameterToString(pSymbol,pParameter,"");
+//    QString _sParam=itanium_parameterToString(pSymbol,pParameter,"");
 
     if((pParameter->st!=ST_TYPE)&&(pParameter->st!=ST_CONST)&&bAdd)
     {
@@ -4221,8 +4258,9 @@ QMap<QString, QString> XDemangle::getStd(MODE mode)
         mapResult.insert("Sa","std::allocator");
         mapResult.insert("Sb","std::basic_string");
         mapResult.insert("Ss","std::string");
-        mapResult.insert("Si","std::istream");
+        mapResult.insert("Si","std::istream"); // TODO Check
         mapResult.insert("So","std::ostream");
+        mapResult.insert("Sd","std::basic_iostream<char, std::char_traits<char> >");
     }
 
     return mapResult;

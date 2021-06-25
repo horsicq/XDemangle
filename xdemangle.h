@@ -305,6 +305,7 @@ public:
         FC functionConvention;
         QList<DPARAMETER> listReturn;
         QList<DPARAMETER> listParameters;
+        QList<DPARAMETER> listClass;
         QList<DPARAMETER> listPointer;
         QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
