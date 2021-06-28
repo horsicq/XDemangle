@@ -2161,6 +2161,45 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
     // TODO function
     int nNumberOfNames=pParameter->listDnames.count();
 
+    if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
+    {
+        if(nNumberOfNames>1)
+        {
+            if((pParameter->listDnames.at(nNumberOfNames-1)._operator==OP_CONSTRUCTOR)||(pParameter->listDnames.at(nNumberOfNames-1)._operator==OP_DESTRUCTOR))
+            {
+                QString sOperator=pParameter->listDnames.at(nNumberOfNames-2).sName;
+
+                bool bReplace=false;
+
+                if(sOperator=="std::istream")
+                {
+                    sOperator="std::basic_istream<char, std::char_traits<char> >";
+                    bReplace=true;
+                }
+                else if(sOperator=="std::ostream")
+                {
+                    sOperator="std::basic_ostream<char, std::char_traits<char> >";
+                    bReplace=true;
+                }
+                else if(sOperator=="std::iostream")
+                {
+                    sOperator="std::basic_iostream<char, std::char_traits<char> >";
+                    bReplace=true;
+                }
+                else if(sOperator=="std::string")
+                {
+                    sOperator="std::basic_string<char, std::char_traits<char>, std::allocator<char> >";
+                    bReplace=true;
+                }
+
+                if(bReplace)
+                {
+                    pParameter->listDnames[nNumberOfNames-2].sName=sOperator;
+                }
+            }
+        }
+    }
+
     for(int i=0;i<nNumberOfNames;i++)
     {
         QString _sName;
@@ -2463,14 +2502,19 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
     }
     else if((pParameter->st==ST_VTABLE)||
             (pParameter->st==ST_TYPEINFO)||
+            (pParameter->st==ST_TYPEINFONAME)||
             (pParameter->st==ST_GUARDVARIABLE)||
-            (pParameter->st==ST_TRANSACTIONCLONE))
+            (pParameter->st==ST_TRANSACTIONCLONE)||
+            (pParameter->st==ST_NONVIRTUALTHUNK)||
+            (pParameter->st==ST_VIRTUALTHUNK)||
+            (pParameter->st==ST_VTT)||
+            (pParameter->st==ST_CONSTRUCTIONVTABLE))
     {
         if(pParameter->listTarget.count())
         {
             DPARAMETER parameter=pParameter->listTarget.at(0);
 
-            QString _sName=_nameToString(pSymbol,&parameter);
+            QString _sName=itanium_parameterToString(pSymbol,&parameter,"");
 
             if(pParameter->st==ST_VTABLE)
             {
@@ -2480,6 +2524,10 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
             {
                 sResult+="typeinfo for ";
             }
+            else if(pParameter->st==ST_TYPEINFONAME)
+            {
+                sResult+="typeinfo name for ";
+            }
             else if(pParameter->st==ST_GUARDVARIABLE)
             {
                 sResult+="guard variable for ";
@@ -2488,21 +2536,21 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
             {
                 sResult+="transaction clone for ";
             }
-
-            sResult+=_sName;
-        }
-    }
-    else if(pParameter->st==ST_NONVIRTUALTHUNK)
-    {
-        if(pParameter->listTarget.count())
-        {
-            DPARAMETER parameter=pParameter->listTarget.at(0);
-
-            QString _sName=itanium_parameterToString(pSymbol,&parameter,"");
-
-            if(pParameter->st==ST_NONVIRTUALTHUNK)
+            else if(pParameter->st==ST_NONVIRTUALTHUNK)
             {
                 sResult+="non-virtual thunk to ";
+            }
+            else if(pParameter->st==ST_VIRTUALTHUNK)
+            {
+                sResult+="virtual thunk to ";
+            }
+            else if(pParameter->st==ST_VTT)
+            {
+                sResult+="VTT for ";
+            }
+            else if(pParameter->st==ST_CONSTRUCTIONVTABLE)
+            {
+                sResult+="construction vtable for ";
             }
 
             sResult+=_sName;
@@ -3361,20 +3409,52 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
             DPARAMETER parameter={};
 
             if( (result.paramMain.st==ST_TYPEINFO)||
+                (result.paramMain.st==ST_TYPEINFONAME)||
                 (result.paramMain.st==ST_VTABLE)||
                 (result.paramMain.st==ST_GUARDVARIABLE)||
-                (result.paramMain.st==ST_TRANSACTIONCLONE))
+                (result.paramMain.st==ST_TRANSACTIONCLONE)||
+                (result.paramMain.st==ST_VTT)||
+                (result.paramMain.st==ST_CONSTRUCTIONVTABLE))
             {
-                qint32 nNSSize=itanium_demangle_NameScope(&result,&hdata,&parameter,sString);
+                qint32 nNSSize=itanium_demangle_Type(&result,&hdata,&parameter,sString);
+
                 sString=sString.mid(nNSSize,-1);
                 result.nSize+=nNSSize;
             }
-            else if(result.paramMain.st==ST_NONVIRTUALTHUNK)
+            else if((result.paramMain.st==ST_NONVIRTUALTHUNK))
             {
                 NUMBER number=readNumberS(&hdata,sString,result.mode);
 
                 sString=sString.mid(number.nSize,-1);
                 result.nSize+=number.nSize;
+
+                if(_compare(sString,"_"))
+                {
+                    sString=sString.mid(1,-1);
+                    result.nSize+=1;
+                }
+
+                qint32 nESize=itanium_demangle_Encoding(&result,&hdata,&parameter,sString);
+                sString=sString.mid(nESize,-1);
+                result.nSize+=nESize;
+            }
+            else if((result.paramMain.st==ST_VIRTUALTHUNK))
+            {
+                NUMBER number1=readNumberS(&hdata,sString,result.mode);
+
+                sString=sString.mid(number1.nSize,-1);
+                result.nSize+=number1.nSize;
+
+                if(_compare(sString,"_n"))
+                {
+                    sString=sString.mid(2,-1);
+                    result.nSize+=2;
+                }
+
+                NUMBER number2=readNumberS(&hdata,sString,result.mode);
+
+                sString=sString.mid(number2.nSize,-1);
+                result.nSize+=number2.nSize;
 
                 if(_compare(sString,"_"))
                 {
@@ -4240,10 +4320,14 @@ QMap<QString, quint32> XDemangle::getSpecInstr(XDemangle::MODE mode)
     else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
         mapResult.insert("TI",ST_TYPEINFO);
+        mapResult.insert("TS",ST_TYPEINFONAME);
         mapResult.insert("TV",ST_VTABLE);
         mapResult.insert("Th",ST_NONVIRTUALTHUNK);
+        mapResult.insert("Tv",ST_VIRTUALTHUNK);
         mapResult.insert("GV",ST_GUARDVARIABLE);
-        mapResult.insert("GT",ST_TRANSACTIONCLONE);
+        mapResult.insert("GTt",ST_TRANSACTIONCLONE);
+        mapResult.insert("TT",ST_VTT);
+        mapResult.insert("TC",ST_CONSTRUCTIONVTABLE);
     }
 
     return mapResult;
@@ -4260,7 +4344,7 @@ QMap<QString, QString> XDemangle::getStd(MODE mode)
         mapResult.insert("Ss","std::string");
         mapResult.insert("Si","std::istream"); // TODO Check
         mapResult.insert("So","std::ostream");
-        mapResult.insert("Sd","std::basic_iostream<char, std::char_traits<char> >");
+        mapResult.insert("Sd","std::iostream");
     }
 
     return mapResult;

@@ -169,6 +169,7 @@ public:
         ST_VFTABLE,
         ST_VBTABLE,
         ST_TYPEINFO, // TODO
+        ST_TYPEINFONAME,
         ST_TEMPLATE,
         ST_CONST,
         ST_NAME,
@@ -180,9 +181,12 @@ public:
         ST_RTTICLASSHIERARCHYDESCRIPTOR,
         ST_STRINGLITERALSYMBOL,
         ST_NONVIRTUALTHUNK,
+        ST_VIRTUALTHUNK,
         ST_TARGET,
         ST_GUARDVARIABLE,
-        ST_TRANSACTIONCLONE
+        ST_TRANSACTIONCLONE,
+        ST_VTT,
+        ST_CONSTRUCTIONVTABLE
     };
 
     enum OP
