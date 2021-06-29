@@ -69,32 +69,20 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_LONG:             sResult=QString("long");                break;
         case TYPE_ULONG:            sResult=QString("unsigned long");       break;
         case TYPE_FLOAT:            sResult=QString("float");               break;
+        case TYPE_FLOAT128:         sResult=QString("__float128");          break;
         case TYPE_DOUBLE:           sResult=QString("double");              break;
         case TYPE_LONGDOUBLE_64:    sResult=QString("long double");         break;
         case TYPE_LONGDOUBLE_80:    sResult=QString("long double");         break;
-        case TYPE_INT64:
-            if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
-            {
-                sResult=QString("__int64");
-            }
-            else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
-            {
-                sResult=QString("long long");
-            }
-            break; // TODO Check !!!
-        case TYPE_UINT64:
-            if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
-            {
-                sResult=QString("unsigned __int64");
-            }
-            else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
-            {
-                sResult=QString("unsigned long long");
-            }
-            break; // TODO Check !!!
+        case TYPE_INT64:            sResult=QString("__int64");             break;
+        case TYPE_UINT64:           sResult=QString("unsigned __int64");    break;
+        case TYPE_LONGLONG:         sResult=QString("long long");           break;
+        case TYPE_ULONGLONG:        sResult=QString("unsigned long long");  break;
         case TYPE_CHAR8:            sResult=QString("char8_t");             break;
         case TYPE_CHAR16:           sResult=QString("char16_t");            break;
         case TYPE_CHAR32:           sResult=QString("char32_t");            break;
+        case TYPE_DECIMAL32:        sResult=QString("decimal32");           break;
+        case TYPE_DECIMAL64:        sResult=QString("decimal64");           break;
+        case TYPE_DECIMAL128:       sResult=QString("decimal128");          break;
         case TYPE_WCHAR:            sResult=QString("wchar_t");             break;
         case TYPE_VARARGS:          sResult=QString("...");                 break;
         case TYPE_CLASS:            sResult=QString("class");               break;
@@ -1946,7 +1934,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
     }
     else if(pParameter->st==ST_CONST)
     {
-        sResult=pParameter->varConst.toString();
+        sResult+=pParameter->varConst.toString();
     }
     else if(pParameter->st==ST_NAME)
     {
@@ -2216,9 +2204,14 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
 
                     if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
                     {
-                        if(sBasic.contains("<")) //Template
+                        if(sBasic.contains("<")) // Template
                         {
                             sBasic=sBasic.section("<",0,0);
+                        }
+
+                        if(sBasic.contains("[")) // abi
+                        {
+                            sBasic=sBasic.section("[",0,0);
                         }
 
                         if(sBasic.contains("::"))
@@ -2417,7 +2410,31 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
     }
     else if(pParameter->st==ST_CONST)
     {
-        sResult=pParameter->varConst.toString();
+        if(sName!="")
+        {
+            sResult+=QString("(%1)").arg(sName);
+        }
+
+        QString sValue=pParameter->varConst.toString();
+
+        if(pParameter->typeConst==TYPE_BOOL)
+        {
+            if(sValue=="0")
+            {
+                sValue="false";
+            }
+            else if(sValue=="1")
+            {
+                sValue="true";
+            }
+        }
+
+        sResult+=sValue;
+
+        if(pParameter->typeConst==TYPE_UINT)
+        {
+            sResult+="u";
+        }
     }
     else if(pParameter->st==ST_TEMPLATE)
     {
@@ -2774,6 +2791,19 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             }
         }
 
+        if(_compare(sString,"B")) // abi::source
+        {
+            nResult++;
+            sString=sString.mid(1,-1);
+
+            STRING string=readString(pHdata,sString,pSymbol->mode);
+
+            dname.sName+=QString("[abi:%1]").arg(string.sString);
+
+            nResult+=string.nSize;
+            sString=sString.mid(string.nSize,-1);
+        }
+
         pParameter->listDnames.append(dname);
 
         if(bNested&&_compare(sString,"E"))
@@ -2990,10 +3020,12 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         nResult+=1;
         sString=sString.mid(1,-1);
 
-        if(_compare(sString,"i")) // Number
+        qint32 nNSSize=itanium_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
+
+        if(nNSSize)
         {
-            nResult+=1;
-            sString=sString.mid(1,-1);
+            nResult+=nNSSize;
+            sString=sString.mid(nNSSize,-1);
 
             NUMBER number=readNumberS(pHdata,sString,pSymbol->mode);
 
@@ -3002,34 +3034,28 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
             nResult+=number.nSize;
             sString=sString.mid(number.nSize,-1);
         }
-        else if(_compare(sString,"b"))
+        else if(isSignaturePresent(sString,&(pHdata->mapTypes)))
         {
-            nResult+=1;
-            sString=sString.mid(1,-1);
+            SIGNATURE signature=getSignature(sString,&(pHdata->mapTypes));
 
-            if(_compare(sString,"0"))
-            {
-                pParameter->varConst="false";
-            }
-            else if(_compare(sString,"1"))
-            {
-                pParameter->varConst="true";
-            }
-            else
-            {
-            #ifdef QT_DEBUG
-                qDebug("TODO: unknown bool");
-            #endif
-                pSymbol->bIsValid=false;
-            }
+            pParameter->typeConst=(TYPE)signature.nValue;
 
-            nResult+=1;
-            sString=sString.mid(1,-1);
+            nResult+=signature.nSize;
+            sString=sString.mid(signature.nSize,-1);
+
+            NUMBER number=readNumberS(pHdata,sString,pSymbol->mode);
+
+            pParameter->varConst=number.nValue;
+
+            nResult+=number.nSize;
+            sString=sString.mid(number.nSize,-1);
+
+            pSymbol->bIsValid=true;
         }
         else
         {
         #ifdef QT_DEBUG
-            qDebug("TODO: unknown const");
+            qDebug("TODO: unknown const %s",sString.toLatin1().data());
         #endif
             pSymbol->bIsValid=false;
         }
@@ -3939,15 +3965,19 @@ QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("l",TYPE_LONG);
         mapResult.insert("m",TYPE_ULONG);
         mapResult.insert("f",TYPE_FLOAT);
+        mapResult.insert("g",TYPE_FLOAT128);
         mapResult.insert("d",TYPE_DOUBLE);
         mapResult.insert("e",TYPE_LONGDOUBLE_64);
         mapResult.insert("z",TYPE_VARARGS);
-        mapResult.insert("x",TYPE_INT64);
-        mapResult.insert("y",TYPE_UINT64);
+        mapResult.insert("x",TYPE_LONGLONG);
+        mapResult.insert("y",TYPE_ULONGLONG);
         mapResult.insert("b",TYPE_BOOL);
         mapResult.insert("Du",TYPE_CHAR8);
         mapResult.insert("Ds",TYPE_CHAR16);
         mapResult.insert("Di",TYPE_CHAR32);
+        mapResult.insert("Df",TYPE_DECIMAL32);
+        mapResult.insert("Dd",TYPE_DECIMAL64);
+        mapResult.insert("De",TYPE_DECIMAL128);
         mapResult.insert("w",TYPE_WCHAR);
         mapResult.insert("Dn",TYPE_NULLPTR);
     }

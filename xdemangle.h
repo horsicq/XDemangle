@@ -74,11 +74,17 @@ public:
         TYPE_LONG,
         TYPE_ULONG,
         TYPE_FLOAT,
+        TYPE_FLOAT128,
         TYPE_DOUBLE,
         TYPE_LONGDOUBLE_64,
         TYPE_LONGDOUBLE_80,
         TYPE_INT64,
         TYPE_UINT64,
+        TYPE_LONGLONG,
+        TYPE_ULONGLONG,
+        TYPE_DECIMAL32,
+        TYPE_DECIMAL64,
+        TYPE_DECIMAL128,
         TYPE_CHAR8,
         TYPE_CHAR16,
         TYPE_CHAR32,
@@ -300,6 +306,7 @@ public:
     {
         QList<DNAME> listDnames;
         TYPE type;
+        TYPE typeConst;
         QVariant varConst;
         ST st;
         OC objectClass;
