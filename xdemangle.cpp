@@ -2371,6 +2371,12 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
 
         sResult=sType;
     }
+    else if(pParameter->st==ST_PACKEDTYPE)
+    {
+        QString sType=typeIdToString(pParameter->type,pSymbol->mode);
+
+        sResult=sType+"...";
+    }
     else if(pParameter->st==ST_POINTER)
     {
         DPARAMETER lastParameter=getLastPointerParameter(pParameter);
@@ -2500,7 +2506,7 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
             {
                 DPARAMETER parameter=pParameter->listParameters.at(i);
 
-                if(parameter.type==TYPE_VOID)
+                if((parameter.st==ST_TYPE)&&(parameter.type==TYPE_VOID))
                 {
                     break;
                 }
@@ -3085,6 +3091,31 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
             nResult+=1;
             sString=sString.mid(1,-1);
         }
+    }
+//    else if(_compare(sString,"J"))
+//    {
+//        nResult+=1;
+//        sString=sString.mid(1,-1);
+
+//        qint32 nPSize=itanium_demangle_Parameters(pSymbol,pHdata,pParameter,sString);
+
+//        nResult+=nPSize;
+//        sString=sString.mid(nPSize,-1);
+
+////        QString sTemplate=itanium_parameterToString(pSymbol,&parameter,"");
+
+////        dname.sName+=sTemplate;
+//    }
+    else if(_compare(sString,"Dp"))
+    {
+        nResult+=2;
+        sString=sString.mid(2,-1);
+
+        qint32 nPSize=itanium_demangle_Type(pSymbol,pHdata,pParameter,sString);
+        pParameter->st=ST_PACKEDTYPE;
+
+        nResult+=nPSize;
+        sString=sString.mid(nPSize,-1);
     }
     else if(isSignaturePresent(sString,&(pHdata->mapTypes))) // Simple types
     {

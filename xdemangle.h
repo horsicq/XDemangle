@@ -169,6 +169,7 @@ public:
         ST_UNKNOWN=0,
         ST_VARIABLE,
         ST_TYPE,
+        ST_PACKEDTYPE,
         ST_FUNCTION,
         ST_POINTER,
         ST_VTABLE,
