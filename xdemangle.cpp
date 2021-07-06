@@ -1831,21 +1831,22 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
     {
         bool bSuccess=false;
 
-        if(pSymbol->paramMain.listDnames.count())
+        if(pSymbol->listListTemplates.count())
         {
-            bSuccess=(nIndex<pSymbol->paramMain.listDnames.last().listTemplates.count());
+            QList<QString> listTest=pSymbol->listListTemplates.last();
+            bSuccess=(nIndex<pSymbol->listListTemplates.last().count());
         }
 
         if(bSuccess)
         {
-            result.sString=pSymbol->paramMain.listDnames.last().listTemplates.at(nIndex);
+            result.sString=pSymbol->listListTemplates.last().at(nIndex);
             result.nValue=nIndex;
         }
         else
         {
             pSymbol->bIsValid=false;
         #ifdef QT_DEBUG
-            qDebug("Replace Arg Error!!!");
+            qDebug("Replace Arg Error!!! %d",pSymbol->listListTemplates.count());
         #endif
         }
     }
@@ -2600,9 +2601,9 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
 
     bool bReturn=false;
 
-    if(pSymbol->paramMain.listDnames.count())
+    if(pParameter->listDnames.count())
     {
-        bReturn=pSymbol->paramMain.listDnames.last().listTemplates.count();
+        bReturn=pParameter->listDnames.last().bTemplates;
     }
 
     qint32 nPSize=itanium_demangle_Function(pSymbol,pHdata,pParameter,sString,bReturn);
@@ -2783,6 +2784,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             QString sTemplate=itanium_parameterToString(pSymbol,&parameter,"");
 
             dname.sName+=sTemplate;
+            dname.bTemplates=true;
 
             if(listAddString.count())
             {
@@ -2791,14 +2793,18 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
             int nNumberOfArgs=parameter.listParameters.count();
 
+            QList<QString> listTemplates;
+
             for(int i=0;i<nNumberOfArgs;i++)
             {
                 DPARAMETER _parameter=parameter.listParameters.at(i);
                 QString sParameter=itanium_parameterToString(pSymbol,&_parameter,"");
 //                addArgRef(pSymbol,pHdata,sParameter);
 
-                dname.listTemplates.append(sParameter);
+                listTemplates.append(sParameter);
             }
+
+            pSymbol->listListTemplates.append(listTemplates);
         }
 
         if(_compare(sString,"B")) // abi::source
@@ -3092,20 +3098,49 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
             sString=sString.mid(1,-1);
         }
     }
-//    else if(_compare(sString,"J"))
-//    {
-//        nResult+=1;
-//        sString=sString.mid(1,-1);
+    else if(_compare(sString,"J"))
+    {
+        nResult+=1;
+        sString=sString.mid(1,-1);
 
-//        qint32 nPSize=itanium_demangle_Parameters(pSymbol,pHdata,pParameter,sString);
+//        pSymbol->bIsValid=true;
 
-//        nResult+=nPSize;
-//        sString=sString.mid(nPSize,-1);
+        DPARAMETER parameter={};
+        parameter.st=ST_TEMPLATE;
+        qint32 nPSize=itanium_demangle_Parameters(pSymbol,pHdata,&parameter,sString);
 
-////        QString sTemplate=itanium_parameterToString(pSymbol,&parameter,"");
+        nResult+=nPSize;
+        sString=sString.mid(nPSize,-1);
 
-////        dname.sName+=sTemplate;
-//    }
+        QString sTemplate=itanium_parameterToString(pSymbol,&parameter,"");
+
+        pParameter->st=ST_NAME;
+
+        DNAME dname;
+        dname.sName+=sTemplate;
+        pParameter->listDnames.append(dname);
+
+        int nNumberOfArgs=parameter.listParameters.count();
+
+        QList<QString> listTemplates;
+
+        for(int i=0;i<nNumberOfArgs;i++)
+        {
+            DPARAMETER _parameter=parameter.listParameters.at(i);
+            QString sParameter=itanium_parameterToString(pSymbol,&_parameter,"");
+//                addArgRef(pSymbol,pHdata,sParameter);
+
+            listTemplates.append(sParameter);
+        }
+
+        pSymbol->listListTemplates.append(listTemplates);
+
+        if(_compare(sString,"E"))
+        {
+            nResult+=1;
+            sString=sString.mid(1,-1);
+        }
+    }
     else if(_compare(sString,"Dp"))
     {
         nResult+=2;
@@ -3558,6 +3593,14 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
 //        for(int i=0;i<hdata.listArgRef.count();i++)
 //        {
 //            qDebug("%d: %s",i,hdata.listArgRef.at(i).toLatin1().data());
+//        }
+
+//        for(int i=0;i<result.listListTemplates.count();i++)
+//        {
+//            for(int j=0;j<result.listListTemplates.at(i).count();j++)
+//            {
+//                qDebug("%d %d: %s",i,j,result.listListTemplates.at(i).at(j).toLatin1().data());
+//            }
 //        }
 //    #endif
     }

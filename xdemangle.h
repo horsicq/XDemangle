@@ -300,7 +300,8 @@ public:
         QString sName;
 //        QList<QString> listNames;
         OP _operator;
-        QList<QString> listTemplates; // Itanium
+        bool bTemplates; // Itanium
+//        QList<QString> listTemplates; // Itanium
     };
 
     struct DPARAMETER
@@ -330,6 +331,7 @@ public:
         qint32 nSize;
         MODE mode;
         DPARAMETER paramMain;
+        QList<QList<QString>> listListTemplates; // Itanium
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
