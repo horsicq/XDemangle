@@ -1833,7 +1833,6 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
 
         if(pSymbol->listListTemplates.count())
         {
-            QList<QString> listTest=pSymbol->listListTemplates.last();
             bSuccess=(nIndex<pSymbol->listListTemplates.last().count());
         }
 
@@ -1848,6 +1847,9 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
         #ifdef QT_DEBUG
             qDebug("Replace Arg Error!!! %d",pSymbol->listListTemplates.count());
         #endif
+//            pSymbol->bIsValid=true;
+//            result.sString="TEST";
+//            result.nValue=nIndex;
         }
     }
 
@@ -2805,6 +2807,8 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             }
 
             pSymbol->listListTemplates.append(listTemplates);
+
+            pParameter->bTemplatePresent=true;
         }
 
         if(_compare(sString,"B")) // abi::source
@@ -2886,6 +2890,11 @@ qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDema
         sString=sString.mid(nPSize,-1);
 
         pParameter->listParameters.append(parameter);
+
+        if(parameter.bTemplatePresent&&(pSymbol->listListTemplates.count()))
+        {
+            pSymbol->listListTemplates.removeLast();
+        }
 
         if(nPSize==0)
         {
@@ -3114,11 +3123,11 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         QString sTemplate=itanium_parameterToString(pSymbol,&parameter,"");
 
-        pParameter->st=ST_NAME;
+//        pParameter->st=ST_NAME;
 
-        DNAME dname;
-        dname.sName+=sTemplate;
-        pParameter->listDnames.append(dname);
+//        DNAME dname;
+//        dname.sName+=sTemplate;
+//        pParameter->listDnames.append(dname);
 
         int nNumberOfArgs=parameter.listParameters.count();
 
@@ -3134,6 +3143,8 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         }
 
         pSymbol->listListTemplates.append(listTemplates);
+
+        pParameter->bTemplatePresent=true;
 
         if(_compare(sString,"E"))
         {

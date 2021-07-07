@@ -323,6 +323,7 @@ public:
         QList<DPARAMETER> listTarget;
         QList<qint64> listIndexes; // For var[x][y]
         QString sScope;
+        bool bTemplatePresent; // Itanium
     };
 
     struct DSYMBOL
@@ -331,7 +332,7 @@ public:
         qint32 nSize;
         MODE mode;
         DPARAMETER paramMain;
-        QList<QList<QString>> listListTemplates; // Itanium
+        QList<QList<QString>> listListTemplates; // Itanium mb move to hData;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
