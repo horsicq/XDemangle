@@ -6,3 +6,8 @@ HEADERS += \
 
 SOURCES += \
     $$PWD/xdemangle.cpp
+
+!contains(XCONFIG, xcppfilt) {
+    XCONFIG += xcppfilt
+    include($$PWD/../XCppfilt/xcppfilt.pri)
+}

@@ -1779,6 +1779,8 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
 {
     SIGNATURE result={};
 
+    QString sOrigString=sString;
+
     qint32 nIndex=0;
 
     if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
@@ -1831,21 +1833,22 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
     {
         bool bSuccess=false;
 
-        if(pSymbol->listListTemplates.count())
+        if(pHdata->listListTemplates.count())
         {
-            bSuccess=(nIndex<pSymbol->listListTemplates.last().count());
+            qint32 nCount=pHdata->listListTemplates.first().count();
+            bSuccess=(nIndex<nCount);
         }
 
         if(bSuccess)
         {
-            result.sString=pSymbol->listListTemplates.last().at(nIndex);
+            result.sString=pHdata->listListTemplates.first().at(nIndex);
             result.nValue=nIndex;
         }
         else
         {
             pSymbol->bIsValid=false;
         #ifdef QT_DEBUG
-            qDebug("Replace Arg Error!!! %d",pSymbol->listListTemplates.count());
+            qDebug("Replace Arg Error!!! %d %d %s",pHdata->listListTemplates.count(),nIndex,sOrigString.toLatin1().data());
         #endif
 //            pSymbol->bIsValid=true;
 //            result.sString="TEST";
@@ -2605,7 +2608,7 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
 
     if(pParameter->listDnames.count())
     {
-        bReturn=pParameter->listDnames.last().bTemplates;
+        bReturn=pParameter->listDnames.last().bTemplates; // TODO Check!!!
     }
 
     qint32 nPSize=itanium_demangle_Function(pSymbol,pHdata,pParameter,sString,bReturn);
@@ -2806,7 +2809,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
                 listTemplates.append(sParameter);
             }
 
-            pSymbol->listListTemplates.append(listTemplates);
+            pHdata->listListTemplates.append(listTemplates);
 
             pParameter->bTemplatePresent=true;
         }
@@ -2891,10 +2894,10 @@ qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDema
 
         pParameter->listParameters.append(parameter);
 
-        if(parameter.bTemplatePresent&&(pSymbol->listListTemplates.count()))
-        {
-            pSymbol->listListTemplates.removeLast();
-        }
+//        if(parameter.bTemplatePresent&&(pSymbol->listListTemplates.count()))
+//        {
+//            pSymbol->listListTemplates.removeLast();
+//        }
 
         if(nPSize==0)
         {
@@ -3142,7 +3145,7 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
             listTemplates.append(sParameter);
         }
 
-        pSymbol->listListTemplates.append(listTemplates);
+        pHdata->listListTemplates.append(listTemplates);
 
         pParameter->bTemplatePresent=true;
 
@@ -3349,13 +3352,20 @@ QString XDemangle::demangle(QString sString, XDemangle::MODE mode)
 {
     QString sResult;
 
-    DSYMBOL symbol=_getSymbol(sString,mode);
-
-    sResult=dsymbolToString(symbol);
-
-    if(sResult=="")
+    if(mode==MODE_GNU_V3)
     {
-        sResult=sString;
+        sResult=XCppfilt::demangleGnuV3(sString);
+    }
+    else
+    {
+        DSYMBOL symbol=_getSymbol(sString,mode);
+
+        sResult=dsymbolToString(symbol);
+
+        if(sResult=="")
+        {
+            sResult=sString;
+        }
     }
 
     return sResult;
@@ -3606,11 +3616,11 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
 //            qDebug("%d: %s",i,hdata.listArgRef.at(i).toLatin1().data());
 //        }
 
-//        for(int i=0;i<result.listListTemplates.count();i++)
+//        for(int i=0;i<hdata.listListTemplates.count();i++)
 //        {
-//            for(int j=0;j<result.listListTemplates.at(i).count();j++)
+//            for(int j=0;j<hdata.listListTemplates.at(i).count();j++)
 //            {
-//                qDebug("%d %d: %s",i,j,result.listListTemplates.at(i).at(j).toLatin1().data());
+//                qDebug("%d %d: %s",i,j,hdata.listListTemplates.at(i).at(j).toLatin1().data());
 //            }
 //        }
 //    #endif
@@ -3663,9 +3673,9 @@ QList<XDemangle::MODE> XDemangle::getSupportedModes()
     QList<MODE> listResult;
 
     listResult.append(MODE_AUTO);
-    listResult.append(MODE_GCC);
-    listResult.append(MODE_GCC_MAC);
-    listResult.append(MODE_GCC_WIN32);
+    listResult.append(MODE_GNU_V3);
+//    listResult.append(MODE_GCC_MAC);
+//    listResult.append(MODE_GCC_WIN32);
     listResult.append(MODE_MSVC);
     listResult.append(MODE_MSVC32);
     listResult.append(MODE_MSVC64);

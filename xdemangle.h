@@ -27,6 +27,7 @@
 #ifdef QT_DEBUG
 #include <QDebug>
 #endif
+#include "xcppfilt.h"
 
 class XDemangle : public QObject
 {
@@ -40,6 +41,7 @@ public:
         MODE_MSVC, // Generic
         MODE_MSVC32,
         MODE_MSVC64,
+        MODE_GNU_V3,
         MODE_GCC, // Generic
         MODE_GCC_WIN32,
         MODE_GCC_MAC,
@@ -293,6 +295,7 @@ public:
         QList<QString> listStringRef; // MS
         QList<QString> listArgRef; // MS Itanium templates
         QList<QList<QString>> listListStringRef; // Itanium
+        QList<QList<QString>> listListTemplates; // Itanium
     };
 
     struct DNAME
@@ -332,7 +335,6 @@ public:
         qint32 nSize;
         MODE mode;
         DPARAMETER paramMain;
-        QList<QList<QString>> listListTemplates; // Itanium mb move to hData;
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
