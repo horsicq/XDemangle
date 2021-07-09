@@ -36,9 +36,10 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
         case MODE_MSVC:         sResult=QString("MSVC+++");             break;
         case MODE_MSVC32:       sResult=QString("MSVC+++ 32");          break;
         case MODE_MSVC64:       sResult=QString("MSVC+++ 64");          break;
-        case MODE_GCC:          sResult=QString("GNU C++");             break;
-        case MODE_GCC_WIN32:    sResult=QString("GNU C++ for Win32");   break;
+        case MODE_GNU_V3:       sResult=QString("GNU V3");              break;
+        case MODE_GCC_WIN:      sResult=QString("GNU C++ for Windows"); break;
         case MODE_GCC_MAC:      sResult=QString("GNU C++ for MacOS");   break;
+        case MODE_JAVA:         sResult=QString("Java");                break;
         case MODE_WATCOM:       sResult=QString("Watcom");              break;
         case MODE_BORLAND32:    sResult=QString("Borland 32");          break;
         case MODE_BORLAND64:    sResult=QString("Borland 64");          break;
@@ -335,9 +336,9 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     {
         result=SYNTAX_MICROSOFT;
     }
-    else if((mode==MODE_GCC)||
+    else if((mode==MODE_GNU_V3)||
             (mode==MODE_GCC_MAC)||
-            (mode==MODE_GCC_WIN32))
+            (mode==MODE_GCC_WIN))
     {
         result=SYNTAX_ITANIUM;
     }
@@ -2621,7 +2622,7 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
         pParameter->st=ST_FUNCTION;
     }
 
-    if(_compare(sString,"@")&&(pSymbol->mode==MODE_GCC_WIN32))
+    if(_compare(sString,"@")&&(pSymbol->mode==MODE_GCC_WIN))
     {
         if(pParameter->functionConvention!=FC_FASTCALL)
         {
@@ -2917,7 +2918,7 @@ qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDema
             break;
         }
 
-        if(_compare(sString,"@")&&(pSymbol->mode==MODE_GCC_WIN32))
+        if(_compare(sString,"@")&&(pSymbol->mode==MODE_GCC_WIN))
         {
             break;
         }
@@ -3177,7 +3178,7 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
     }
     else if(_compare(sString,"@"))
     {
-        if(pSymbol->mode!=MODE_GCC_WIN32)
+        if(pSymbol->mode!=MODE_GCC_WIN)
         {
             pSymbol->bIsValid=false;
         }
@@ -3356,16 +3357,50 @@ QString XDemangle::demangle(QString sString, XDemangle::MODE mode)
     {
         sResult=XCppfilt::demangleGnuV3(sString);
     }
+    else if(mode==MODE_GCC_WIN)
+    {
+        QString sPrefix;
+        if(_compare(sString,"@_Z"))
+        {
+            sString=sString.mid(1,-1);
+            sPrefix="fastcall";
+        }
+
+        if(sString.section("@",-1,-1).toInt())
+        {
+            sString=sString.section("@",0,-2);
+        }
+
+        sResult=XCppfilt::demangleGnuV3(sString);
+
+        if(sPrefix!="")
+        {
+            sResult=QString("%1 %2").arg(sPrefix,sResult);
+        }
+    }
+    else if(mode==MODE_GCC_MAC)
+    {
+        if(_compare(sString,"__Z"))
+        {
+            sString=sString.mid(1,-1);
+        }
+
+        sResult=XCppfilt::demangleGnuV3(sString);
+    }
+    else if(mode==MODE_JAVA)
+    {
+        sResult=XCppfilt::demangleJavaV3(sString);
+    }
     else
     {
         DSYMBOL symbol=_getSymbol(sString,mode);
 
         sResult=dsymbolToString(symbol);
+    }
 
-        if(sResult=="")
-        {
-            sResult=sString;
-        }
+    if(sResult=="")
+    {
+        sResult=sString;
     }
 
     return sResult;
@@ -3500,8 +3535,8 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
     DSYMBOL result={};
 
     if( _compare(sString,"_Z")||
-        (_compare(sString,"@_Z")&&(mode==MODE_GCC_WIN32))||
-        (_compare(sString,"__Z")&&((mode==MODE_GCC)||(mode==MODE_GCC_MAC))))
+        (_compare(sString,"@_Z")&&(mode==MODE_GCC_WIN))||
+        (_compare(sString,"__Z")&&((mode==MODE_GNU_V3)||(mode==MODE_GCC_MAC))))
     {
         HDATA hdata=getHdata(mode);
 
@@ -3631,7 +3666,7 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
 
 XDemangle::MODE XDemangle::detectMode(QString sString)
 {
-    MODE result=MODE_GCC;
+    MODE result=MODE_GNU_V3;
 
     if(_compare(sString,"?")&&(sString.contains("@")))
     {
@@ -3639,11 +3674,11 @@ XDemangle::MODE XDemangle::detectMode(QString sString)
     }
     else if(_compare(sString,"@_Z")||(_compare(sString,"_Z")&&(sString.section("@",-1,-1).toUInt())))
     {
-        result=MODE_GCC_WIN32;
+        result=MODE_GCC_WIN;
     }
     else if(_compare(sString,"_Z"))
     {
-        result=MODE_GCC;
+        result=MODE_GNU_V3;
     }
     else if(_compare(sString,"__Z"))
     {
@@ -3659,9 +3694,9 @@ QList<XDemangle::MODE> XDemangle::getAllModes()
 
     listResult.append(MODE_AUTO);
     listResult.append(MODE_MSVC32);
-    listResult.append(MODE_GCC);
+    listResult.append(MODE_GNU_V3);
     listResult.append(MODE_GCC_MAC);
-    listResult.append(MODE_GCC_WIN32);
+    listResult.append(MODE_GCC_WIN);
     listResult.append(MODE_BORLAND32);
     listResult.append(MODE_WATCOM);
 
@@ -3674,11 +3709,12 @@ QList<XDemangle::MODE> XDemangle::getSupportedModes()
 
     listResult.append(MODE_AUTO);
     listResult.append(MODE_GNU_V3);
-//    listResult.append(MODE_GCC_MAC);
-//    listResult.append(MODE_GCC_WIN32);
+    listResult.append(MODE_GCC_MAC);
+    listResult.append(MODE_GCC_WIN);
     listResult.append(MODE_MSVC);
     listResult.append(MODE_MSVC32);
     listResult.append(MODE_MSVC64);
+    listResult.append(MODE_JAVA);
 
     return listResult;
 }

@@ -41,10 +41,10 @@ public:
         MODE_MSVC, // Generic
         MODE_MSVC32,
         MODE_MSVC64,
-        MODE_GNU_V3,
-        MODE_GCC, // Generic
-        MODE_GCC_WIN32,
+        MODE_GNU_V3, // Generic
+        MODE_GCC_WIN,
         MODE_GCC_MAC,
+        MODE_JAVA,
         MODE_BORLAND32,
         MODE_BORLAND64,
         MODE_WATCOM
