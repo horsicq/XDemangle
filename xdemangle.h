@@ -47,7 +47,8 @@ public:
         MODE_JAVA,
         MODE_BORLAND32,
         MODE_BORLAND64,
-        MODE_WATCOM
+        MODE_WATCOM,
+        MODE_RUST
         // TODO more
     };
 
