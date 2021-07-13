@@ -11,3 +11,8 @@ SOURCES += \
     XCONFIG += xcppfilt
     include($$PWD/../XCppfilt/xcppfilt.pri)
 }
+
+!contains(XCONFIG, xarchive) {
+    XCONFIG += xarchive
+    include($$PWD/../XArchive/xarchive.pri)
+}

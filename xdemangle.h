@@ -344,7 +344,7 @@ public:
     static QString storageClassIdToString(SC storageClass,MODE mode);
     static QString objectClassIdToString(OC objectClass,MODE mode);
     static QString paramModIdToString(quint32 nParamMod,MODE mode); // TODO rename
-    static QString accessIdToString(quint32 nFunctionMod, MODE mode);
+    static QString accessIdToString(quint32 nFunctionMod,MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);
     static QString qualIdToPointerString(quint32 nQual,MODE mode);
@@ -354,6 +354,7 @@ public:
     DSYMBOL _getSymbol(QString sString,MODE mode);
     DSYMBOL ms_getSymbol(QString sString,MODE mode,HDATA *pHdata=nullptr);
     DSYMBOL itanium_getSymbol(QString sString,MODE mode);
+    DSYMBOL borland_getSymbol(QString sString,MODE mode);
 
     static MODE detectMode(QString sString);
 

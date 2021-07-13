@@ -3392,9 +3392,19 @@ QString XDemangle::demangle(QString sString, XDemangle::MODE mode)
     {
         sResult=XCppfilt::demangleJavaV3(sString);
     }
-    else
+    else if(mode==MODE_RUST)
     {
-        DSYMBOL symbol=_getSymbol(sString,mode);
+        sResult=XCppfilt::demangleRust(sString);
+    }
+    else if(mode==MODE_BORLAND32)
+    {
+        DSYMBOL symbol=borland_getSymbol(sString,mode);
+
+        sResult=dsymbolToString(symbol);
+    }
+    else if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
+    {
+        DSYMBOL symbol=ms_getSymbol(sString,mode);
 
         sResult=dsymbolToString(symbol);
     }
@@ -3665,6 +3675,21 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
     return result;
 }
 
+XDemangle::DSYMBOL XDemangle::borland_getSymbol(QString sString, MODE mode)
+{
+    DSYMBOL result={};
+
+    if(_compare(sString,"@"))
+    {
+        HDATA hdata=getHdata(mode);
+
+        result.bIsValid=true;
+        result.mode=mode;
+    }
+
+    return result;
+}
+
 XDemangle::MODE XDemangle::detectMode(QString sString)
 {
     MODE result=MODE_GNU_V3;
@@ -3716,6 +3741,7 @@ QList<XDemangle::MODE> XDemangle::getSupportedModes()
     listResult.append(MODE_MSVC32);
     listResult.append(MODE_MSVC64);
     listResult.append(MODE_JAVA);
+    listResult.append(MODE_RUST);
 
     return listResult;
 }
