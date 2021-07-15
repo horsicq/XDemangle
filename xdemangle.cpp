@@ -3844,6 +3844,23 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString, XDemangle
             result.sOriginal+=result.sString;
         }
     }
+    else if(mode==MODE_BORLAND32)
+    {
+        if(_compare(sString,"@"))
+        {
+            result.sOriginal+=sString.at(0);
+            sString=sString.mid(1,-1);
+            result.nSize++;
+
+            while((sString!="")&&(!_compare(sString,"@"))&&(!_compare(sString,"$")))
+            {
+                result.sOriginal+=sString.at(0);
+                result.sString+=sString.at(0);
+                result.nSize++;
+                sString=sString.mid(1,-1);
+            }
+        }
+    }
 
     return result;
 }
