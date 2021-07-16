@@ -343,6 +343,10 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     {
         result=SYNTAX_ITANIUM;
     }
+    else if(mode==MODE_BORLAND32)
+    {
+        result=SYNTAX_BORLAND;
+    }
 
     return result;
 }
@@ -3350,6 +3354,56 @@ QString XDemangle::join(QList<QString> *pListStrings, QString sJoin)
     return sResult;
 }
 
+qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    pParameter->st=ST_VARIABLE;
+
+    qint32 nNSSize=borland_demangle_NameScope(pSymbol,pHdata,pParameter,sString);
+
+    sString=sString.mid(nNSSize,-1);
+    nResult+=nNSSize;
+
+    return nResult;
+}
+
+qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    while(sString!="")
+    {
+        STRING string=readString(pHdata,sString,pSymbol->mode);
+
+        if(string.nSize==0)
+        {
+            break;
+        }
+
+        DNAME dname={};
+        dname.sName=string.sString;
+
+        pParameter->listDnames.append(dname);
+
+        sString=sString.mid(string.nSize,-1);
+        nResult+=string.nSize;
+    }
+
+    return nResult;
+}
+
+QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter)
+{
+    QString sResult;
+
+    QString sName=_nameToString(pSymbol,pParameter);
+
+    sResult=sName;
+
+    return sResult;
+}
+
 QString XDemangle::demangle(QString sString, XDemangle::MODE mode)
 {
     QString sResult;
@@ -3685,6 +3739,8 @@ XDemangle::DSYMBOL XDemangle::borland_getSymbol(QString sString, MODE mode)
 
         result.bIsValid=true;
         result.mode=mode;
+
+        result.nSize+=borland_demangle_Encoding(&result,&hdata,&(result.paramMain),sString);
     }
 
     return result;
@@ -3802,6 +3858,10 @@ QString XDemangle::dsymbolToString(XDemangle::DSYMBOL symbol)
         {
             sResult=itanium_parameterToString(&symbol,&(symbol.paramMain),"");
         }
+        else if(getSyntaxFromMode(symbol.mode)==SYNTAX_BORLAND)
+        {
+            sResult=borland_parameterToString(&symbol,&(symbol.paramMain));
+        }
     }
 
     return sResult;
@@ -3844,7 +3904,7 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString, XDemangle
             result.sOriginal+=result.sString;
         }
     }
-    else if(mode==MODE_BORLAND32)
+    else if(getSyntaxFromMode(mode)==SYNTAX_BORLAND)
     {
         if(_compare(sString,"@"))
         {

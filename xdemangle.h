@@ -57,7 +57,7 @@ public:
         SYNTAX_UNKNOWN=0,
         SYNTAX_MICROSOFT,
         SYNTAX_ITANIUM,
-        SYNTAX_BORLAND32,
+        SYNTAX_BORLAND,
         SYNTAX_WATCOM
     };
 
@@ -483,6 +483,10 @@ private:
     QString itanium_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
 
     static QString join(QList<QString> *pListStrings,QString sJoin);
+
+    qint32 borland_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 borland_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    QString borland_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
 };
 
 #endif // XDEMANGLE_H
