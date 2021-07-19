@@ -3365,6 +3365,29 @@ qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPA
     sString=sString.mid(nNSSize,-1);
     nResult+=nNSSize;
 
+    if(_compare(sString,"$"))
+    {
+        sString=sString.mid(1,-1);
+        nResult+=1;
+    }
+
+    if(_compare(sString,"q"))
+    {
+        sString=sString.mid(1,-1);
+        nResult+=1;
+
+        pParameter->st=ST_FUNCTION;
+    }
+
+//    while(sString!="")
+//    {
+//        // TODO
+////        DPARAMETER parameter={};
+
+////        qint32 nPSize=borland_demangle_Type(pSymbol,pHdata,&parameter,sString);
+
+//    }
+
     return nResult;
 }
 
