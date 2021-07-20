@@ -663,7 +663,7 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
     else
     {
     #ifdef QT_DEBUG
-        qDebug("TODO: TYPE");
+        qDebug("%s","TODO: TYPE");
     #endif
         pSymbol->bIsValid=false;
     }
@@ -3377,16 +3377,24 @@ qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPA
         nResult+=1;
 
         pParameter->st=ST_FUNCTION;
+
+        while(sString!="")
+        {
+            DPARAMETER parameter={};
+
+            qint32 nPSize=borland_demangle_Type(pSymbol,pHdata,&parameter,sString);
+
+            pParameter->listParameters.append(parameter);
+
+            sString=sString.mid(nPSize,-1);
+            nResult+=nPSize;
+
+            if(!(pSymbol->bIsValid))
+            {
+                break;
+            }
+        }
     }
-
-//    while(sString!="")
-//    {
-//        // TODO
-////        DPARAMETER parameter={};
-
-////        qint32 nPSize=borland_demangle_Type(pSymbol,pHdata,&parameter,sString);
-
-//    }
 
     return nResult;
 }
@@ -3416,13 +3424,72 @@ qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DP
     return nResult;
 }
 
+qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    if(isSignaturePresent(sString,&(pHdata->mapTypes))) // Simple types
+    {
+        pParameter->st=ST_TYPE;
+        SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
+        pParameter->type=(TYPE)signatureType.nValue;
+
+        nResult+=signatureType.nSize;
+        sString=sString.mid(signatureType.nSize,-1);
+    }
+    else
+    {
+    #ifdef QT_DEBUG
+        qDebug("%s","TODO: TYPE");
+    #endif
+        pSymbol->bIsValid=false;
+    }
+
+    return nResult;
+}
+
 QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter)
 {
     QString sResult;
 
     QString sName=_nameToString(pSymbol,pParameter);
 
-    sResult=sName;
+    if(pParameter->st==ST_TYPE)
+    {
+        QString sType=typeIdToString(pParameter->type,pSymbol->mode);
+
+        sResult=sType;
+    }
+    else if(pParameter->st==ST_FUNCTION)
+    {
+        sResult+=sName;
+
+        qint32 nNumberOfParameters=pParameter->listParameters.count();
+
+        if(nNumberOfParameters)
+        {
+            sResult+="(";
+
+            for(int i=0;i<nNumberOfParameters;i++)
+            {
+                DPARAMETER parameter=pParameter->listParameters.at(i);
+
+                if((parameter.st==ST_TYPE)&&(parameter.type==TYPE_VOID))
+                {
+                    break;
+                }
+
+                sResult+=borland_parameterToString(pSymbol,&parameter);
+
+                if(i!=(nNumberOfParameters-1))
+                {
+                    sResult+=", ";
+                }
+            }
+
+            sResult+=")";
+        }
+    }
 
     return sResult;
 }
@@ -4253,6 +4320,10 @@ QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("De",TYPE_DECIMAL128);
         mapResult.insert("w",TYPE_WCHAR);
         mapResult.insert("Dn",TYPE_NULLPTR);
+    }
+    else if(getSyntaxFromMode(mode)==SYNTAX_BORLAND)
+    {
+        mapResult.insert("i",TYPE_INT);
     }
 
     return mapResult;

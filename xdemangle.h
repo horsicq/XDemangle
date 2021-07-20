@@ -486,6 +486,7 @@ private:
 
     qint32 borland_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 borland_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 borland_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     QString borland_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
 };
 
