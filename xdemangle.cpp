@@ -4594,6 +4594,55 @@ QMap<QString, quint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("na",OP_ARRAYNEW);             // operator new[]
         mapResult.insert("da",OP_ARRAYDELETE);          // operator delete[]
     }
+    else if(getSyntaxFromMode(mode)==SYNTAX_BORLAND)
+    {
+        mapResult.insert("ctr",OP_CONSTRUCTOR);
+        mapResult.insert("dtr",OP_DESTRUCTOR);
+        mapResult.insert("new",OP_NEW);
+        mapResult.insert("dele",OP_DELETE);
+        mapResult.insert("asg",OP_ASSIGN);               // operator=
+        mapResult.insert("rsh",OP_RIGHTSHIFT);           // operator>>
+        mapResult.insert("lsh",OP_LEFTSHIFT);            // operator<<
+        mapResult.insert("not",OP_LOGICALNOT);           // operator!
+        mapResult.insert("eql",OP_EQUALS);               // operator==
+        mapResult.insert("neq",OP_NOTEQUALS);            // operator!=
+        mapResult.insert("xor",OP_ARRAYSUBSCRIPT);       // operator[]
+        mapResult.insert("arow",OP_POINTER);              // operator->
+        mapResult.insert("ind",OP_DEREFERENCE);          // operator*
+        mapResult.insert("adr",OP_REFERENCE);            // operator&
+        mapResult.insert("inc",OP_INCREMENT);            // operator++
+        mapResult.insert("dec",OP_DECREMENT);            // operator--
+        mapResult.insert("sub",OP_MINUS);                // operator-
+        mapResult.insert("add",OP_PLUS);                 // operator+
+        mapResult.insert("and",OP_BITWISEAND);           // operator&
+        mapResult.insert("arwm",OP_MEMBERPOINTER);        // operator->*
+        mapResult.insert("mul",OP_MULTIPLE);             // operator*
+        mapResult.insert("div",OP_DIVIDE);               // operator/
+        mapResult.insert("mod",OP_MODULUS);              // operator%
+        mapResult.insert("lss",OP_LESSTHAN);             // operator<
+        mapResult.insert("leq",OP_LESSTHANEQUAL);        // operator<=
+        mapResult.insert("gtr",OP_GREATERTHAN);          // operator>
+        mapResult.insert("geq",OP_GREATERTHANEQUAL);     // operator>=
+        mapResult.insert("coma",OP_COMMA);                // operator,
+        mapResult.insert("call",OP_PARENS);               // operator()
+        mapResult.insert("cmp",OP_BITWISENOT);           // operator~
+        mapResult.insert("xor",OP_BITWISEXOR);           // operator^
+        mapResult.insert("or",OP_BITWISEOR);            // operator|
+        mapResult.insert("land",OP_LOGICALAND);           // operator&&
+        mapResult.insert("lor",OP_LOGICALOR);            // operator||
+        mapResult.insert("rmul",OP_TIMESEQUAL);           // operator*=
+        mapResult.insert("rplu",OP_PLUSEQUAL);            // operator+=
+        mapResult.insert("rmin",OP_MINUSEQUAL);           // operator-=
+        mapResult.insert("rdiv",OP_DIVEQUAL);             // operator/=
+        mapResult.insert("rmod",OP_MODEQUAL);             // operator%=
+        mapResult.insert("rrsh",OP_RSHEQUAL);             // operator>>=
+        mapResult.insert("rlsh",OP_LSHEQUAL);             // operator<<=
+        mapResult.insert("rand",OP_BITWISEANDEQUAL);      // operator&=
+        mapResult.insert("ror",OP_BITWISEOREQUAL);       // operator|=
+        mapResult.insert("rxor",OP_BITWISEXOREQUAL);      // operator^=
+        mapResult.insert("nwa",OP_ARRAYNEW);             // operator new[]
+        mapResult.insert("dla",OP_ARRAYDELETE);          // operator delete[]
+    }
 
     return mapResult;
 }
