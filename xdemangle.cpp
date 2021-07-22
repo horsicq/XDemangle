@@ -73,6 +73,7 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
         case TYPE_FLOAT:            sResult=QString("float");               break;
         case TYPE_FLOAT128:         sResult=QString("__float128");          break;
         case TYPE_DOUBLE:           sResult=QString("double");              break;
+        case TYPE_LONGDOUBLE:       sResult=QString("long double");         break;
         case TYPE_LONGDOUBLE_64:    sResult=QString("long double");         break;
         case TYPE_LONGDOUBLE_80:    sResult=QString("long double");         break;
         case TYPE_INT64:            sResult=QString("__int64");             break;
@@ -4323,7 +4324,16 @@ QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
     }
     else if(getSyntaxFromMode(mode)==SYNTAX_BORLAND)
     {
+        mapResult.insert("v",TYPE_VOID);
+        mapResult.insert("c",TYPE_CHAR);
+        mapResult.insert("s",TYPE_SHORT);
         mapResult.insert("i",TYPE_INT);
+        mapResult.insert("l",TYPE_LONG);
+        mapResult.insert("f",TYPE_FLOAT);
+        mapResult.insert("d",TYPE_DOUBLE);
+        mapResult.insert("g",TYPE_LONGDOUBLE);
+        mapResult.insert("e",TYPE_VARARGS);
+        mapResult.insert("o",TYPE_BOOL);
     }
 
     return mapResult;

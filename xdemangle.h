@@ -79,6 +79,7 @@ public:
         TYPE_FLOAT,
         TYPE_FLOAT128,
         TYPE_DOUBLE,
+        TYPE_LONGDOUBLE,
         TYPE_LONGDOUBLE_64,
         TYPE_LONGDOUBLE_80,
         TYPE_INT64,
