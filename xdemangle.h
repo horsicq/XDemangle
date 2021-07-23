@@ -344,7 +344,6 @@ public:
     static QString typeIdToString(TYPE type,MODE mode);
     static QString storageClassIdToString(SC storageClass,MODE mode);
     static QString objectClassIdToString(OC objectClass,MODE mode);
-    static QString paramModIdToString(quint32 nParamMod,MODE mode); // TODO rename
     static QString accessIdToString(quint32 nFunctionMod,MODE mode);
     static QString functionConventionIdToString(FC functionConvention,MODE mode);
     static QString operatorIdToString(OP _operator,MODE mode);

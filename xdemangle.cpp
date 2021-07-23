@@ -143,26 +143,6 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
     return sResult;
 }
 
-QString XDemangle::paramModIdToString(quint32 nParamMod, XDemangle::MODE mode)
-{
-    Q_UNUSED(mode)
-
-    QString sResult="Unknown"; // mb TODO translate
-
-    switch(nParamMod)
-    {
-//        case PM_NONE:                   sResult=QString("");                    break; // mb TODO translate
-//        case PM_POINTER:                sResult=QString("*");                   break;
-//        case PM_REFERENCE:              sResult=QString("&");                   break;
-//        case PM_POINTERCONST:           sResult=QString("*const");              break;
-//        case PM_POINTERVOLATILE:        sResult=QString("*volatile");           break;
-//        case PM_POINTERCONSTVOLATILE:   sResult=QString("*const volatile");     break;
-//        case PM_DOUBLEREFERENCE:        sResult=QString("&&");                  break;
-    }
-
-    return sResult;
-}
-
 QString XDemangle::accessIdToString(quint32 nFunctionMod, XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
