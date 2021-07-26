@@ -3358,6 +3358,16 @@ qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPA
         nResult+=1;
 
         pParameter->st=ST_FUNCTION;
+        pParameter->functionConvention=FC_NONE;
+
+        if(isSignaturePresent(sString,&(pHdata->mapFunctionConventions)))
+        {
+            SIGNATURE signatureType=getSignature(sString,&(pHdata->mapFunctionConventions));
+            pParameter->functionConvention=(FC)signatureType.nValue;
+
+            nResult+=signatureType.nSize;
+            sString=sString.mid(signatureType.nSize,-1);
+        }
 
         while(sString!="")
         {
@@ -3443,6 +3453,11 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pPara
     }
     else if(pParameter->st==ST_FUNCTION)
     {
+        if(pParameter->functionConvention!=FC_NONE)
+        {
+            sResult+=QString("%1 ").arg(functionConventionIdToString(pParameter->functionConvention,pSymbol->mode));
+        }
+
         sResult+=sName;
 
         qint32 nNumberOfParameters=pParameter->listParameters.count();
@@ -4463,6 +4478,11 @@ QMap<QString, quint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
         mapResult.insert("P",FC_EABI);
         mapResult.insert("Q",FC_VECTORCALL);
         mapResult.insert("S",FC_SWIFT);
+    }
+    else if(getSyntaxFromMode(mode)==SYNTAX_BORLAND)
+    {
+        mapResult.insert("qr",FC_FASTCALL);
+        mapResult.insert("qs",FC_STDCALL);
     }
 
     return mapResult;
