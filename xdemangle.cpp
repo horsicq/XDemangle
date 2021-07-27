@@ -3419,7 +3419,14 @@ qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAME
 {
     qint32 nResult=0;
 
-    if(isSignaturePresent(sString,&(pHdata->mapTypes))) // Simple types
+    if(isSignaturePresent(sString,&(pHdata->mapPointerTypes))) // Pointers
+    {
+        qint32 nPSize=borland_demangle_PointerType(pSymbol,pHdata,pParameter,sString);
+
+        nResult+=nPSize;
+        sString=sString.mid(nPSize,-1);
+    }
+    else if(isSignaturePresent(sString,&(pHdata->mapTypes))) // Simple types
     {
         pParameter->st=ST_TYPE;
         SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
@@ -3439,6 +3446,32 @@ qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAME
     return nResult;
 }
 
+qint32 XDemangle::borland_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+{
+    qint32 nResult=0;
+
+    if(isSignaturePresent(sString,&(pHdata->mapPointerTypes)))
+    {
+        pParameter->st=ST_POINTER;
+        SIGNATURE signature=getSignature(sString,&(pHdata->mapPointerTypes));
+        pParameter->nQualifier=signature.nValue;
+
+        nResult+=signature.nSize;
+        sString=sString.mid(signature.nSize,-1);
+
+        DPARAMETER parameter={};
+
+        qint32 nPSize=borland_demangle_Type(pSymbol,pHdata,&parameter,sString);
+
+        nResult+=nPSize;
+        sString=sString.mid(nPSize,-1);
+
+        pParameter->listPointer.append(parameter);
+    }
+
+    return nResult;
+}
+
 QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter)
 {
     QString sResult;
@@ -3450,6 +3483,10 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pPara
         QString sType=typeIdToString(pParameter->type,pSymbol->mode);
 
         sResult=sType;
+    }
+    else if(pParameter->st==ST_POINTER)
+    {
+        // TODO
     }
     else if(pParameter->st==ST_FUNCTION)
     {
@@ -4370,6 +4407,11 @@ QMap<QString, quint32> XDemangle::getPointerTypes(XDemangle::MODE mode)
         mapResult.insert("R",QUAL_REFERENCE);
         mapResult.insert("K",QUAL_CONST);
         mapResult.insert("V",QUAL_VOLATILE);
+    }
+    else if(getSyntaxFromMode(mode)==SYNTAX_BORLAND)
+    {
+        mapResult.insert("z",QUAL_SIGNED);
+        mapResult.insert("u",QUAL_UNSIGNED);
     }
 
     return mapResult;

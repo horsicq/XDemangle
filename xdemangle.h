@@ -269,6 +269,8 @@ public:
         QUAL_NONE               =0x00000000,
         QUAL_CONST              =0x00000001,
         QUAL_VOLATILE           =0x00000002,
+        QUAL_SIGNED             =0x00100000,
+        QUAL_UNSIGNED           =0x00200000,
         QUAL_REFERENCE          =0x01000000,
         QUAL_RVALUEREF          =0x02000000,
         QUAL_POINTER            =0x04000000,
@@ -487,6 +489,7 @@ private:
     qint32 borland_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 borland_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     qint32 borland_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
+    qint32 borland_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
     QString borland_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
 };
 
