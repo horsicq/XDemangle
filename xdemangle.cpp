@@ -294,6 +294,9 @@ QString XDemangle::qualIdToPointerString(quint32 nQual, XDemangle::MODE mode)
         sResult+="volatile";
     }
 
+    if      (nQual&QUAL_SIGNED)                 sResult+="signed";
+    else if (nQual&QUAL_UNSIGNED)               sResult+="unsigned";
+
     return sResult;
 }
 
@@ -3486,7 +3489,18 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pPara
     }
     else if(pParameter->st==ST_POINTER)
     {
-        // TODO
+        DPARAMETER lastParameter=getLastPointerParameter(pParameter);
+
+        QString sPointer=borland_getPointerString(pSymbol,pParameter);
+
+        sResult+=sPointer;
+
+        if(!isPointerEnd(sResult))
+        {
+            sResult+=QString(" ");
+        }
+
+        sResult+=borland_parameterToString(pSymbol,&lastParameter); // TODO
     }
     else if(pParameter->st==ST_FUNCTION)
     {
@@ -3521,6 +3535,33 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pPara
             }
 
             sResult+=")";
+        }
+    }
+
+    return sResult;
+}
+
+QString XDemangle::borland_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter)
+{
+    QString sResult;
+
+    DPARAMETER parameter=*pParameter;
+
+    QString sPrefix;
+
+    while(parameter.st==ST_POINTER)
+    {
+        QString sPointer=qualIdToPointerString(parameter.nQualifier,pSymbol->mode);
+
+        sResult=sPrefix.prepend(sPointer);
+
+        if(parameter.listPointer.count())
+        {
+            parameter=parameter.listPointer.at(0);
+        }
+        else
+        {
+            break;
         }
     }
 
