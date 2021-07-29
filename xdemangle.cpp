@@ -4401,6 +4401,7 @@ QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("c",TYPE_CHAR);
         mapResult.insert("s",TYPE_SHORT);
         mapResult.insert("i",TYPE_INT);
+        mapResult.insert("j",TYPE_INT64);
         mapResult.insert("l",TYPE_LONG);
         mapResult.insert("f",TYPE_FLOAT);
         mapResult.insert("d",TYPE_DOUBLE);
@@ -4453,6 +4454,10 @@ QMap<QString, quint32> XDemangle::getPointerTypes(XDemangle::MODE mode)
     {
         mapResult.insert("z",QUAL_SIGNED);
         mapResult.insert("u",QUAL_UNSIGNED);
+        mapResult.insert("p",QUAL_POINTER);
+        mapResult.insert("r",QUAL_REFERENCE);
+        mapResult.insert("x",QUAL_CONST);
+        mapResult.insert("w",QUAL_VOLATILE);
     }
 
     return mapResult;
