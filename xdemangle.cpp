@@ -3493,6 +3493,8 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pPara
 
         QString sPointer=borland_getPointerString(pSymbol,pParameter);
 
+        // TODO volatile const!
+
         sResult+=sPointer;
 
         if(!isPointerEnd(sResult))
