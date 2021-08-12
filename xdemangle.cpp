@@ -3399,20 +3399,47 @@ qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DP
 
     while(sString!="")
     {
-        STRING string=readString(pHdata,sString,pSymbol->mode);
+        DNAME dname={};
 
-        if(string.nSize==0)
+        if(_compare(sString,"@$b")) // Operands
         {
-            break;
+            nResult+=3;
+            sString=sString.mid(3,-1);
+
+            if(isSignaturePresent(sString,&(pHdata->mapOperators)))
+            {
+                SIGNATURE signature=getSignature(sString,&(pHdata->mapOperators));
+
+                dname._operator=(OP)signature.nValue;
+
+                nResult+=signature.nSize;
+                sString=sString.mid(signature.nSize,-1);
+            }
+            else
+            {
+            #ifdef QT_DEBUG
+                qDebug("%s","TODO: Invalid operand");
+            #endif
+
+                pSymbol->bIsValid=false;
+            }
+        }
+        else
+        {
+            STRING string=readString(pHdata,sString,pSymbol->mode);
+
+            if(string.nSize==0)
+            {
+                break;
+            }
+
+            dname.sName=string.sString;
+
+            sString=sString.mid(string.nSize,-1);
+            nResult+=string.nSize;
         }
 
-        DNAME dname={};
-        dname.sName=string.sString;
-
         pParameter->listDnames.append(dname);
-
-        sString=sString.mid(string.nSize,-1);
-        nResult+=string.nSize;
     }
 
     return nResult;
