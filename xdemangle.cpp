@@ -4435,7 +4435,7 @@ QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
         mapResult.insert("f",TYPE_FLOAT);
         mapResult.insert("d",TYPE_DOUBLE);
         mapResult.insert("g",TYPE_LONGDOUBLE);
-        mapResult.insert("e",TYPE_VARARGS); // TODO Check
+        mapResult.insert("e",TYPE_VARARGS); // TODO Check ve
         mapResult.insert("o",TYPE_BOOL);
         mapResult.insert("b",TYPE_WCHAR);
         mapResult.insert("Cs",TYPE_CHAR16);
