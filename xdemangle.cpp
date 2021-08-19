@@ -4772,6 +4772,7 @@ QMap<QString, quint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("rxor",OP_BITWISEXOREQUAL);      // operator^=
         mapResult.insert("nwa",OP_ARRAYNEW);             // operator new[]
         mapResult.insert("dla",OP_ARRAYDELETE);          // operator delete[]
+        // TODO check @class1@$bsubs$qi
     }
 
     return mapResult;
