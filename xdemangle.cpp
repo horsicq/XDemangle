@@ -27,7 +27,7 @@ XDemangle::XDemangle(QObject *pParent) : QObject(pParent)
 
 QString XDemangle::modeIdToString(XDemangle::MODE mode)
 {
-    QString sResult="Unknown"; // mb TODO translate
+    QString sResult=tr("Unknown");
 
     switch(mode)
     {
