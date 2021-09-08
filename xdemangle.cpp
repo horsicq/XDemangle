@@ -104,7 +104,7 @@ QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle:
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown";
+    QString sResult=QString("Unknown");
 
     switch(storageClass)
     {
@@ -128,7 +128,7 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown";
+    QString sResult=QString("Unknown");
 
     switch(objectClass)
     {
@@ -177,7 +177,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown";
+    QString sResult=QString("Unknown");
 
     switch(functionConvention)
     {
@@ -189,7 +189,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_FASTCALL:           sResult=QString("__fastcall");                  break;
         case FC_CLRCALL:            sResult=QString("__clrcall");                   break;
         case FC_VECTORCALL:         sResult=QString("__vectorcall");                break;
-        default:                    sResult="Unknown";
+        default:                    sResult=QString("Unknown");
     }
 
     return sResult;
@@ -199,7 +199,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown";
+    QString sResult=QString("Unknown");
 
     switch(_operator)
     {
