@@ -104,7 +104,7 @@ QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle:
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown"; // mb TODO translate
+    QString sResult="Unknown";
 
     switch(storageClass)
     {
