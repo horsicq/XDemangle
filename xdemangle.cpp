@@ -177,7 +177,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown"; // mb TODO translate
+    QString sResult="Unknown";
 
     switch(functionConvention)
     {
