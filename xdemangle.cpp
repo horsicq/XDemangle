@@ -199,11 +199,11 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown"; // mb TODO translate
+    QString sResult="Unknown";
 
     switch(_operator)
     {
-        case OP_UNKNOWN:                sResult=QString("Unknown");                         break; // mb TODO translate
+        case OP_UNKNOWN:                sResult=QString("Unknown");                         break;
         case OP_CONSTRUCTOR:            sResult=QString("");                                break;
         case OP_DESTRUCTOR:             sResult=QString("~");                               break;
         case OP_NEW:                    sResult=QString("operator new");                    break;
