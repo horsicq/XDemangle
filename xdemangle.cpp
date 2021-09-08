@@ -128,11 +128,11 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
-    QString sResult="Unknown"; // mb TODO translate
+    QString sResult="Unknown";
 
     switch(objectClass)
     {
-        case OC_UNKNOWN:                    sResult=QString("Unknown");             break; // mb TODO translate
+        case OC_UNKNOWN:                    sResult=QString("Unknown");             break;
         case OC_GLOBALOBJECT:               sResult=QString("");                    break;
         case OC_PRIVATESTATICCLASSMEMBER:   sResult=QString("private: static");     break;
         case OC_PROTECTEDSTATICCLASSMEMBER: sResult=QString("protected: static");   break;
