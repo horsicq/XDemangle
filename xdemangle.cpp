@@ -137,7 +137,7 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
         case OC_PRIVATESTATICCLASSMEMBER:   sResult=QString("private: static");     break;
         case OC_PROTECTEDSTATICCLASSMEMBER: sResult=QString("protected: static");   break;
         case OC_PUBLICSTATICCLASSMEMBER:    sResult=QString("public: static");      break;
-        default:                            sResult="Unknown";
+        default:                            sResult=QString("Unknown");
     }
 
     return sResult;
