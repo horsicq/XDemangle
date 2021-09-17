@@ -3762,7 +3762,7 @@ XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString, XDemangle::MODE mode
                 sString=sString.mid(nSTSize,-1);
                 result.nSize+=nSTSize;
             }
-            else if((result.paramMain.st==ST_STRINGLITERALSYMBOL))
+            else if(result.paramMain.st==ST_STRINGLITERALSYMBOL)
             {
                 qint32 nSTSize=ms_demangle_StringLiteralSymbol(&result,&hdata,&(result.paramMain),sString);
 
@@ -3842,7 +3842,7 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
                 sString=sString.mid(nNSSize,-1);
                 result.nSize+=nNSSize;
             }
-            else if((result.paramMain.st==ST_NONVIRTUALTHUNK))
+            else if(result.paramMain.st==ST_NONVIRTUALTHUNK)
             {
                 NUMBER number=readNumberS(&hdata,sString,result.mode);
 
@@ -3859,7 +3859,7 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
                 sString=sString.mid(nESize,-1);
                 result.nSize+=nESize;
             }
-            else if((result.paramMain.st==ST_VIRTUALTHUNK))
+            else if(result.paramMain.st==ST_VIRTUALTHUNK)
             {
                 NUMBER number1=readNumberS(&hdata,sString,result.mode);
 
