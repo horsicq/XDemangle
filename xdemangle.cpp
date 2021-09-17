@@ -49,7 +49,7 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
     return sResult;
 }
 
-QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
+QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
@@ -57,44 +57,44 @@ QString XDemangle::typeIdToString(XDemangle::TYPE type, XDemangle::MODE mode)
 
     switch(type)
     {
-        case TYPE_UNKNOWN:          sResult=QString("");                    break;
-        case TYPE_NONE:             sResult=QString("");                    break;
-        case TYPE_VOID:             sResult=QString("void");                break;
-        case TYPE_BOOL:             sResult=QString("bool");                break;
-        case TYPE_INT:              sResult=QString("int");                 break;
-        case TYPE_SCHAR:            sResult=QString("signed char");         break;
-        case TYPE_CHAR:             sResult=QString("char");                break;
-        case TYPE_UCHAR:            sResult=QString("unsigned char");       break;
-        case TYPE_SHORT:            sResult=QString("short");               break;
-        case TYPE_USHORT:           sResult=QString("unsigned short");      break;
-        case TYPE_UINT:             sResult=QString("unsigned int");        break;
-        case TYPE_LONG:             sResult=QString("long");                break;
-        case TYPE_ULONG:            sResult=QString("unsigned long");       break;
-        case TYPE_FLOAT:            sResult=QString("float");               break;
-        case TYPE_FLOAT128:         sResult=QString("__float128");          break;
-        case TYPE_DOUBLE:           sResult=QString("double");              break;
-        case TYPE_LONGDOUBLE:       sResult=QString("long double");         break;
-        case TYPE_LONGDOUBLE_64:    sResult=QString("long double");         break;
-        case TYPE_LONGDOUBLE_80:    sResult=QString("long double");         break;
-        case TYPE_INT64:            sResult=QString("__int64");             break;
-        case TYPE_UINT64:           sResult=QString("unsigned __int64");    break;
-        case TYPE_LONGLONG:         sResult=QString("long long");           break;
-        case TYPE_ULONGLONG:        sResult=QString("unsigned long long");  break;
-        case TYPE_CHAR8:            sResult=QString("char8_t");             break;
-        case TYPE_CHAR16:           sResult=QString("char16_t");            break;
-        case TYPE_CHAR32:           sResult=QString("char32_t");            break;
-        case TYPE_DECIMAL32:        sResult=QString("decimal32");           break;
-        case TYPE_DECIMAL64:        sResult=QString("decimal64");           break;
-        case TYPE_DECIMAL128:       sResult=QString("decimal128");          break;
-        case TYPE_WCHAR:            sResult=QString("wchar_t");             break;
-        case TYPE_VARARGS:          sResult=QString("...");                 break;
-        case TYPE_CLASS:            sResult=QString("class");               break;
-        case TYPE_UNION:            sResult=QString("union");               break;
-        case TYPE_STRUCT:           sResult=QString("struct");              break;
-        case TYPE_ENUM:             sResult=QString("enum");                break;
-        case TYPE_POINTERTOFUNCTION:sResult=QString("");                    break;
-        case TYPE_NULLPTR:          sResult=QString("std::nullptr_t");      break; // TODO Check !!!
-        default:                    sResult="Unknown";
+        case XTYPE_UNKNOWN:             sResult=QString("");                    break;
+        case XTYPE_NONE:                sResult=QString("");                    break;
+        case XTYPE_VOID:                sResult=QString("void");                break;
+        case XTYPE_BOOL:                sResult=QString("bool");                break;
+        case XTYPE_INT:                 sResult=QString("int");                 break;
+        case XTYPE_SCHAR:               sResult=QString("signed char");         break;
+        case XTYPE_CHAR:                sResult=QString("char");                break;
+        case XTYPE_UCHAR:               sResult=QString("unsigned char");       break;
+        case XTYPE_SHORT:               sResult=QString("short");               break;
+        case XTYPE_USHORT:              sResult=QString("unsigned short");      break;
+        case XTYPE_UINT:                sResult=QString("unsigned int");        break;
+        case XTYPE_LONG:                sResult=QString("long");                break;
+        case XTYPE_ULONG:               sResult=QString("unsigned long");       break;
+        case XTYPE_FLOAT:               sResult=QString("float");               break;
+        case XTYPE_FLOAT128:            sResult=QString("__float128");          break;
+        case XTYPE_DOUBLE:              sResult=QString("double");              break;
+        case XTYPE_LONGDOUBLE:          sResult=QString("long double");         break;
+        case XTYPE_LONGDOUBLE_64:       sResult=QString("long double");         break;
+        case XTYPE_LONGDOUBLE_80:       sResult=QString("long double");         break;
+        case XTYPE_INT64:               sResult=QString("__int64");             break;
+        case XTYPE_UINT64:              sResult=QString("unsigned __int64");    break;
+        case XTYPE_LONGLONG:            sResult=QString("long long");           break;
+        case XTYPE_ULONGLONG:           sResult=QString("unsigned long long");  break;
+        case XTYPE_CHAR8:               sResult=QString("char8_t");             break;
+        case XTYPE_CHAR16:              sResult=QString("char16_t");            break;
+        case XTYPE_CHAR32:              sResult=QString("char32_t");            break;
+        case XTYPE_DECIMAL32:           sResult=QString("decimal32");           break;
+        case XTYPE_DECIMAL64:           sResult=QString("decimal64");           break;
+        case XTYPE_DECIMAL128:          sResult=QString("decimal128");          break;
+        case XTYPE_WCHAR:               sResult=QString("wchar_t");             break;
+        case XTYPE_VARARGS:             sResult=QString("...");                 break;
+        case XTYPE_CLASS:               sResult=QString("class");               break;
+        case XTYPE_UNION:               sResult=QString("union");               break;
+        case XTYPE_STRUCT:              sResult=QString("struct");              break;
+        case XTYPE_ENUM:                sResult=QString("enum");                break;
+        case XTYPE_POINTERTOFUNCTION:   sResult=QString("");                    break;
+        case XTYPE_NULLPTR:             sResult=QString("std::nullptr_t");      break; // TODO Check !!!
+        default:                        sResult="Unknown";
     }
 
     return sResult;
@@ -542,7 +542,7 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
     if(isSignaturePresent(sString,&(pHdata->mapTagTypes)))
     {
         SIGNATURE signature=getSignature(sString,&(pHdata->mapTagTypes));
-        pParameter->type=(TYPE)signature.nValue;
+        pParameter->type=(XTYPE)signature.nValue;
         pParameter->st=ST_TYPE;
 
         nResult+=signature.nSize;
@@ -614,7 +614,7 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
     else if(isSignaturePresent(sString,&(pHdata->mapTypes)))
     {
         SIGNATURE signature=getSignature(sString,&(pHdata->mapTypes));
-        pParameter->type=(TYPE)signature.nValue;
+        pParameter->type=(XTYPE)signature.nValue;
         pParameter->st=ST_TYPE;
 
         nResult+=signature.nSize;
@@ -678,8 +678,8 @@ qint32 XDemangle::ms_demangle_PointerType(XDemangle::DSYMBOL *pSymbol, XDemangle
 
         DPARAMETER parameter={};
         parameter.st=ST_FUNCTION;
-//        parameter.type=TYPE_FUNCTION;
-//        pParameter->type=TYPE_POINTERTOFUNCTION; // TODO remove
+//        parameter.type=XTYPE_FUNCTION;
+//        pParameter->type=XTYPE_POINTERTOFUNCTION; // TODO remove
 
         qint32 nFTSize=ms_demangle_FunctionType(pSymbol,pHdata,&parameter,sString,false);
         pParameter->listPointer.append(parameter);
@@ -1178,7 +1178,7 @@ qint32 XDemangle::ms_demangle_FunctionType(XDemangle::DSYMBOL *pSymbol, XDemangl
 
     if(_compare(sString,"@"))
     {
-        pParameter->type=TYPE_NONE;
+        pParameter->type=XTYPE_NONE;
         sString=sString.mid(1,-1);
         nResult+=1;
     }
@@ -1973,7 +1973,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
         QString sReturn;
         QString sArgs;
 
-//        TYPE typeReturn=TYPE_NONE;
+//        TYPE typeReturn=XTYPE_NONE;
 
         sArgs+="(";
 
@@ -2419,7 +2419,7 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
 
         QString sValue=pParameter->varConst.toString();
 
-        if(pParameter->typeConst==TYPE_BOOL)
+        if(pParameter->typeConst==XTYPE_BOOL)
         {
             if(sValue=="0")
             {
@@ -2433,11 +2433,11 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
 
         sResult+=sValue;
 
-        if(pParameter->typeConst==TYPE_UINT)
+        if(pParameter->typeConst==XTYPE_UINT)
         {
             sResult+="u";
         }
-        else if(pParameter->typeConst==TYPE_LONGLONG)
+        else if(pParameter->typeConst==XTYPE_LONGLONG)
         {
             sResult+="ll";
         }
@@ -2502,7 +2502,7 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
             {
                 DPARAMETER parameter=pParameter->listParameters.at(i);
 
-                if((parameter.st==ST_TYPE)&&(parameter.type==TYPE_VOID))
+                if((parameter.st==ST_TYPE)&&(parameter.type==XTYPE_VOID))
                 {
                     break;
                 }
@@ -3056,7 +3056,7 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         {
             SIGNATURE signature=getSignature(sString,&(pHdata->mapTypes));
 
-            pParameter->typeConst=(TYPE)signature.nValue;
+            pParameter->typeConst=(XTYPE)signature.nValue;
 
             nResult+=signature.nSize;
             sString=sString.mid(signature.nSize,-1);
@@ -3160,7 +3160,7 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
     {
         pParameter->st=ST_TYPE;
         SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
-        pParameter->type=(TYPE)signatureType.nValue;
+        pParameter->type=(XTYPE)signatureType.nValue;
 
         nResult+=signatureType.nSize;
         sString=sString.mid(signatureType.nSize,-1);
@@ -3460,7 +3460,7 @@ qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAME
     {
         pParameter->st=ST_TYPE;
         SIGNATURE signatureType=getSignature(sString,&(pHdata->mapTypes));
-        pParameter->type=(TYPE)signatureType.nValue;
+        pParameter->type=(XTYPE)signatureType.nValue;
 
         nResult+=signatureType.nSize;
         sString=sString.mid(signatureType.nSize,-1);
@@ -3550,7 +3550,7 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pPara
             {
                 DPARAMETER parameter=pParameter->listParameters.at(i);
 
-                if((parameter.st==ST_TYPE)&&(parameter.type==TYPE_VOID))
+                if((parameter.st==ST_TYPE)&&(parameter.type==XTYPE_VOID))
                 {
                     break;
                 }
@@ -4371,75 +4371,75 @@ QMap<QString, quint32> XDemangle::getTypes(XDemangle::MODE mode)
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        mapResult.insert("@",TYPE_NONE);
-        mapResult.insert("X",TYPE_VOID);
-        mapResult.insert("C",TYPE_SCHAR);
-        mapResult.insert("D",TYPE_CHAR);
-        mapResult.insert("E",TYPE_UCHAR);
-        mapResult.insert("F",TYPE_SHORT);
-        mapResult.insert("G",TYPE_USHORT);
-        mapResult.insert("H",TYPE_INT);
-        mapResult.insert("I",TYPE_UINT);
-        mapResult.insert("J",TYPE_LONG);
-        mapResult.insert("K",TYPE_ULONG);
-        mapResult.insert("M",TYPE_FLOAT);
-        mapResult.insert("N",TYPE_DOUBLE);
-        mapResult.insert("O",TYPE_LONGDOUBLE_64);
-        mapResult.insert("Z",TYPE_VARARGS);
-        mapResult.insert("_J",TYPE_INT64);
-        mapResult.insert("_K",TYPE_UINT64);
-        mapResult.insert("_N",TYPE_BOOL);
-        mapResult.insert("_Q",TYPE_CHAR8);
-        mapResult.insert("_S",TYPE_CHAR16);
-        mapResult.insert("_U",TYPE_CHAR32);
-        mapResult.insert("_W",TYPE_WCHAR);
-        mapResult.insert("$$T",TYPE_NULLPTR);
+        mapResult.insert("@",XTYPE_NONE);
+        mapResult.insert("X",XTYPE_VOID);
+        mapResult.insert("C",XTYPE_SCHAR);
+        mapResult.insert("D",XTYPE_CHAR);
+        mapResult.insert("E",XTYPE_UCHAR);
+        mapResult.insert("F",XTYPE_SHORT);
+        mapResult.insert("G",XTYPE_USHORT);
+        mapResult.insert("H",XTYPE_INT);
+        mapResult.insert("I",XTYPE_UINT);
+        mapResult.insert("J",XTYPE_LONG);
+        mapResult.insert("K",XTYPE_ULONG);
+        mapResult.insert("M",XTYPE_FLOAT);
+        mapResult.insert("N",XTYPE_DOUBLE);
+        mapResult.insert("O",XTYPE_LONGDOUBLE_64);
+        mapResult.insert("Z",XTYPE_VARARGS);
+        mapResult.insert("_J",XTYPE_INT64);
+        mapResult.insert("_K",XTYPE_UINT64);
+        mapResult.insert("_N",XTYPE_BOOL);
+        mapResult.insert("_Q",XTYPE_CHAR8);
+        mapResult.insert("_S",XTYPE_CHAR16);
+        mapResult.insert("_U",XTYPE_CHAR32);
+        mapResult.insert("_W",XTYPE_WCHAR);
+        mapResult.insert("$$T",XTYPE_NULLPTR);
     }
     else if(getSyntaxFromMode(mode)==SYNTAX_ITANIUM)
     {
-        mapResult.insert("v",TYPE_VOID);
-        mapResult.insert("a",TYPE_SCHAR);
-        mapResult.insert("c",TYPE_CHAR);
-        mapResult.insert("h",TYPE_UCHAR);
-        mapResult.insert("s",TYPE_SHORT);
-        mapResult.insert("t",TYPE_USHORT);
-        mapResult.insert("i",TYPE_INT);
-        mapResult.insert("j",TYPE_UINT);
-        mapResult.insert("l",TYPE_LONG);
-        mapResult.insert("m",TYPE_ULONG);
-        mapResult.insert("f",TYPE_FLOAT);
-        mapResult.insert("g",TYPE_FLOAT128);
-        mapResult.insert("d",TYPE_DOUBLE);
-        mapResult.insert("e",TYPE_LONGDOUBLE_64);
-        mapResult.insert("z",TYPE_VARARGS);
-        mapResult.insert("x",TYPE_LONGLONG);
-        mapResult.insert("y",TYPE_ULONGLONG);
-        mapResult.insert("b",TYPE_BOOL);
-        mapResult.insert("Du",TYPE_CHAR8);
-        mapResult.insert("Ds",TYPE_CHAR16);
-        mapResult.insert("Di",TYPE_CHAR32);
-        mapResult.insert("Df",TYPE_DECIMAL32);
-        mapResult.insert("Dd",TYPE_DECIMAL64);
-        mapResult.insert("De",TYPE_DECIMAL128);
-        mapResult.insert("w",TYPE_WCHAR);
-        mapResult.insert("Dn",TYPE_NULLPTR);
+        mapResult.insert("v",XTYPE_VOID);
+        mapResult.insert("a",XTYPE_SCHAR);
+        mapResult.insert("c",XTYPE_CHAR);
+        mapResult.insert("h",XTYPE_UCHAR);
+        mapResult.insert("s",XTYPE_SHORT);
+        mapResult.insert("t",XTYPE_USHORT);
+        mapResult.insert("i",XTYPE_INT);
+        mapResult.insert("j",XTYPE_UINT);
+        mapResult.insert("l",XTYPE_LONG);
+        mapResult.insert("m",XTYPE_ULONG);
+        mapResult.insert("f",XTYPE_FLOAT);
+        mapResult.insert("g",XTYPE_FLOAT128);
+        mapResult.insert("d",XTYPE_DOUBLE);
+        mapResult.insert("e",XTYPE_LONGDOUBLE_64);
+        mapResult.insert("z",XTYPE_VARARGS);
+        mapResult.insert("x",XTYPE_LONGLONG);
+        mapResult.insert("y",XTYPE_ULONGLONG);
+        mapResult.insert("b",XTYPE_BOOL);
+        mapResult.insert("Du",XTYPE_CHAR8);
+        mapResult.insert("Ds",XTYPE_CHAR16);
+        mapResult.insert("Di",XTYPE_CHAR32);
+        mapResult.insert("Df",XTYPE_DECIMAL32);
+        mapResult.insert("Dd",XTYPE_DECIMAL64);
+        mapResult.insert("De",XTYPE_DECIMAL128);
+        mapResult.insert("w",XTYPE_WCHAR);
+        mapResult.insert("Dn",XTYPE_NULLPTR);
     }
     else if(getSyntaxFromMode(mode)==SYNTAX_BORLAND)
     {
-        mapResult.insert("v",TYPE_VOID);
-        mapResult.insert("c",TYPE_CHAR);
-        mapResult.insert("s",TYPE_SHORT);
-        mapResult.insert("i",TYPE_INT);
-        mapResult.insert("j",TYPE_INT64);
-        mapResult.insert("l",TYPE_LONG);
-        mapResult.insert("f",TYPE_FLOAT);
-        mapResult.insert("d",TYPE_DOUBLE);
-        mapResult.insert("g",TYPE_LONGDOUBLE);
-        mapResult.insert("e",TYPE_VARARGS); // TODO Check ve
-        mapResult.insert("o",TYPE_BOOL);
-        mapResult.insert("b",TYPE_WCHAR);
-        mapResult.insert("Cs",TYPE_CHAR16);
-        mapResult.insert("Ci",TYPE_CHAR32);
+        mapResult.insert("v",XTYPE_VOID);
+        mapResult.insert("c",XTYPE_CHAR);
+        mapResult.insert("s",XTYPE_SHORT);
+        mapResult.insert("i",XTYPE_INT);
+        mapResult.insert("j",XTYPE_INT64);
+        mapResult.insert("l",XTYPE_LONG);
+        mapResult.insert("f",XTYPE_FLOAT);
+        mapResult.insert("d",XTYPE_DOUBLE);
+        mapResult.insert("g",XTYPE_LONGDOUBLE);
+        mapResult.insert("e",XTYPE_VARARGS); // TODO Check ve
+        mapResult.insert("o",XTYPE_BOOL);
+        mapResult.insert("b",XTYPE_WCHAR);
+        mapResult.insert("Cs",XTYPE_CHAR16);
+        mapResult.insert("Ci",XTYPE_CHAR32);
     }
 
     return mapResult;
@@ -4451,10 +4451,10 @@ QMap<QString, quint32> XDemangle::getTagTypes(XDemangle::MODE mode)
 
     if(getSyntaxFromMode(mode)==SYNTAX_MICROSOFT)
     {
-        mapResult.insert("T",TYPE_UNION);
-        mapResult.insert("U",TYPE_STRUCT);
-        mapResult.insert("V",TYPE_CLASS);
-        mapResult.insert("W4",TYPE_ENUM);
+        mapResult.insert("T",XTYPE_UNION);
+        mapResult.insert("U",XTYPE_STRUCT);
+        mapResult.insert("V",XTYPE_CLASS);
+        mapResult.insert("W4",XTYPE_ENUM);
     }
 
     return mapResult;

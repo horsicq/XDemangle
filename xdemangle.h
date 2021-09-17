@@ -61,49 +61,49 @@ public:
         SYNTAX_WATCOM
     };
 
-    enum TYPE
+    enum XTYPE
     {
-        TYPE_UNKNOWN=0,
-        TYPE_NONE, // For Constructors & Destructors
-        TYPE_BOOL,
-        TYPE_VOID,
-        TYPE_INT,
-        TYPE_SCHAR,
-        TYPE_CHAR,
-        TYPE_UCHAR,
-        TYPE_SHORT,
-        TYPE_USHORT,
-        TYPE_UINT,
-        TYPE_LONG,
-        TYPE_ULONG,
-        TYPE_FLOAT,
-        TYPE_FLOAT128,
-        TYPE_DOUBLE,
-        TYPE_LONGDOUBLE,
-        TYPE_LONGDOUBLE_64,
-        TYPE_LONGDOUBLE_80,
-        TYPE_INT64,
-        TYPE_UINT64,
-        TYPE_LONGLONG,
-        TYPE_ULONGLONG,
-        TYPE_DECIMAL32,
-        TYPE_DECIMAL64,
-        TYPE_DECIMAL128,
-        TYPE_CHAR8,
-        TYPE_CHAR16,
-        TYPE_CHAR32,
-        TYPE_WCHAR,
-        TYPE_VARARGS,
-        TYPE_CLASS,
-        TYPE_UNION,
-        TYPE_STRUCT,
-        TYPE_ENUM,
-        TYPE_POINTERTOFUNCTION,
-        TYPE_POINTERTOFUNCTIONREF,
-        TYPE_MEMBER,
-        TYPE_FUNCTION,
-        TYPE_NULLPTR,
-        TYPE_CONST
+        XTYPE_UNKNOWN=0,
+        XTYPE_NONE, // For Constructors & Destructors
+        XTYPE_BOOL,
+        XTYPE_VOID,
+        XTYPE_INT,
+        XTYPE_SCHAR,
+        XTYPE_CHAR,
+        XTYPE_UCHAR,
+        XTYPE_SHORT,
+        XTYPE_USHORT,
+        XTYPE_UINT,
+        XTYPE_LONG,
+        XTYPE_ULONG,
+        XTYPE_FLOAT,
+        XTYPE_FLOAT128,
+        XTYPE_DOUBLE,
+        XTYPE_LONGDOUBLE,
+        XTYPE_LONGDOUBLE_64,
+        XTYPE_LONGDOUBLE_80,
+        XTYPE_INT64,
+        XTYPE_UINT64,
+        XTYPE_LONGLONG,
+        XTYPE_ULONGLONG,
+        XTYPE_DECIMAL32,
+        XTYPE_DECIMAL64,
+        XTYPE_DECIMAL128,
+        XTYPE_CHAR8,
+        XTYPE_CHAR16,
+        XTYPE_CHAR32,
+        XTYPE_WCHAR,
+        XTYPE_VARARGS,
+        XTYPE_CLASS,
+        XTYPE_UNION,
+        XTYPE_STRUCT,
+        XTYPE_ENUM,
+        XTYPE_POINTERTOFUNCTION,
+        XTYPE_POINTERTOFUNCTIONREF,
+        XTYPE_MEMBER,
+        XTYPE_FUNCTION,
+        XTYPE_NULLPTR,
+        XTYPE_CONST
     };
 
     enum OC
@@ -314,8 +314,8 @@ public:
     struct DPARAMETER
     {
         QList<DNAME> listDnames;
-        TYPE type;
-        TYPE typeConst;
+        XTYPE type;
+        XTYPE typeConst;
         QVariant varConst;
         ST st;
         OC objectClass;
@@ -343,7 +343,7 @@ public:
 
     explicit XDemangle(QObject *pParent=nullptr);
     static QString modeIdToString(MODE mode);
-    static QString typeIdToString(TYPE type,MODE mode);
+    static QString typeIdToString(XTYPE type,MODE mode);
     static QString storageClassIdToString(SC storageClass,MODE mode);
     static QString objectClassIdToString(OC objectClass,MODE mode);
     static QString accessIdToString(quint32 nFunctionMod,MODE mode);
