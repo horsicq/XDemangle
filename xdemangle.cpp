@@ -4001,7 +4001,7 @@ void XDemangle::reverseList(QList<QString> *pList)
 
     for(int i=0;i<(nNumberOfRecords/2);i++)
     {
-        pList->swap(i,nNumberOfRecords-(1+i));
+        pList->swapItemsAt(i,nNumberOfRecords-(1+i));
     }
 }
 
@@ -4011,7 +4011,7 @@ void XDemangle::reverseList(QList<XDemangle::DNAME> *pList)
 
     for(int i=0;i<(nNumberOfRecords/2);i++)
     {
-        pList->swap(i,nNumberOfRecords-(1+i));
+        pList->swapItemsAt(i,nNumberOfRecords-(1+i));
     }
 }
 
