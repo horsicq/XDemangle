@@ -4001,7 +4001,11 @@ void XDemangle::reverseList(QList<QString> *pList)
 
     for(int i=0;i<(nNumberOfRecords/2);i++)
     {
+    #if QT_VERSION >= QT_VERSION_CHECK(5,13,0)
         pList->swapItemsAt(i,nNumberOfRecords-(1+i));
+    #else
+        pList->swap(i,nNumberOfRecords-(1+i));
+    #endif
     }
 }
 
@@ -4011,7 +4015,11 @@ void XDemangle::reverseList(QList<XDemangle::DNAME> *pList)
 
     for(int i=0;i<(nNumberOfRecords/2);i++)
     {
+    #if QT_VERSION >= QT_VERSION_CHECK(5,13,0)
         pList->swapItemsAt(i,nNumberOfRecords-(1+i));
+    #else
+        pList->swap(i,nNumberOfRecords-(1+i));
+    #endif
     }
 }
 
