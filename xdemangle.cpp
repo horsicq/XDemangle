@@ -3259,13 +3259,13 @@ QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemang
     QString sIndexes;
     QString sMain;
 
-    int i=0;
+    int nIndex=0;
 
     while(parameter.st==ST_POINTER)
     {
         QString sPointer=qualIdToPointerString(parameter.nQualifier,pSymbol->mode);
 
-        if(i==0)
+        if(nIndex==0)
         {
             sMain=sPointer;
         }
@@ -3293,7 +3293,7 @@ QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemang
             break;
         }
 
-        i++;
+        nIndex++;
     }
 
     sResult=sPrefix;
