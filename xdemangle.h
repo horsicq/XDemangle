@@ -21,9 +21,9 @@
 #ifndef XDEMANGLE_H
 #define XDEMANGLE_H
 
+#include <QMap>
 #include <QObject>
 #include <QVariant>
-#include <QMap>
 #ifdef QT_DEBUG
 #include <QDebug>
 #endif
