@@ -2790,7 +2790,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
             QList<QString> listTemplates;
 
-            for(int i=0;i<nNumberOfArgs;i++)
+            for(qint32 i=0;i<nNumberOfArgs;i++)
             {
                 DPARAMETER _parameter=parameter.listParameters.at(i);
                 QString sParameter=itanium_parameterToString(pSymbol,&_parameter,"");
