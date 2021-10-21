@@ -2120,7 +2120,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         int nNumberOfParameters=pParameter->listParameters.count();
 
-        for(int i=0;i<nNumberOfParameters;i++)
+        for(qint32 i=0;i<nNumberOfParameters;i++)
         {
             DPARAMETER parameter=pParameter->listParameters.at(i);
 
