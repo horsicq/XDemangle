@@ -2184,7 +2184,7 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
         }
     }
 
-    for(int i=0;i<nNumberOfNames;i++)
+    for(qint32 i=0;i<nNumberOfNames;i++)
     {
         QString _sName;
 
@@ -2270,7 +2270,7 @@ QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::D
 
     DPARAMETER parameter=*pParameter;
 
-    int i=0;
+    qint32 i=0;
 
     QString sMain=sName;
     QString sPrefix;
