@@ -2498,7 +2498,7 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
         {
             sResult+="(";
 
-            for(int i=0;i<nNumberOfParameters;i++)
+            for(qint32 i=0;i<nNumberOfParameters;i++)
             {
                 DPARAMETER parameter=pParameter->listParameters.at(i);
 
