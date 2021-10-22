@@ -3122,11 +3122,11 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
 //        dname.sName+=sTemplate;
 //        pParameter->listDnames.append(dname);
 
-        int nNumberOfArgs=parameter.listParameters.count();
+        qint32 nNumberOfArgs=parameter.listParameters.count();
 
         QList<QString> listTemplates;
 
-        for(int i=0;i<nNumberOfArgs;i++)
+        for(qint32 i=0;i<nNumberOfArgs;i++)
         {
             DPARAMETER _parameter=parameter.listParameters.at(i);
             QString sParameter=itanium_parameterToString(pSymbol,&_parameter,"");
