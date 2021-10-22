@@ -3323,9 +3323,9 @@ QString XDemangle::join(QList<QString> *pListStrings, QString sJoin)
 {
     QString sResult;
 
-    int nCount=pListStrings->count();
+    qint32 nCount=pListStrings->count();
 
-    for(int i=0;i<nCount;i++)
+    for(qint32 i=0;i<nCount;i++)
     {
         sResult+=pListStrings->at(i);
 
