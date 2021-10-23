@@ -3546,7 +3546,7 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pPara
         {
             sResult+="(";
 
-            for(int i=0;i<nNumberOfParameters;i++)
+            for(qint32 i=0;i<nNumberOfParameters;i++)
             {
                 DPARAMETER parameter=pParameter->listParameters.at(i);
 
