@@ -3997,9 +3997,9 @@ QList<XDemangle::MODE> XDemangle::getSupportedModes()
 
 void XDemangle::reverseList(QList<QString> *pList)
 {
-    int nNumberOfRecords=pList->count();
+    qint32 nNumberOfRecords=pList->count();
 
-    for(int i=0;i<(nNumberOfRecords/2);i++)
+    for(qint32 i=0;i<(nNumberOfRecords/2);i++)
     {
     #if QT_VERSION >= QT_VERSION_CHECK(5,13,0)
         pList->swapItemsAt(i,nNumberOfRecords-(1+i));
