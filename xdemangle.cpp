@@ -3899,12 +3899,12 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
         }
 
 //    #ifdef QT_DEBUG
-//        for(int i=0;i<hdata.listListStringRef.count();i++)
+//        for(qint32 i=0;i<hdata.listListStringRef.count();i++)
 //        {
 //            qDebug("%d: %s",i,hdata.listListStringRef.at(i).join("<>").toLatin1().data());
 //        }
 
-//        for(int i=0;i<hdata.listArgRef.count();i++)
+//        for(qint32 i=0;i<hdata.listArgRef.count();i++)
 //        {
 //            qDebug("%d: %s",i,hdata.listArgRef.at(i).toLatin1().data());
 //        }
