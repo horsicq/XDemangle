@@ -1977,7 +1977,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         sArgs+="(";
 
-        int nNumberOfParameters=pParameter->listParameters.count();
+        qint32 nNumberOfParameters=pParameter->listParameters.count();
 
         for(qint32 i=0;i<nNumberOfParameters;i++)
         {
