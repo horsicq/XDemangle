@@ -3909,7 +3909,7 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
 //            qDebug("%d: %s",i,hdata.listArgRef.at(i).toLatin1().data());
 //        }
 
-//        for(int i=0;i<hdata.listListTemplates.count();i++)
+//        for(qint32 i=0;i<hdata.listListTemplates.count();i++)
 //        {
 //            for(int j=0;j<hdata.listListTemplates.at(i).count();j++)
 //            {
@@ -4011,9 +4011,9 @@ void XDemangle::reverseList(QList<QString> *pList)
 
 void XDemangle::reverseList(QList<XDemangle::DNAME> *pList)
 {
-    int nNumberOfRecords=pList->count();
+    qint32 nNumberOfRecords=pList->count();
 
-    for(int i=0;i<(nNumberOfRecords/2);i++)
+    for(qint32 i=0;i<(nNumberOfRecords/2);i++)
     {
     #if QT_VERSION >= QT_VERSION_CHECK(5,13,0)
         pList->swapItemsAt(i,nNumberOfRecords-(1+i));
