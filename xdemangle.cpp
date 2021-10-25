@@ -2143,7 +2143,7 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
     QString sResult;
 
     // TODO function
-    int nNumberOfNames=pParameter->listDnames.count();
+    qint32 nNumberOfNames=pParameter->listDnames.count();
 
     if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
     {
