@@ -2315,9 +2315,9 @@ QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::D
             break;
         }
 
-        int nNumberOfIndexes=parameter.listIndexes.count();
+        qint32 nNumberOfIndexes=parameter.listIndexes.count();
 
-        for(int j=1;j<nNumberOfIndexes;j++)
+        for(qint32 j=1;j<nNumberOfIndexes;j++)
         {
             bArray=true;
             sIndexes+=QString("[%1]").arg(parameter.listIndexes.at(j));
