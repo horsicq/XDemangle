@@ -2786,7 +2786,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
                 listAddString[listAddString.count()-1]+=sTemplate;
             }
 
-            int nNumberOfArgs=parameter.listParameters.count();
+            qint32 nNumberOfArgs=parameter.listParameters.count();
 
             QList<QString> listTemplates;
 

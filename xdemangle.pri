@@ -16,3 +16,6 @@ SOURCES += \
     XCONFIG += xarchive
     include($$PWD/../XArchive/xarchive.pri)
 }
+
+DISTFILES += \
+    $$PWD/xdemangle.cmake
