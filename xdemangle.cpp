@@ -3259,7 +3259,7 @@ QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemang
     QString sIndexes;
     QString sMain;
 
-    int nIndex=0;
+    qint32 nIndex=0;
 
     while(parameter.st==ST_POINTER)
     {
