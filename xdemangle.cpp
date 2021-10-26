@@ -3911,7 +3911,7 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
 
 //        for(qint32 i=0;i<hdata.listListTemplates.count();i++)
 //        {
-//            for(int j=0;j<hdata.listListTemplates.at(i).count();j++)
+//            for(qint32 j=0;j<hdata.listListTemplates.at(i).count();j++)
 //            {
 //                qDebug("%d %d: %s",i,j,hdata.listListTemplates.at(i).at(j).toLatin1().data());
 //            }
