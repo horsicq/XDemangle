@@ -1,4 +1,3 @@
-# TODO guard
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../XLLVMDemangler/3rdparty/)
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../XLLVMDemangler/3rdparty/llvm/Demangle/)
