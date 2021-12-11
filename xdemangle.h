@@ -342,6 +342,7 @@ public:
     };
 
     explicit XDemangle(QObject *pParent=nullptr);
+
     static QString modeIdToString(MODE mode);
     static QString typeIdToString(XTYPE type,MODE mode);
     static QString storageClassIdToString(SC storageClass,MODE mode);
