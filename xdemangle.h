@@ -363,7 +363,6 @@ public:
 
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
-
     HDATA getHdata(MODE mode);
 
 private:
