@@ -360,7 +360,6 @@ public:
     DSYMBOL borland_getSymbol(QString sString,MODE mode);
 
     static MODE detectMode(QString sString);
-
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
     HDATA getHdata(MODE mode);
