@@ -358,7 +358,6 @@ public:
     DSYMBOL ms_getSymbol(QString sString,MODE mode,HDATA *pHdata=nullptr);
     DSYMBOL itanium_getSymbol(QString sString,MODE mode);
     DSYMBOL borland_getSymbol(QString sString,MODE mode);
-
     static MODE detectMode(QString sString);
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
