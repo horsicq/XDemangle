@@ -352,7 +352,6 @@ public:
     static QString operatorIdToString(OP _operator,MODE mode);
     static QString qualIdToPointerString(quint32 nQual,MODE mode);
     static QString qualIdToStorageString(quint32 nQual,MODE mode);
-
     QString demangle(QString sString,MODE mode);
     DSYMBOL _getSymbol(QString sString,MODE mode);
     DSYMBOL ms_getSymbol(QString sString,MODE mode,HDATA *pHdata=nullptr);
