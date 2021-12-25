@@ -1,3 +1,3 @@
 # XDemangle
 
-Demangle
+Demangle functions
