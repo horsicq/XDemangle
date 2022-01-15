@@ -4098,7 +4098,7 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString, XDemangle
 
         if(number.nSize)
         {
-            result.sOriginal+=sString.leftRef(number.nSize);
+            result.sOriginal+=sString.left(number.nSize);
             sString=sString.mid(number.nSize,-1);
             result.sString=sString.left(number.nValue);
             result.nSize=number.nSize+result.sString.size();
