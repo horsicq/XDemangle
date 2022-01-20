@@ -51,7 +51,7 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
 
 QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
 {
-    Q_UNUSED(mode) // TODO
+    Q_UNUSED(mode) // mb TODO
 
     QString sResult=tr("Unknown");
 
