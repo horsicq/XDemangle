@@ -49,7 +49,7 @@ public:
         MODE_BORLAND64,
         MODE_WATCOM,
         MODE_RUST
-        // TODO more
+        // TODO more !!!
     };
 
     enum SYNTAX
