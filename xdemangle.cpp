@@ -100,7 +100,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type,XDemangle::MODE mode)
     return sResult;
 }
 
-QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle::MODE mode)
+QString XDemangle::storageClassIdToString(XDemangle::SC storageClass,XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
