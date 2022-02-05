@@ -195,7 +195,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
     return sResult;
 }
 
-QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE mode)
+QString XDemangle::operatorIdToString(XDemangle::OP _operator,XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
