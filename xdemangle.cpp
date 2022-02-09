@@ -143,7 +143,7 @@ QString XDemangle::objectClassIdToString(OC objectClass,XDemangle::MODE mode)
     return sResult;
 }
 
-QString XDemangle::accessIdToString(quint32 nFunctionMod, XDemangle::MODE mode)
+QString XDemangle::accessIdToString(quint32 nFunctionMod,XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
