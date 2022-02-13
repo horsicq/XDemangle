@@ -173,7 +173,7 @@ QString XDemangle::accessIdToString(quint32 nFunctionMod,XDemangle::MODE mode)
     return sResult;
 }
 
-QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention, XDemangle::MODE mode)
+QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention,XDemangle::MODE mode)
 {
     Q_UNUSED(mode) // TODO
 
