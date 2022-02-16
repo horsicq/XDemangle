@@ -335,7 +335,7 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     return result;
 }
 
-qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pParameter,QString sString)
 {
     Q_UNUSED(pParameter)
 
