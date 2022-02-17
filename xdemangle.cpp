@@ -504,7 +504,7 @@ qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol, XDem
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, QString sString, MSDT msdt)
+qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt)
 {
     qint32 nResult=0;
 
