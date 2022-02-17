@@ -408,7 +408,7 @@ qint32 XDemangle::ms_demangle_UntypedVariable(XDemangle::DSYMBOL *pSymbol,XDeman
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
