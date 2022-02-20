@@ -300,7 +300,7 @@ QString XDemangle::qualIdToPointerString(quint32 nQual, XDemangle::MODE mode)
     return sResult;
 }
 
-QString XDemangle::qualIdToStorageString(quint32 nQual, XDemangle::MODE mode)
+QString XDemangle::qualIdToStorageString(quint32 nQual,XDemangle::MODE mode)
 {
     Q_UNUSED(mode)
 
