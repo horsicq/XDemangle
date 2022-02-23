@@ -797,7 +797,7 @@ qint32 XDemangle::ms_demangle_FullTypeName(XDemangle::DSYMBOL *pSymbol, XDemangl
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_FullSymbolName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_FullSymbolName(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
