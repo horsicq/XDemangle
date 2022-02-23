@@ -463,7 +463,7 @@ qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol,XDemangle
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
