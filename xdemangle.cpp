@@ -707,7 +707,7 @@ qint32 XDemangle::ms_demangle_PointerType(XDemangle::DSYMBOL *pSymbol,XDemangle:
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_MemberPointerType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_MemberPointerType(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
