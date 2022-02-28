@@ -1006,7 +1006,7 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Declarator(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pDParameter, QString sString)
+qint32 XDemangle::ms_demangle_Declarator(DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pDParameter,QString sString)
 {
     qint32 nResult=0;
 
