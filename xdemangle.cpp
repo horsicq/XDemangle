@@ -1296,7 +1296,7 @@ qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol,XDe
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, XDemangle::NB nb)
+qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pParameter,QString sString,XDemangle::NB nb)
 {
     qint32 nResult=0;
 
