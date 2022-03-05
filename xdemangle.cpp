@@ -1554,7 +1554,7 @@ bool XDemangle::ms_isPointerMember(XDemangle::DSYMBOL *pSymbol, HDATA *pHdata, Q
     return false;
 }
 
-void XDemangle::addStringRef(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+void XDemangle::addStringRef(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,QString sString)
 {
     if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
     {
