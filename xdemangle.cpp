@@ -1499,7 +1499,7 @@ qint32 XDemangle::ms_demangle_ExtQualifiers(XDemangle::DSYMBOL *pSymbol, QString
     return nResult;
 }
 
-bool XDemangle::ms_isPointerMember(XDemangle::DSYMBOL *pSymbol, HDATA *pHdata, QString sString)
+bool XDemangle::ms_isPointerMember(XDemangle::DSYMBOL *pSymbol,HDATA *pHdata,QString sString)
 {
     if(_compare(sString,"$"))
     {
