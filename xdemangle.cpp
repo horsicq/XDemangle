@@ -1634,7 +1634,7 @@ bool XDemangle::isReplaceStringPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::H
     return bResult;
 }
 
-bool XDemangle::isReplaceArgPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+bool XDemangle::isReplaceArgPresent(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,QString sString)
 {
     bool bResult=false;
 
