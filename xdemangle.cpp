@@ -1601,7 +1601,7 @@ void XDemangle::addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString>
     }
 }
 
-bool XDemangle::isReplaceStringPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+bool XDemangle::isReplaceStringPresent(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,QString sString)
 {
     bool bResult=false;
 
