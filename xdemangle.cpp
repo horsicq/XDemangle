@@ -1572,7 +1572,7 @@ void XDemangle::addStringRef(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdat
     }
 }
 
-void XDemangle::addArgRef(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+void XDemangle::addArgRef(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,QString sString)
 {
     if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_MICROSOFT)
     {
