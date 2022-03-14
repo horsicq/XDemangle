@@ -1765,7 +1765,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pS
     return result;
 }
 
-XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,QString sString)
 {
     SIGNATURE result={};
 
