@@ -2138,7 +2138,7 @@ QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol,XDemangle::D
     return sResult;
 }
 
-QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter)
+QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol,XDemangle::DPARAMETER *pParameter)
 {
     QString sResult;
 
