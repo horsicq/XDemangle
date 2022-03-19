@@ -3502,7 +3502,7 @@ qint32 XDemangle::borland_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, 
     return nResult;
 }
 
-QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter)
+QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter)
 {
     QString sResult;
 
