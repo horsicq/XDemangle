@@ -1471,7 +1471,7 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol,XDe
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_ExtQualifiers(XDemangle::DSYMBOL *pSymbol, QString sString, quint32 *pnQual)
+qint32 XDemangle::ms_demangle_ExtQualifiers(XDemangle::DSYMBOL *pSymbol,QString sString,quint32 *pnQual)
 {
     Q_UNUSED(pSymbol)
 
