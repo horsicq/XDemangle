@@ -3788,7 +3788,7 @@ XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString,XDemangle::MODE mode,
     return result;
 }
 
-XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE mode)
+XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString,XDemangle::MODE mode)
 {
     DSYMBOL result={};
 
