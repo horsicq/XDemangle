@@ -1694,7 +1694,7 @@ bool XDemangle::isLocalScopePresent(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA
     return bResult;
 }
 
-XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,QString sString)
 {
     SIGNATURE result={};
 
