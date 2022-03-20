@@ -3680,7 +3680,7 @@ XDemangle::DSYMBOL XDemangle::_getSymbol(QString sString, XDemangle::MODE mode)
     return result;
 }
 
-XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString, XDemangle::MODE mode,HDATA *pHdata)
+XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString,XDemangle::MODE mode,HDATA *pHdata)
 {
     DSYMBOL result={};
 
