@@ -1593,7 +1593,7 @@ void XDemangle::addArgRef(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,Q
     }
 }
 
-void XDemangle::addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString> listString)
+void XDemangle::addStringListRef(DSYMBOL *pSymbol,HDATA *pHdata,QList<QString> listString)
 {
     if(getSyntaxFromMode(pSymbol->mode)==SYNTAX_ITANIUM)
     {
