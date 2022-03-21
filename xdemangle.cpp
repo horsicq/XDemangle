@@ -2347,7 +2347,7 @@ QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::D
     return sResult;
 }
 
-QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, QString sPrefix)
+QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol,XDemangle::DPARAMETER *pParameter,QString sPrefix)
 {
     QString sResult;
 
