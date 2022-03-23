@@ -3476,7 +3476,7 @@ qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAME
     return nResult;
 }
 
-qint32 XDemangle::borland_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::borland_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
