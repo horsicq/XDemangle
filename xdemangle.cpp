@@ -2869,7 +2869,7 @@ qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemang
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
