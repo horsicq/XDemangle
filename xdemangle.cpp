@@ -4068,7 +4068,7 @@ QString XDemangle::dsymbolToString(XDemangle::DSYMBOL symbol)
     return sResult;
 }
 
-XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString, XDemangle::MODE mode)
+XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString,XDemangle::MODE mode)
 {
     STRING result={};
 
