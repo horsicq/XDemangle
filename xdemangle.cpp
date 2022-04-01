@@ -3570,7 +3570,7 @@ QString XDemangle::borland_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParam
     return sResult;
 }
 
-QString XDemangle::borland_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter)
+QString XDemangle::borland_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter)
 {
     QString sResult;
 
