@@ -3597,7 +3597,7 @@ QString XDemangle::borland_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParame
     return sResult;
 }
 
-QString XDemangle::demangle(QString sString, XDemangle::MODE mode)
+QString XDemangle::demangle(QString sString,XDemangle::MODE mode)
 {
     QString sResult;
 
