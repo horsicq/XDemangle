@@ -3249,7 +3249,7 @@ qint32 XDemangle::itanium_demangle_PointerType(XDemangle::DSYMBOL *pSymbol,XDema
     return nResult;
 }
 
-QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter)
+QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol,XDemangle::DPARAMETER *pParameter)
 {
     QString sResult;
 
