@@ -3223,7 +3223,7 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol,XDemangle::H
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_PointerType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::itanium_demangle_PointerType(XDemangle::DSYMBOL *pSymbol,XDemangle::HDATA *pHdata,XDemangle::DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
