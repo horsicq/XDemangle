@@ -4357,7 +4357,7 @@ XDemangle::SIGNATURE XDemangle::getSignature(QString sString, QMap<QString, quin
     return result;
 }
 
-QMap<QString, quint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
+QMap<QString,quint32> XDemangle::getObjectClasses(XDemangle::MODE mode)
 {
     QMap<QString,quint32> mapResult;
 
