@@ -4126,7 +4126,7 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata,QString sString,XDemangle:
     return result;
 }
 
-XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangle::MODE mode)
+XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata,QString sString,XDemangle::MODE mode)
 {
     NUMBER result={};
 
