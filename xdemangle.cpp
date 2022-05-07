@@ -268,7 +268,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator,XDemangle::MODE mo
     return sResult;
 }
 
-QString XDemangle::qualIdToPointerString(quint32 nQual, XDemangle::MODE mode)
+QString XDemangle::qualIdToPointerString(quint32 nQual,XDemangle::MODE mode)
 {
     Q_UNUSED(mode)
 
