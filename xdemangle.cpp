@@ -4240,7 +4240,7 @@ XDemangle::NUMBER XDemangle::readNumberS(XDemangle::HDATA *pHdata, QString sStri
     return result;
 }
 
-XDemangle::NUMBER XDemangle::readSymNumber(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
+XDemangle::NUMBER XDemangle::readSymNumber(XDemangle::HDATA *pHdata,QString sString,XDemangle::MODE mode)
 {
     NUMBER result={};
 
