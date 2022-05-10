@@ -2264,7 +2264,7 @@ XDemangle::DPARAMETER XDemangle::getLastPointerParameter(XDemangle::DPARAMETER *
     return result;
 }
 
-QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, QString sName)
+QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol,XDemangle::DPARAMETER *pParameter,QString sName)
 {
     QString sResult;
 
