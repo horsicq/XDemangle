@@ -3338,7 +3338,7 @@ QString XDemangle::join(QList<QString> *pListStrings, QString sJoin)
     return sResult;
 }
 
-qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString)
 {
     qint32 nResult=0;
 
