@@ -4863,7 +4863,7 @@ QMap<QString, quint32> XDemangle::getQualifiers(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, quint32> XDemangle::getSpecInstr(XDemangle::MODE mode)
+QMap<QString,quint32> XDemangle::getSpecInstr(XDemangle::MODE mode)
 {
     QMap<QString,quint32> mapResult;
 
