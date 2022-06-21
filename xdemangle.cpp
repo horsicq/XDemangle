@@ -4895,7 +4895,7 @@ QMap<QString,quint32> XDemangle::getSpecInstr(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, QString> XDemangle::getStd(MODE mode)
+QMap<QString,QString> XDemangle::getStd(MODE mode)
 {
     QMap<QString,QString> mapResult;
 
