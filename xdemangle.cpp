@@ -4616,7 +4616,7 @@ QMap<QString,quint32> XDemangle::getFunctionConventions(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, quint32> XDemangle::getOperators(XDemangle::MODE mode)
+QMap<QString,quint32> XDemangle::getOperators(XDemangle::MODE mode)
 {
     QMap<QString,quint32> mapResult;
 
