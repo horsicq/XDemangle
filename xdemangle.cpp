@@ -4802,7 +4802,7 @@ QMap<QString,quint32> XDemangle::getNumbers(XDemangle::MODE mode)
     return mapResult;
 }
 
-QMap<QString, quint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
+QMap<QString,quint32> XDemangle::getLineNumbers(XDemangle::MODE mode)
 {
     QMap<QString,quint32> mapResult;
 
