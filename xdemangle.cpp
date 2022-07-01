@@ -3319,7 +3319,7 @@ QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol,XDemangl
     return sResult;
 }
 
-QString XDemangle::join(QList<QString> *pListStrings, QString sJoin)
+QString XDemangle::join(QList<QString> *pListStrings,QString sJoin)
 {
     QString sResult;
 
