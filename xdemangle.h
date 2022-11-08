@@ -395,7 +395,6 @@ private:
     QChar _getStringEnd(QString sString);
     QString _removeLastSymbol(QString sString);
     bool isPointerEnd(QString sString);
-
     bool isSignaturePresent(QString sString,QMap<QString,quint32> *pMap);
     SIGNATURE getSignature(QString sString,QMap<QString,quint32> *pMap);
 
