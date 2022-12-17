@@ -1379,7 +1379,7 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol,XDe
         }
         else if(_compare(sString,"$$B"))
         {
-            // TODO CHeck
+            // TODO Check
             nResult+=3;
             sString=sString.mid(3,-1);
 
