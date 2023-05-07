@@ -29,19 +29,17 @@
 #endif
 #include "xcppfilt.h"
 
-class XDemangle : public QObject
-{
+class XDemangle : public QObject {
     Q_OBJECT
 
 public:
-    enum MODE
-    {
-        MODE_UNKNOWN=0,
+    enum MODE {
+        MODE_UNKNOWN = 0,
         MODE_AUTO,
-        MODE_MSVC,      // Generic
+        MODE_MSVC,  // Generic
         MODE_MSVC32,
         MODE_MSVC64,
-        MODE_GNU_V3,    // Generic
+        MODE_GNU_V3,  // Generic
         MODE_GCC_WIN,
         MODE_GCC_MAC,
         MODE_JAVA,
@@ -52,19 +50,17 @@ public:
         // TODO more !!!
     };
 
-    enum SYNTAX
-    {
-        SYNTAX_UNKNOWN=0,
+    enum SYNTAX {
+        SYNTAX_UNKNOWN = 0,
         SYNTAX_MICROSOFT,
         SYNTAX_ITANIUM,
         SYNTAX_BORLAND,
         SYNTAX_WATCOM
     };
 
-    enum XTYPE
-    {
-        XTYPE_UNKNOWN=0,
-        XTYPE_NONE, // For Constructors & Destructors
+    enum XTYPE {
+        XTYPE_UNKNOWN = 0,
+        XTYPE_NONE,  // For Constructors & Destructors
         XTYPE_BOOL,
         XTYPE_VOID,
         XTYPE_INT,
@@ -106,9 +102,8 @@ public:
         XTYPE_CONST
     };
 
-    enum OC
-    {
-        OC_UNKNOWN=0,
+    enum OC {
+        OC_UNKNOWN = 0,
         OC_PRIVATESTATICCLASSMEMBER,
         OC_PROTECTEDSTATICCLASSMEMBER,
         OC_PUBLICSTATICCLASSMEMBER,
@@ -116,9 +111,8 @@ public:
         OC_FUNCTIONLOCALSTATIC
     };
 
-    enum SC
-    {
-        SC_UNKNOWN=0,
+    enum SC {
+        SC_UNKNOWN = 0,
         SC_NEAR,
         SC_CONST,
         SC_VOLATILE,
@@ -131,28 +125,26 @@ public:
         SC_EXECUTABLE
     };
 
-    enum FM
-    {
-        FM_UNKNOWN=0,
-        FM_PUBLIC               =0x00000001,
-        FM_PROTECTED            =0x00000002,
-        FM_PRIVATE              =0x00000004,
-        FM_STATIC               =0x00000010,
-        FM_VIRTUAL              =0x00000020,
-        FM_NEAR                 =0x00000100,
-        FM_FAR                  =0x00000200,
-        FM_STATICTHISADJUST     =0x00001000,
-        FM_VIRTUALTHISADJUST    =0x00002000,
-        FM_VIRTUALTHISADJUSTEX  =0x00004000,
-        FM_FUNCTIONLOCAL        =0x01000000,
-        FM_GLOBAL               =0x10000000,
-        FM_EXTERNC              =0x20000000,
-        FM_NOPARAMETERLIST      =0x40000000,
+    enum FM {
+        FM_UNKNOWN = 0,
+        FM_PUBLIC = 0x00000001,
+        FM_PROTECTED = 0x00000002,
+        FM_PRIVATE = 0x00000004,
+        FM_STATIC = 0x00000010,
+        FM_VIRTUAL = 0x00000020,
+        FM_NEAR = 0x00000100,
+        FM_FAR = 0x00000200,
+        FM_STATICTHISADJUST = 0x00001000,
+        FM_VIRTUALTHISADJUST = 0x00002000,
+        FM_VIRTUALTHISADJUSTEX = 0x00004000,
+        FM_FUNCTIONLOCAL = 0x01000000,
+        FM_GLOBAL = 0x10000000,
+        FM_EXTERNC = 0x20000000,
+        FM_NOPARAMETERLIST = 0x40000000,
     };
 
-    enum FC
-    {
-        FC_UNKNOWN=0,
+    enum FC {
+        FC_UNKNOWN = 0,
         FC_NONE,
         FC_CDECL,
         FC_PASCAL,
@@ -168,9 +160,8 @@ public:
         FC_VECTORCALL
     };
 
-    enum ST
-    {
-        ST_UNKNOWN=0,
+    enum ST {
+        ST_UNKNOWN = 0,
         ST_VARIABLE,
         ST_TYPE,
         ST_PACKEDTYPE,
@@ -179,7 +170,7 @@ public:
         ST_VTABLE,
         ST_VFTABLE,
         ST_VBTABLE,
-        ST_TYPEINFO, // TODO
+        ST_TYPEINFO,  // TODO
         ST_TYPEINFONAME,
         ST_TEMPLATE,
         ST_CONST,
@@ -200,9 +191,8 @@ public:
         ST_CONSTRUCTIONVTABLE
     };
 
-    enum OP
-    {
-        OP_UNKNOWN=0,
+    enum OP {
+        OP_UNKNOWN = 0,
         OP_CONSTRUCTOR,
         OP_DESTRUCTOR,
         OP_NEW,
@@ -264,55 +254,51 @@ public:
         OP_TYPE
     };
 
-    enum QUAL
-    {
-        QUAL_NONE               =0x00000000,
-        QUAL_CONST              =0x00000001,
-        QUAL_VOLATILE           =0x00000002,
-        QUAL_SIGNED             =0x00100000,
-        QUAL_UNSIGNED           =0x00200000,
-        QUAL_REFERENCE          =0x01000000,
-        QUAL_RVALUEREF          =0x02000000,
-        QUAL_POINTER            =0x04000000,
-        QUAL_DOUBLEREFERENCE    =0x08000000,
-        QUAL_MEMBER             =0x10000000,
-        QUAL_POINTER64          =0x20000000,
-        QUAL_RESTRICT           =0x40000000,
-        QUAL_UNALIGNED          =0x80000000,
+    enum QUAL {
+        QUAL_NONE = 0x00000000,
+        QUAL_CONST = 0x00000001,
+        QUAL_VOLATILE = 0x00000002,
+        QUAL_SIGNED = 0x00100000,
+        QUAL_UNSIGNED = 0x00200000,
+        QUAL_REFERENCE = 0x01000000,
+        QUAL_RVALUEREF = 0x02000000,
+        QUAL_POINTER = 0x04000000,
+        QUAL_DOUBLEREFERENCE = 0x08000000,
+        QUAL_MEMBER = 0x10000000,
+        QUAL_POINTER64 = 0x20000000,
+        QUAL_RESTRICT = 0x40000000,
+        QUAL_UNALIGNED = 0x80000000,
     };
 
-    struct HDATA
-    {
-        QMap<QString,quint32> mapPointerTypes;
-        QMap<QString,quint32> mapObjectClasses;
-        QMap<QString,quint32> mapTypes;
-        QMap<QString,quint32> mapTagTypes;
-        QMap<QString,quint32> mapStorageClasses;
-        QMap<QString,quint32> mapAccessMods;
-        QMap<QString,quint32> mapFunctionConventions;
-        QMap<QString,quint32> mapOperators;
-        QMap<QString,quint32> mapNumbers;
-        QMap<QString,quint32> mapSymNumbers;
-        QMap<QString,quint32> mapQualifiers;
-        QMap<QString,quint32> mapSpecInstr;
-        QMap<QString,QString> mapStd; // Itanium
-        QList<QString> listStringRef; // MS
-        QList<QString> listArgRef; // MS Itanium templates
-        QList<QList<QString>> listListStringRef; // Itanium
-        QList<QList<QString>> listListTemplates; // Itanium
+    struct HDATA {
+        QMap<QString, quint32> mapPointerTypes;
+        QMap<QString, quint32> mapObjectClasses;
+        QMap<QString, quint32> mapTypes;
+        QMap<QString, quint32> mapTagTypes;
+        QMap<QString, quint32> mapStorageClasses;
+        QMap<QString, quint32> mapAccessMods;
+        QMap<QString, quint32> mapFunctionConventions;
+        QMap<QString, quint32> mapOperators;
+        QMap<QString, quint32> mapNumbers;
+        QMap<QString, quint32> mapSymNumbers;
+        QMap<QString, quint32> mapQualifiers;
+        QMap<QString, quint32> mapSpecInstr;
+        QMap<QString, QString> mapStd;            // Itanium
+        QList<QString> listStringRef;             // MS
+        QList<QString> listArgRef;                // MS Itanium templates
+        QList<QList<QString>> listListStringRef;  // Itanium
+        QList<QList<QString>> listListTemplates;  // Itanium
     };
 
-    struct DNAME
-    {
+    struct DNAME {
         QString sName;
-//        QList<QString> listNames;
+        //        QList<QString> listNames;
         OP _operator;
-        bool bTemplates; // Itanium
-//        QList<QString> listTemplates; // Itanium
+        bool bTemplates;  // Itanium
+                          //        QList<QString> listTemplates; // Itanium
     };
 
-    struct DPARAMETER
-    {
+    struct DPARAMETER {
         QList<DNAME> listDnames;
         XTYPE type;
         XTYPE typeConst;
@@ -328,56 +314,52 @@ public:
         QList<DPARAMETER> listClass;
         QList<DPARAMETER> listPointer;
         QList<DPARAMETER> listTarget;
-        QList<qint64> listIndexes; // For var[x][y]
+        QList<qint64> listIndexes;  // For var[x][y]
         QString sScope;
-        bool bTemplatePresent; // Itanium
+        bool bTemplatePresent;  // Itanium
     };
 
-    struct DSYMBOL
-    {
+    struct DSYMBOL {
         bool bIsValid;
         qint32 nSize;
         MODE mode;
         DPARAMETER paramMain;
     };
 
-    explicit XDemangle(QObject *pParent=nullptr);
+    explicit XDemangle(QObject *pParent = nullptr);
 
     static QString modeIdToString(MODE mode);
-    static QString typeIdToString(XTYPE type,MODE mode);
-    static QString storageClassIdToString(SC storageClass,MODE mode);
-    static QString objectClassIdToString(OC objectClass,MODE mode);
-    static QString accessIdToString(quint32 nFunctionMod,MODE mode);
-    static QString functionConventionIdToString(FC functionConvention,MODE mode);
-    static QString operatorIdToString(OP _operator,MODE mode);
-    static QString qualIdToPointerString(quint32 nQual,MODE mode);
-    static QString qualIdToStorageString(quint32 nQual,MODE mode);
-    QString demangle(QString sString,MODE mode);
-    DSYMBOL _getSymbol(QString sString,MODE mode);
-    DSYMBOL ms_getSymbol(QString sString,MODE mode,HDATA *pHdata=nullptr);
-    DSYMBOL itanium_getSymbol(QString sString,MODE mode);
-    DSYMBOL borland_getSymbol(QString sString,MODE mode);
+    static QString typeIdToString(XTYPE type, MODE mode);
+    static QString storageClassIdToString(SC storageClass, MODE mode);
+    static QString objectClassIdToString(OC objectClass, MODE mode);
+    static QString accessIdToString(quint32 nFunctionMod, MODE mode);
+    static QString functionConventionIdToString(FC functionConvention, MODE mode);
+    static QString operatorIdToString(OP _operator, MODE mode);
+    static QString qualIdToPointerString(quint32 nQual, MODE mode);
+    static QString qualIdToStorageString(quint32 nQual, MODE mode);
+    QString demangle(QString sString, MODE mode);
+    DSYMBOL _getSymbol(QString sString, MODE mode);
+    DSYMBOL ms_getSymbol(QString sString, MODE mode, HDATA *pHdata = nullptr);
+    DSYMBOL itanium_getSymbol(QString sString, MODE mode);
+    DSYMBOL borland_getSymbol(QString sString, MODE mode);
     static MODE detectMode(QString sString);
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
     HDATA getHdata(MODE mode);
 
 private:
-    struct STRING
-    {
+    struct STRING {
         qint32 nSize;
         QString sString;
         QString sOriginal;
     };
 
-    struct NUMBER
-    {
+    struct NUMBER {
         qint32 nSize;
         qint64 nValue;
     };
 
-    struct SIGNATURE
-    {
+    struct SIGNATURE {
         qint32 nSize;
         QString sString;
         QList<QString> listStrings;
@@ -387,107 +369,105 @@ private:
 
     QString dsymbolToString(DSYMBOL symbol);
 
-    STRING readString(HDATA *pHdata,QString sString,MODE mode);
-    NUMBER readNumber(HDATA *pHdata,QString sString,MODE mode);
-    NUMBER readNumberS(HDATA *pHdata,QString sString,MODE mode);
-    NUMBER readSymNumber(HDATA *pHdata,QString sString,MODE mode);
-    static bool _compare(QString sString,QString sSignature);
+    STRING readString(HDATA *pHdata, QString sString, MODE mode);
+    NUMBER readNumber(HDATA *pHdata, QString sString, MODE mode);
+    NUMBER readNumberS(HDATA *pHdata, QString sString, MODE mode);
+    NUMBER readSymNumber(HDATA *pHdata, QString sString, MODE mode);
+    static bool _compare(QString sString, QString sSignature);
     QChar _getStringEnd(QString sString);
     QString _removeLastSymbol(QString sString);
     bool isPointerEnd(QString sString);
-    bool isSignaturePresent(QString sString,QMap<QString,quint32> *pMap);
-    SIGNATURE getSignature(QString sString,QMap<QString,quint32> *pMap);
+    bool isSignaturePresent(QString sString, QMap<QString, quint32> *pMap);
+    SIGNATURE getSignature(QString sString, QMap<QString, quint32> *pMap);
 
-    QMap<QString,quint32> getObjectClasses(MODE mode);
-    QMap<QString,quint32> getTypes(MODE mode);
-    QMap<QString,quint32> getTagTypes(MODE mode);
-    QMap<QString,quint32> getPointerTypes(MODE mode);
-    QMap<QString,quint32> getStorageClasses(MODE mode);
-    QMap<QString,quint32> getAccessMods(MODE mode);
-    QMap<QString,quint32> getFunctionConventions(MODE mode);
-    QMap<QString,quint32> getOperators(MODE mode);
-    QMap<QString,quint32> getNumbers(MODE mode);
-    QMap<QString,quint32> getLineNumbers(MODE mode);
-    QMap<QString,quint32> getSymNumbers(MODE mode);
-    QMap<QString,quint32> getQualifiers(MODE mode);
-    QMap<QString,quint32> getSpecInstr(MODE mode);
-    QMap<QString,QString> getStd(MODE mode);
+    QMap<QString, quint32> getObjectClasses(MODE mode);
+    QMap<QString, quint32> getTypes(MODE mode);
+    QMap<QString, quint32> getTagTypes(MODE mode);
+    QMap<QString, quint32> getPointerTypes(MODE mode);
+    QMap<QString, quint32> getStorageClasses(MODE mode);
+    QMap<QString, quint32> getAccessMods(MODE mode);
+    QMap<QString, quint32> getFunctionConventions(MODE mode);
+    QMap<QString, quint32> getOperators(MODE mode);
+    QMap<QString, quint32> getNumbers(MODE mode);
+    QMap<QString, quint32> getLineNumbers(MODE mode);
+    QMap<QString, quint32> getSymNumbers(MODE mode);
+    QMap<QString, quint32> getQualifiers(MODE mode);
+    QMap<QString, quint32> getSpecInstr(MODE mode);
+    QMap<QString, QString> getStd(MODE mode);
 
     static void reverseList(QList<QString> *pList);
     static void reverseList(QList<DNAME> *pList);
 
     static SYNTAX getSyntaxFromMode(MODE mode);
 
-    enum MSDT
-    {
-        MSDT_DROP=0,
+    enum MSDT {
+        MSDT_DROP = 0,
         MSDT_MANGLE,
         MSDT_RESULT
     };
 
-    enum NB
-    {
-        NB_TEMPLATE=1,
-        NB_SIMPLE=2
+    enum NB {
+        NB_TEMPLATE = 1,
+        NB_SIMPLE = 2
     };
 
-    qint32 ms_demangle_StringLiteralSymbol(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_UntypedVariable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_LocalStaticGuard(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,MSDT msdt);
-    qint32 ms_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_MemberPointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_FullTypeName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_FullSymbolName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_UnkTypeName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bSave);
-    qint32 ms_demangle_UnkSymbolName(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,NB nb);
-    qint32 ms_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_Declarator(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_Variable(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bThisQual);
-    qint32 ms_demangle_FunctionParameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_Template(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,NB nb);
-    qint32 ms_demangle_TemplateParameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol,QString sString,quint32 *pnQual);
-    bool ms_isPointerMember(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    qint32 ms_demangle_StringLiteralSymbol(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_UntypedVariable(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_LocalStaticGuard(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, MSDT msdt);
+    qint32 ms_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_MemberPointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_FullTypeName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_FullSymbolName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_UnkTypeName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, bool bSave);
+    qint32 ms_demangle_UnkSymbolName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, NB nb);
+    qint32 ms_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_Declarator(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_Variable(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, bool bThisQual);
+    qint32 ms_demangle_FunctionParameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_Template(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, NB nb);
+    qint32 ms_demangle_TemplateParameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol, QString sString, quint32 *pnQual);
+    bool ms_isPointerMember(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
 
-    void addStringRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    void addArgRef(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    void addStringListRef(DSYMBOL *pSymbol,HDATA *pHdata,QList<QString> listString);
-    bool isReplaceStringPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    bool isReplaceArgPresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    bool isLocalScopePresent(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
-    SIGNATURE getLocalScopeSignature(DSYMBOL *pSymbol,HDATA *pHdata,QString sString);
+    void addStringRef(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    void addArgRef(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    void addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString> listString);
+    bool isReplaceStringPresent(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    bool isReplaceArgPresent(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    bool isLocalScopePresent(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    SIGNATURE getLocalScopeSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
 
-    QString ms_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName,QString sPrefix);
-    QString _nameToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+    QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sName, QString sPrefix);
+    QString _nameToString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
 
     DPARAMETER getLastPointerParameter(DPARAMETER *pParameter);
-    QString ms_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sName);
+    QString ms_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sName);
 
     // libelftc_dem_gnu3.c
-    QString itanium_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter,QString sPrefix);
-    qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 itanium_demangle_Function(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString,bool bReturn);
-    qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 itanium_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    QString itanium_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+    QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sPrefix);
+    qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, bool bReturn);
+    qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 itanium_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    QString itanium_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
 
-    static QString join(QList<QString> *pListStrings,QString sJoin);
+    static QString join(QList<QString> *pListStrings, QString sJoin);
 
-    qint32 borland_demangle_Encoding(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 borland_demangle_NameScope(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 borland_demangle_Type(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    qint32 borland_demangle_PointerType(DSYMBOL *pSymbol,HDATA *pHdata,DPARAMETER *pParameter,QString sString);
-    QString borland_parameterToString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
-    QString borland_getPointerString(DSYMBOL *pSymbol,DPARAMETER *pParameter);
+    qint32 borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 borland_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    QString borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
+    QString borland_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
 };
 
-#endif // XDEMANGLE_H
+#endif  // XDEMANGLE_H
