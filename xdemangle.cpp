@@ -3361,50 +3361,52 @@ QString XDemangle::borland_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParam
     return sResult;
 }
 
-QString XDemangle::demangle(QString sString, XDemangle::MODE mode)
+QString XDemangle::demangle(const QString &sString, XDemangle::MODE mode)
 {
     QString sResult;
 
+    QString _sString = sString;
+
     if (mode == MODE_GNU_V3) {
-        sResult = XCppfilt::demangleGnuV3(sString);
+        sResult = XCppfilt::demangleGnuV3(_sString);
     } else if (mode == MODE_GCC_WIN) {
         QString sPrefix;
-        if (_compare(sString, "@_Z")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "@_Z")) {
+            _sString = _sString.mid(1, -1);
             sPrefix = "fastcall";
         }
 
-        if (sString.section("@", -1, -1).toInt()) {
-            sString = sString.section("@", 0, -2);
+        if (_sString.section("@", -1, -1).toInt()) {
+            _sString = _sString.section("@", 0, -2);
         }
 
-        sResult = XCppfilt::demangleGnuV3(sString);
+        sResult = XCppfilt::demangleGnuV3(_sString);
 
         if (sPrefix != "") {
             sResult = QString("%1 %2").arg(sPrefix, sResult);
         }
     } else if (mode == MODE_GCC_MAC) {
-        if (_compare(sString, "__Z")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "__Z")) {
+            _sString = _sString.mid(1, -1);
         }
 
-        sResult = XCppfilt::demangleGnuV3(sString);
+        sResult = XCppfilt::demangleGnuV3(_sString);
     } else if (mode == MODE_JAVA) {
-        sResult = XCppfilt::demangleJavaV3(sString);
+        sResult = XCppfilt::demangleJavaV3(_sString);
     } else if (mode == MODE_RUST) {
-        sResult = XCppfilt::demangleRust(sString);
+        sResult = XCppfilt::demangleRust(_sString);
     } else if (mode == MODE_BORLAND32) {
-        DSYMBOL symbol = borland_getSymbol(sString, mode);
+        DSYMBOL symbol = borland_getSymbol(_sString, mode);
 
         sResult = dsymbolToString(symbol);
     } else if (getSyntaxFromMode(mode) == SYNTAX_MICROSOFT) {
-        DSYMBOL symbol = ms_getSymbol(sString, mode);
+        DSYMBOL symbol = ms_getSymbol(_sString, mode);
 
         sResult = dsymbolToString(symbol);
     }
 
     if (sResult == "") {
-        sResult = sString;
+        sResult = _sString;
     }
 
     return sResult;
