@@ -3412,7 +3412,7 @@ QString XDemangle::demangle(const QString &sString, XDemangle::MODE mode)
     return sResult;
 }
 
-XDemangle::DSYMBOL XDemangle::_getSymbol(QString sString, XDemangle::MODE mode)
+XDemangle::DSYMBOL XDemangle::_getSymbol(const QString &sString, XDemangle::MODE mode)
 {
     DSYMBOL result = {};
 

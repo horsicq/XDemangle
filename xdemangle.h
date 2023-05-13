@@ -338,7 +338,7 @@ public:
     static QString qualIdToPointerString(quint32 nQual, MODE mode);
     static QString qualIdToStorageString(quint32 nQual, MODE mode);
     QString demangle(const QString &sString, MODE mode);
-    DSYMBOL _getSymbol(QString sString, MODE mode);
+    DSYMBOL _getSymbol(const QString &sString, MODE mode);
     DSYMBOL ms_getSymbol(QString sString, MODE mode, HDATA *pHdata = nullptr);
     DSYMBOL itanium_getSymbol(QString sString, MODE mode);
     DSYMBOL borland_getSymbol(QString sString, MODE mode);
