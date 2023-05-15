@@ -3425,9 +3425,10 @@ XDemangle::DSYMBOL XDemangle::_getSymbol(const QString &sString, XDemangle::MODE
     return result;
 }
 
-XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString, XDemangle::MODE mode, HDATA *pHdata)
+XDemangle::DSYMBOL XDemangle::ms_getSymbol(const QString &sString, XDemangle::MODE mode, HDATA *pHdata)
 {
     DSYMBOL result = {};
+    QString _sString = sString;
 
     result.bIsValid = true;
     result.mode = mode;
@@ -3440,64 +3441,64 @@ XDemangle::DSYMBOL XDemangle::ms_getSymbol(QString sString, XDemangle::MODE mode
         hdata = getHdata(mode);
     }
 
-    if (_compare(sString, ".")) {
+    if (_compare(_sString, ".")) {
         result.nSize += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         DPARAMETER parameter = {};
 
-        qint32 nTSize = ms_demangle_Type(&result, &hdata, &parameter, sString, MSDT_RESULT);
+        qint32 nTSize = ms_demangle_Type(&result, &hdata, &parameter, _sString, MSDT_RESULT);
 
         result.paramMain.listTarget.append(parameter);
 
-        sString = sString.mid(nTSize, -1);
+        _sString = _sString.mid(nTSize, -1);
         result.nSize += nTSize;
 
         result.paramMain.st = ST_TYPEINFO;
-    } else if (_compare(sString, "??@")) {
+    } else if (_compare(_sString, "??@")) {
         // TODO MD5
 #ifdef QT_DEBUG
         qDebug("TODO: MD5");
 #endif
-    } else if (_compare(sString, "?")) {
+    } else if (_compare(_sString, "?")) {
         result.nSize += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         // TODO demangleSpecialIntrinsic
 
-        if (isSignaturePresent(sString, &(hdata.mapSpecInstr))) {
-            SIGNATURE signature = getSignature(sString, &(hdata.mapSpecInstr));
+        if (isSignaturePresent(_sString, &(hdata.mapSpecInstr))) {
+            SIGNATURE signature = getSignature(_sString, &(hdata.mapSpecInstr));
             result.paramMain.st = (ST)signature.nValue;
 
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
             result.nSize += signature.nSize;
 
             if ((result.paramMain.st == ST_VBTABLE) || (result.paramMain.st == ST_VFTABLE) || (result.paramMain.st == ST_LOCALVFTABLE) ||
                 (result.paramMain.st == ST_RTTICOMPLETEOBJLOCATOR)) {
-                qint32 nSTSize = ms_demangle_SpecialTable(&result, &hdata, &(result.paramMain), sString);
+                qint32 nSTSize = ms_demangle_SpecialTable(&result, &hdata, &(result.paramMain), _sString);
 
-                sString = sString.mid(nSTSize, -1);
+                _sString = _sString.mid(nSTSize, -1);
                 result.nSize += nSTSize;
             } else if ((result.paramMain.st == ST_LOCALSTATICGUARD) || (result.paramMain.st == ST_LOCALSTATICTHREADGUARD)) {
-                qint32 nSTSize = ms_demangle_LocalStaticGuard(&result, &hdata, &(result.paramMain), sString);
+                qint32 nSTSize = ms_demangle_LocalStaticGuard(&result, &hdata, &(result.paramMain), _sString);
 
-                sString = sString.mid(nSTSize, -1);
+                _sString = _sString.mid(nSTSize, -1);
                 result.nSize += nSTSize;
             } else if ((result.paramMain.st == ST_RTTIBASECLASSARRAY) || (result.paramMain.st == ST_RTTICLASSHIERARCHYDESCRIPTOR)) {
-                qint32 nSTSize = ms_demangle_UntypedVariable(&result, &hdata, &(result.paramMain), sString);
+                qint32 nSTSize = ms_demangle_UntypedVariable(&result, &hdata, &(result.paramMain), _sString);
 
-                sString = sString.mid(nSTSize, -1);
+                _sString = _sString.mid(nSTSize, -1);
                 result.nSize += nSTSize;
             } else if (result.paramMain.st == ST_STRINGLITERALSYMBOL) {
-                qint32 nSTSize = ms_demangle_StringLiteralSymbol(&result, &hdata, &(result.paramMain), sString);
+                qint32 nSTSize = ms_demangle_StringLiteralSymbol(&result, &hdata, &(result.paramMain), _sString);
 
-                sString = sString.mid(nSTSize, -1);
+                _sString = _sString.mid(nSTSize, -1);
                 result.nSize += nSTSize;
             }
         } else {
-            qint32 nDSize = ms_demangle_Declarator(&result, &hdata, &(result.paramMain), sString);
+            qint32 nDSize = ms_demangle_Declarator(&result, &hdata, &(result.paramMain), _sString);
 
-            sString = sString.mid(nDSize, -1);
+            _sString = _sString.mid(nDSize, -1);
             result.nSize += nDSize;
         }
     }
