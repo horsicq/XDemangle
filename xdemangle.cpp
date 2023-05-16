@@ -3510,36 +3510,38 @@ XDemangle::DSYMBOL XDemangle::ms_getSymbol(const QString &sString, XDemangle::MO
     return result;
 }
 
-XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE mode)
+XDemangle::DSYMBOL XDemangle::itanium_getSymbol(const QString &sString, XDemangle::MODE mode)
 {
     DSYMBOL result = {};
 
-    if (_compare(sString, "_Z") || (_compare(sString, "@_Z") && (mode == MODE_GCC_WIN)) ||
-        (_compare(sString, "__Z") && ((mode == MODE_GNU_V3) || (mode == MODE_GCC_MAC)))) {
+    QString _sString = sString;
+
+    if (_compare(_sString, "_Z") || (_compare(_sString, "@_Z") && (mode == MODE_GCC_WIN)) ||
+        (_compare(_sString, "__Z") && ((mode == MODE_GNU_V3) || (mode == MODE_GCC_MAC)))) {
         HDATA hdata = getHdata(mode);
 
         result.bIsValid = true;
         result.mode = mode;
 
-        if (_compare(sString, "@_Z"))  // Fastcall
+        if (_compare(_sString, "@_Z"))  // Fastcall
         {
             result.paramMain.st = ST_FUNCTION;  // TODO Check !!!
             result.paramMain.functionConvention = FC_FASTCALL;
-            sString = sString.mid(3, -1);
+            _sString = _sString.mid(3, -1);
             result.nSize += 3;
-        } else if (_compare(sString, "_Z")) {
-            sString = sString.mid(2, -1);
+        } else if (_compare(_sString, "_Z")) {
+            _sString = _sString.mid(2, -1);
             result.nSize += 2;
-        } else if (_compare(sString, "__Z")) {
-            sString = sString.mid(3, -1);
+        } else if (_compare(_sString, "__Z")) {
+            _sString = _sString.mid(3, -1);
             result.nSize += 3;
         }
 
-        if (isSignaturePresent(sString, &(hdata.mapSpecInstr))) {
-            SIGNATURE signature = getSignature(sString, &(hdata.mapSpecInstr));
+        if (isSignaturePresent(_sString, &(hdata.mapSpecInstr))) {
+            SIGNATURE signature = getSignature(_sString, &(hdata.mapSpecInstr));
 
             result.paramMain.st = (ST)signature.nValue;
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
             result.nSize += signature.nSize;
 
             DPARAMETER parameter = {};
@@ -3547,55 +3549,55 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(QString sString, XDemangle::MODE
             if ((result.paramMain.st == ST_TYPEINFO) || (result.paramMain.st == ST_TYPEINFONAME) || (result.paramMain.st == ST_VTABLE) ||
                 (result.paramMain.st == ST_GUARDVARIABLE) || (result.paramMain.st == ST_TRANSACTIONCLONE) || (result.paramMain.st == ST_VTT) ||
                 (result.paramMain.st == ST_CONSTRUCTIONVTABLE)) {
-                qint32 nNSSize = itanium_demangle_Type(&result, &hdata, &parameter, sString);
+                qint32 nNSSize = itanium_demangle_Type(&result, &hdata, &parameter, _sString);
 
-                sString = sString.mid(nNSSize, -1);
+                _sString = _sString.mid(nNSSize, -1);
                 result.nSize += nNSSize;
             } else if (result.paramMain.st == ST_NONVIRTUALTHUNK) {
-                NUMBER number = readNumberS(&hdata, sString, result.mode);
+                NUMBER number = readNumberS(&hdata, _sString, result.mode);
 
-                sString = sString.mid(number.nSize, -1);
+                _sString = _sString.mid(number.nSize, -1);
                 result.nSize += number.nSize;
 
-                if (_compare(sString, "_")) {
-                    sString = sString.mid(1, -1);
+                if (_compare(_sString, "_")) {
+                    _sString = _sString.mid(1, -1);
                     result.nSize += 1;
                 }
 
-                qint32 nESize = itanium_demangle_Encoding(&result, &hdata, &parameter, sString);
-                sString = sString.mid(nESize, -1);
+                qint32 nESize = itanium_demangle_Encoding(&result, &hdata, &parameter, _sString);
+                _sString = _sString.mid(nESize, -1);
                 result.nSize += nESize;
             } else if (result.paramMain.st == ST_VIRTUALTHUNK) {
-                NUMBER number1 = readNumberS(&hdata, sString, result.mode);
+                NUMBER number1 = readNumberS(&hdata, _sString, result.mode);
 
-                sString = sString.mid(number1.nSize, -1);
+                _sString = _sString.mid(number1.nSize, -1);
                 result.nSize += number1.nSize;
 
-                if (_compare(sString, "_n")) {
-                    sString = sString.mid(2, -1);
+                if (_compare(_sString, "_n")) {
+                    _sString = _sString.mid(2, -1);
                     result.nSize += 2;
                 }
 
-                NUMBER number2 = readNumberS(&hdata, sString, result.mode);
+                NUMBER number2 = readNumberS(&hdata, _sString, result.mode);
 
-                sString = sString.mid(number2.nSize, -1);
+                _sString = _sString.mid(number2.nSize, -1);
                 result.nSize += number2.nSize;
 
-                if (_compare(sString, "_")) {
-                    sString = sString.mid(1, -1);
+                if (_compare(_sString, "_")) {
+                    _sString = _sString.mid(1, -1);
                     result.nSize += 1;
                 }
 
-                qint32 nESize = itanium_demangle_Encoding(&result, &hdata, &parameter, sString);
-                sString = sString.mid(nESize, -1);
+                qint32 nESize = itanium_demangle_Encoding(&result, &hdata, &parameter, _sString);
+                _sString = _sString.mid(nESize, -1);
                 result.nSize += nESize;
             }
 
             result.paramMain.listTarget.append(parameter);
         } else {
-            qint32 nESize = itanium_demangle_Encoding(&result, &hdata, &(result.paramMain), sString);
+            qint32 nESize = itanium_demangle_Encoding(&result, &hdata, &(result.paramMain), _sString);
 
-            sString = sString.mid(nESize, -1);
+            _sString = _sString.mid(nESize, -1);
             result.nSize += nESize;
         }
 
