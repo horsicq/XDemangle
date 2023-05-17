@@ -3625,7 +3625,7 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(const QString &sString, XDemangl
     return result;
 }
 
-XDemangle::DSYMBOL XDemangle::borland_getSymbol(QString sString, MODE mode)
+XDemangle::DSYMBOL XDemangle::borland_getSymbol(const QString &sString, MODE mode)
 {
     DSYMBOL result = {};
 
