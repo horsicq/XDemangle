@@ -3641,7 +3641,7 @@ XDemangle::DSYMBOL XDemangle::borland_getSymbol(const QString &sString, MODE mod
     return result;
 }
 
-XDemangle::MODE XDemangle::detectMode(QString sString)
+XDemangle::MODE XDemangle::detectMode(const QString &sString)
 {
     MODE result = MODE_GNU_V3;
 
