@@ -369,7 +369,7 @@ private:
 
     QString dsymbolToString(DSYMBOL symbol);
 
-    STRING readString(HDATA *pHdata, QString sString, MODE mode);
+    STRING readString(HDATA *pHdata, const QString &sString, MODE mode);
     NUMBER readNumber(HDATA *pHdata, QString sString, MODE mode);
     NUMBER readNumberS(HDATA *pHdata, QString sString, MODE mode);
     NUMBER readSymNumber(HDATA *pHdata, QString sString, MODE mode);

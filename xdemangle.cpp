@@ -3755,46 +3755,48 @@ QString XDemangle::dsymbolToString(XDemangle::DSYMBOL symbol)
     return sResult;
 }
 
-XDemangle::STRING XDemangle::readString(HDATA *pHdata, QString sString, XDemangle::MODE mode)
+XDemangle::STRING XDemangle::readString(HDATA *pHdata, const QString &sString, XDemangle::MODE mode)
 {
+    QString _sString = sString;
+
     STRING result = {};
 
     if (getSyntaxFromMode(mode) == SYNTAX_MICROSOFT) {
-        result.sString = sString.section("@", 0, 0);
+        result.sString = _sString.section("@", 0, 0);
         result.sOriginal = result.sString;
 
-        if (sString.contains("@")) {
+        if (_sString.contains("@")) {
             result.sOriginal += "@";
         }
 
         result.nSize = result.sString.size();
 
         if (result.nSize) {
-            if (result.sString != sString) {
+            if (result.sString != _sString) {
                 result.nSize++;
             }
         }
     } else if (getSyntaxFromMode(mode) == SYNTAX_ITANIUM) {
-        NUMBER number = readNumber(pHdata, sString, mode);
+        NUMBER number = readNumber(pHdata, _sString, mode);
 
         if (number.nSize) {
-            result.sOriginal += sString.left(number.nSize);
-            sString = sString.mid(number.nSize, -1);
-            result.sString = sString.left(number.nValue);
+            result.sOriginal += _sString.left(number.nSize);
+            _sString = _sString.mid(number.nSize, -1);
+            result.sString = _sString.left(number.nValue);
             result.nSize = number.nSize + result.sString.size();
             result.sOriginal += result.sString;
         }
     } else if (getSyntaxFromMode(mode) == SYNTAX_BORLAND) {
-        if (_compare(sString, "@")) {
-            result.sOriginal += sString.at(0);
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "@")) {
+            result.sOriginal += _sString.at(0);
+            _sString = _sString.mid(1, -1);
             result.nSize++;
 
-            while ((sString != "") && (!_compare(sString, "@")) && (!_compare(sString, "$"))) {
-                result.sOriginal += sString.at(0);
-                result.sString += sString.at(0);
+            while ((_sString != "") && (!_compare(_sString, "@")) && (!_compare(_sString, "$"))) {
+                result.sOriginal += _sString.at(0);
+                result.sString += _sString.at(0);
                 result.nSize++;
-                sString = sString.mid(1, -1);
+                _sString = _sString.mid(1, -1);
             }
         }
     }
