@@ -3804,33 +3804,35 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata, const QString &sString, X
     return result;
 }
 
-XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangle::MODE mode)
+XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, const QString &sString, XDemangle::MODE mode)
 {
+    QString _sString = sString;
+
     NUMBER result = {};
 
     if (getSyntaxFromMode(mode) == SYNTAX_MICROSOFT) {
         bool bNeg = false;
 
-        if (_compare(sString, "?")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "?")) {
+            _sString = _sString.mid(1, -1);
             bNeg = true;
         }
 
-        if (isSignaturePresent(sString, &(pHdata->mapNumbers))) {
-            SIGNATURE signature = getSignature(sString, &(pHdata->mapNumbers));
+        if (isSignaturePresent(_sString, &(pHdata->mapNumbers))) {
+            SIGNATURE signature = getSignature(_sString, &(pHdata->mapNumbers));
 
             if (signature.nSize) {
                 result.nValue = signature.nValue + 1;
                 result.nSize = 1;
             }
-        } else if (isSignaturePresent(sString, &(pHdata->mapSymNumbers))) {
-            while ((sString != "") && (!_compare(sString, "@"))) {
+        } else if (isSignaturePresent(_sString, &(pHdata->mapSymNumbers))) {
+            while ((_sString != "") && (!_compare(_sString, "@"))) {
                 result.nValue *= 16;
 
-                SIGNATURE signature = getSignature(sString, &(pHdata->mapSymNumbers));
+                SIGNATURE signature = getSignature(_sString, &(pHdata->mapSymNumbers));
 
                 if (signature.nSize) {
-                    sString = sString.mid(signature.nSize, -1);
+                    _sString = _sString.mid(signature.nSize, -1);
                     result.nSize += signature.nSize;
 
                     result.nValue += signature.nValue;
@@ -3839,11 +3841,11 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
                 }
             }
 
-            if (_compare(sString, "@Z"))  // End of function
+            if (_compare(_sString, "@Z"))  // End of function
             {
                 result.nSize = 0;
-            } else if (_compare(sString, "@")) {
-                sString = sString.mid(1, -1);
+            } else if (_compare(_sString, "@")) {
+                _sString = _sString.mid(1, -1);
                 result.nSize++;
             } else {
                 result.nSize = 0;
@@ -3855,16 +3857,16 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, QString sString, XDemangl
             result.nValue = -(result.nValue);
         }
     } else if (getSyntaxFromMode(mode) == SYNTAX_ITANIUM) {
-        while ((sString != "") && (isSignaturePresent(sString, &(pHdata->mapNumbers)))) {
+        while ((_sString != "") && (isSignaturePresent(_sString, &(pHdata->mapNumbers)))) {
             result.nValue *= 10;
 
-            SIGNATURE signature = getSignature(sString, &(pHdata->mapNumbers));
+            SIGNATURE signature = getSignature(_sString, &(pHdata->mapNumbers));
 
             result.nValue += signature.nValue;
 
             result.nSize++;
 
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
         }
     }
 

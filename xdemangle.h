@@ -370,7 +370,7 @@ private:
     QString dsymbolToString(DSYMBOL symbol);
 
     STRING readString(HDATA *pHdata, const QString &sString, MODE mode);
-    NUMBER readNumber(HDATA *pHdata, QString sString, MODE mode);
+    NUMBER readNumber(HDATA *pHdata, const QString &sString, MODE mode);
     NUMBER readNumberS(HDATA *pHdata, QString sString, MODE mode);
     NUMBER readSymNumber(HDATA *pHdata, QString sString, MODE mode);
     static bool _compare(QString sString, QString sSignature);
