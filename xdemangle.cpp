@@ -3956,7 +3956,7 @@ QString XDemangle::_removeLastSymbol(QString sString)
     return sString;
 }
 
-bool XDemangle::isPointerEnd(QString sString)
+bool XDemangle::isPointerEnd(const QString &sString)
 {
     bool bResult = false;
 
