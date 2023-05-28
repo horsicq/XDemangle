@@ -435,7 +435,7 @@ private:
     bool ms_isPointerMember(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
 
     void addStringRef(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
-    void addArgRef(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    void addArgRef(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     void addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString> listString);
     bool isReplaceStringPresent(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
     bool isReplaceArgPresent(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
