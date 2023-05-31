@@ -3228,24 +3228,26 @@ qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DP
     return nResult;
 }
 
-qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
+
     qint32 nResult = 0;
 
-    if (isSignaturePresent(sString, &(pHdata->mapPointerTypes)))  // Pointers
+    if (isSignaturePresent(_sString, &(pHdata->mapPointerTypes)))  // Pointers
     {
-        qint32 nPSize = borland_demangle_PointerType(pSymbol, pHdata, pParameter, sString);
+        qint32 nPSize = borland_demangle_PointerType(pSymbol, pHdata, pParameter, _sString);
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
-    } else if (isSignaturePresent(sString, &(pHdata->mapTypes)))  // Simple types
+        _sString = _sString.mid(nPSize, -1);
+    } else if (isSignaturePresent(_sString, &(pHdata->mapTypes)))  // Simple types
     {
         pParameter->st = ST_TYPE;
-        SIGNATURE signatureType = getSignature(sString, &(pHdata->mapTypes));
+        SIGNATURE signatureType = getSignature(_sString, &(pHdata->mapTypes));
         pParameter->type = (XTYPE)signatureType.nValue;
 
         nResult += signatureType.nSize;
-        sString = sString.mid(signatureType.nSize, -1);
+        _sString = _sString.mid(signatureType.nSize, -1);
     } else {
 #ifdef QT_DEBUG
         qDebug("%s", "TODO: TYPE");
