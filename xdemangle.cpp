@@ -3116,7 +3116,7 @@ QString XDemangle::itanium_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemang
     return sResult;
 }
 
-QString XDemangle::join(QList<QString> *pListStrings, QString sJoin)
+QString XDemangle::join(QList<QString> *pListStrings, const QString &sJoin)
 {
     QString sResult;
 

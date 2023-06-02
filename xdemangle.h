@@ -460,7 +460,7 @@ private:
     qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
     QString itanium_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
 
-    static QString join(QList<QString> *pListStrings, QString sJoin);
+    static QString join(QList<QString> *pListStrings, const QString &sJoin);
 
     qint32 borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
     qint32 borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
