@@ -3183,25 +3183,27 @@ qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPA
     return nResult;
 }
 
-qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
+
     qint32 nResult = 0;
 
-    while (sString != "") {
+    while (_sString != "") {
         DNAME dname = {};
 
-        if (_compare(sString, "@$b"))  // Operands
+        if (_compare(_sString, "@$b"))  // Operands
         {
             nResult += 3;
-            sString = sString.mid(3, -1);
+            _sString = _sString.mid(3, -1);
 
-            if (isSignaturePresent(sString, &(pHdata->mapOperators))) {
-                SIGNATURE signature = getSignature(sString, &(pHdata->mapOperators));
+            if (isSignaturePresent(_sString, &(pHdata->mapOperators))) {
+                SIGNATURE signature = getSignature(_sString, &(pHdata->mapOperators));
 
                 dname._operator = (OP)signature.nValue;
 
                 nResult += signature.nSize;
-                sString = sString.mid(signature.nSize, -1);
+                _sString = _sString.mid(signature.nSize, -1);
             } else {
 #ifdef QT_DEBUG
                 qDebug("%s", "TODO: Invalid operand");
@@ -3210,7 +3212,7 @@ qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DP
                 pSymbol->bIsValid = false;
             }
         } else {
-            STRING string = readString(pHdata, sString, pSymbol->mode);
+            STRING string = readString(pHdata, _sString, pSymbol->mode);
 
             if (string.nSize == 0) {
                 break;
@@ -3218,7 +3220,7 @@ qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DP
 
             dname.sName = string.sString;
 
-            sString = sString.mid(string.nSize, -1);
+            _sString = _sString.mid(string.nSize, -1);
             nResult += string.nSize;
         }
 
