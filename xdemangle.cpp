@@ -1897,7 +1897,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
     return result;
 }
 
-XDemangle::SIGNATURE XDemangle::getLocalScopeSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+XDemangle::SIGNATURE XDemangle::getLocalScopeSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, const QString &sString)
 {
     SIGNATURE result = {};
 
