@@ -871,49 +871,51 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_PointerType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_PointerType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
+
     qint32 nResult = 0;
 
     pParameter->st = ST_POINTER;
 
-    if (isSignaturePresent(sString, &(pHdata->mapPointerTypes))) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapPointerTypes));
+    if (isSignaturePresent(_sString, &(pHdata->mapPointerTypes))) {
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapPointerTypes));
 
         pParameter->nQualifier = signature.nValue;
 
         nResult += signature.nSize;
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
     }
 
-    if (_compare(sString, "6")) {
+    if (_compare(_sString, "6")) {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         DPARAMETER parameter = {};
         parameter.st = ST_FUNCTION;
         //        parameter.type=XTYPE_FUNCTION;
         //        pParameter->type=XTYPE_POINTERTOFUNCTION; // TODO remove
 
-        qint32 nFTSize = ms_demangle_FunctionType(pSymbol, pHdata, &parameter, sString, false);
+        qint32 nFTSize = ms_demangle_FunctionType(pSymbol, pHdata, &parameter, _sString, false);
         pParameter->listPointer.append(parameter);
 
         nResult += nFTSize;
-        sString = sString.mid(nFTSize, -1);
+        _sString = _sString.mid(nFTSize, -1);
     } else {
-        qint32 nESize = ms_demangle_ExtQualifiers(pSymbol, sString, &(pParameter->nQualifier));
+        qint32 nESize = ms_demangle_ExtQualifiers(pSymbol, _sString, &(pParameter->nQualifier));
 
         nResult += nESize;
-        sString = sString.mid(nESize, -1);
+        _sString = _sString.mid(nESize, -1);
 
         DPARAMETER parameter = {};
 
-        qint32 nPSize = ms_demangle_Type(pSymbol, pHdata, &parameter, sString, MSDT_MANGLE);
+        qint32 nPSize = ms_demangle_Type(pSymbol, pHdata, &parameter, _sString, MSDT_MANGLE);
 
         pParameter->listPointer.append(parameter);
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
+        _sString = _sString.mid(nPSize, -1);
     }
 
     return nResult;
