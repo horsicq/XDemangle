@@ -3135,45 +3135,47 @@ QString XDemangle::join(QList<QString> *pListStrings, const QString &sJoin)
     return sResult;
 }
 
-qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::borland_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
+
     qint32 nResult = 0;
 
     pParameter->st = ST_VARIABLE;
 
-    qint32 nNSSize = borland_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+    qint32 nNSSize = borland_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
-    sString = sString.mid(nNSSize, -1);
+    _sString = _sString.mid(nNSSize, -1);
     nResult += nNSSize;
 
-    if (_compare(sString, "$")) {
-        sString = sString.mid(1, -1);
+    if (_compare(_sString, "$")) {
+        _sString = _sString.mid(1, -1);
         nResult += 1;
     }
 
-    if (_compare(sString, "q")) {
-        sString = sString.mid(1, -1);
+    if (_compare(_sString, "q")) {
+        _sString = _sString.mid(1, -1);
         nResult += 1;
 
         pParameter->st = ST_FUNCTION;
         pParameter->functionConvention = FC_NONE;
 
-        if (isSignaturePresent(sString, &(pHdata->mapFunctionConventions))) {
-            SIGNATURE signatureType = getSignature(sString, &(pHdata->mapFunctionConventions));
+        if (isSignaturePresent(_sString, &(pHdata->mapFunctionConventions))) {
+            SIGNATURE signatureType = getSignature(_sString, &(pHdata->mapFunctionConventions));
             pParameter->functionConvention = (FC)signatureType.nValue;
 
             nResult += signatureType.nSize;
-            sString = sString.mid(signatureType.nSize, -1);
+            _sString = _sString.mid(signatureType.nSize, -1);
         }
 
-        while (sString != "") {
+        while (_sString != "") {
             DPARAMETER parameter = {};
 
-            qint32 nPSize = borland_demangle_Type(pSymbol, pHdata, &parameter, sString);
+            qint32 nPSize = borland_demangle_Type(pSymbol, pHdata, &parameter, _sString);
 
             pParameter->listParameters.append(parameter);
 
-            sString = sString.mid(nPSize, -1);
+            _sString = _sString.mid(nPSize, -1);
             nResult += nPSize;
 
             if (!(pSymbol->bIsValid)) {
