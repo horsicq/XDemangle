@@ -1725,24 +1725,26 @@ bool XDemangle::isReplaceStringPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::H
     return bResult;
 }
 
-bool XDemangle::isReplaceArgPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+bool XDemangle::isReplaceArgPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, const QString &sString)
 {
+    QString _sString = sString;
+
     bool bResult = false;
 
     if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_MICROSOFT) {
-        bResult = isSignaturePresent(sString, &(pHdata->mapNumbers));
+        bResult = isSignaturePresent(_sString, &(pHdata->mapNumbers));
     } else if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_ITANIUM) {
-        if (_compare(sString, "T")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "T")) {
+            _sString = _sString.mid(1, -1);
 
-            NUMBER number = readSymNumber(pHdata, sString, pSymbol->mode);
+            NUMBER number = readSymNumber(pHdata, _sString, pSymbol->mode);
 
             if (number.nSize) {
-                sString = sString.mid(number.nSize, -1);
+                _sString = _sString.mid(number.nSize, -1);
             }
 
-            if (_compare(sString, "_")) {
-                sString = sString.mid(1, -1);
+            if (_compare(_sString, "_")) {
+                _sString = _sString.mid(1, -1);
 
                 bResult = true;
             }
