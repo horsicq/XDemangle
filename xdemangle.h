@@ -431,7 +431,7 @@ private:
     qint32 ms_demangle_FunctionParameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
     qint32 ms_demangle_Template(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, NB nb);
     qint32 ms_demangle_TemplateParameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
-    qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol, QString sString, quint32 *pnQual);
+    qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol, const QString &sString, quint32 *pnQual);
     bool ms_isPointerMember(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
 
     void addStringRef(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);

@@ -1590,26 +1590,27 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_ExtQualifiers(XDemangle::DSYMBOL *pSymbol, QString sString, quint32 *pnQual)
+qint32 XDemangle::ms_demangle_ExtQualifiers(XDemangle::DSYMBOL *pSymbol, const QString &sString, quint32 *pnQual)
 {
+    QString _sString = sString;
     Q_UNUSED(pSymbol)
 
     qint32 nResult = 0;
 
-    if (_compare(sString, "E"))  // mb TODO Check MODE_MSVC64
+    if (_compare(_sString, "E"))  // mb TODO Check MODE_MSVC64
     {
         (*pnQual) |= QUAL_POINTER64;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
         nResult += 1;
     }
-    if (_compare(sString, "I")) {
+    if (_compare(_sString, "I")) {
         (*pnQual) |= QUAL_RESTRICT;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
         nResult += 1;
     }
-    if (_compare(sString, "F")) {
+    if (_compare(_sString, "F")) {
         (*pnQual) |= QUAL_UNALIGNED;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
         nResult += 1;
     }
 
