@@ -3997,7 +3997,7 @@ bool XDemangle::isSignaturePresent(QString sString, QMap<QString, quint32> *pMap
     return bResult;
 }
 
-XDemangle::SIGNATURE XDemangle::getSignature(QString sString, QMap<QString, quint32> *pMap)
+XDemangle::SIGNATURE XDemangle::getSignature(const QString &sString, QMap<QString, quint32> *pMap)
 {
     SIGNATURE result = {};
 
