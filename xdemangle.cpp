@@ -3960,13 +3960,15 @@ QChar XDemangle::_getStringEnd(QString sString)
     return cResult;
 }
 
-QString XDemangle::_removeLastSymbol(QString sString)
+QString XDemangle::_removeLastSymbol(const QString &sString)
 {
-    if (sString != "") {
-        sString.resize(sString.size() - 1);
+    QString _sString = sString;
+
+    if (_sString != "") {
+        _sString.resize(_sString.size() - 1);
     }
 
-    return sString;
+    return _sString;
 }
 
 bool XDemangle::isPointerEnd(const QString &sString)
