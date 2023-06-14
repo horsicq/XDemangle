@@ -377,7 +377,7 @@ private:
     QChar _getStringEnd(QString sString);
     QString _removeLastSymbol(const QString &sString);
     bool isPointerEnd(const QString &sString);
-    bool isSignaturePresent(QString sString, QMap<QString, quint32> *pMap);
+    bool isSignaturePresent(const QString &sString, QMap<QString, quint32> *pMap);
     SIGNATURE getSignature(const QString &sString, QMap<QString, quint32> *pMap);
 
     QMap<QString, quint32> getObjectClasses(MODE mode);

@@ -3980,7 +3980,7 @@ bool XDemangle::isPointerEnd(const QString &sString)
     return bResult;
 }
 
-bool XDemangle::isSignaturePresent(QString sString, QMap<QString, quint32> *pMap)
+bool XDemangle::isSignaturePresent(const QString &sString, QMap<QString, quint32> *pMap)
 {
     bool bResult = false;
 
