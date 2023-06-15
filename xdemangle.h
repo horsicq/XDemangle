@@ -374,7 +374,7 @@ private:
     NUMBER readNumberS(HDATA *pHdata, QString sString, MODE mode);
     NUMBER readSymNumber(HDATA *pHdata, QString sString, MODE mode);
     static bool _compare(QString sString, QString sSignature);
-    QChar _getStringEnd(QString sString);
+    QChar _getStringEnd(const QString &sString);
     QString _removeLastSymbol(const QString &sString);
     bool isPointerEnd(const QString &sString);
     bool isSignaturePresent(const QString &sString, QMap<QString, quint32> *pMap);

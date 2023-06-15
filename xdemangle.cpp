@@ -3949,7 +3949,7 @@ bool XDemangle::_compare(QString sString, QString sSignature)
     return bResult;
 }
 
-QChar XDemangle::_getStringEnd(QString sString)
+QChar XDemangle::_getStringEnd(const QString &sString)
 {
     QChar cResult = QChar(' ');
 
