@@ -1025,26 +1025,28 @@ qint32 XDemangle::ms_demangle_FullSymbolName(XDemangle::DSYMBOL *pSymbol, XDeman
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_UnkTypeName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, bool bSave)
+qint32 XDemangle::ms_demangle_UnkTypeName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString, bool bSave)
 {
+    QString _sString = sString;
+
     qint32 nResult = 0;
 
-    if (isReplaceStringPresent(pSymbol, pHdata, sString)) {
-        SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, sString);
+    if (isReplaceStringPresent(pSymbol, pHdata, _sString)) {
+        SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, _sString);
         // TODO Error empty String
         DNAME dname = {};
         dname.sName = signature.sString;
 
         pParameter->listDnames.append(dname);
 
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
         nResult += signature.nSize;
-    } else if (_compare(sString, "?$")) {
-        qint32 nTSize = ms_demangle_Template(pSymbol, pHdata, pParameter, sString, NB_TEMPLATE);
-        sString = sString.mid(nTSize, -1);
+    } else if (_compare(_sString, "?$")) {
+        qint32 nTSize = ms_demangle_Template(pSymbol, pHdata, pParameter, _sString, NB_TEMPLATE);
+        _sString = _sString.mid(nTSize, -1);
         nResult += nTSize;
     } else {
-        STRING string = readString(pHdata, sString, pSymbol->mode);
+        STRING string = readString(pHdata, _sString, pSymbol->mode);
 
         if (string.nSize) {
             if (bSave) {
@@ -1056,7 +1058,7 @@ qint32 XDemangle::ms_demangle_UnkTypeName(XDemangle::DSYMBOL *pSymbol, XDemangle
 
             pParameter->listDnames.append(dname);
 
-            sString = sString.mid(string.nSize, -1);
+            _sString = _sString.mid(string.nSize, -1);
             nResult += string.nSize;
         }
     }
