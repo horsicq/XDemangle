@@ -708,36 +708,37 @@ qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangl
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    qint32 nNSSize = ms_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+    qint32 nNSSize = ms_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
     reverseList(&(pParameter->listDnames));
 
     nResult += nNSSize;
-    sString = sString.mid(nNSSize, -1);
+    _sString = _sString.mid(nNSSize, -1);
 
     // Visible
-    if (_compare(sString, "4IA")) {
+    if (_compare(_sString, "4IA")) {
         // Visible false
         nResult += 3;
-        sString = sString.mid(3, -1);
-    } else if (_compare(sString, "5")) {
+        _sString = _sString.mid(3, -1);
+    } else if (_compare(_sString, "5")) {
         // Visible true
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
     } else {
         pSymbol->bIsValid = false;
     }
 
-    if (sString != "") {
-        NUMBER number = readNumber(pHdata, sString, pSymbol->mode);
+    if (_sString != "") {
+        NUMBER number = readNumber(pHdata, _sString, pSymbol->mode);
         pParameter->sScope = QString::number(number.nValue);
 
         nResult += number.nSize;
-        sString = sString.mid(number.nSize, -1);
+        _sString = _sString.mid(number.nSize, -1);
     }
 
     return nResult;
