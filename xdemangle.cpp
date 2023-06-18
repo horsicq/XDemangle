@@ -3937,7 +3937,7 @@ XDemangle::NUMBER XDemangle::readSymNumber(XDemangle::HDATA *pHdata, QString sSt
     return result;
 }
 
-bool XDemangle::_compare(const QString &sString, QString sSignature)
+bool XDemangle::_compare(const QString &sString, const QString &sSignature)
 {
     bool bResult = false;
 
