@@ -3889,20 +3889,21 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, const QString &sString, X
     return result;
 }
 
-XDemangle::NUMBER XDemangle::readNumberS(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
+XDemangle::NUMBER XDemangle::readNumberS(XDemangle::HDATA *pHdata, const QString &sString, XDemangle::MODE mode)
 {
+    QString _sString = sString;
     NUMBER result = {};
 
     bool bNeg = false;
 
-    if (_compare(sString, "n")) {
+    if (_compare(_sString, "n")) {
         result.nSize += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         bNeg = true;
     }
 
-    NUMBER number = readNumber(pHdata, sString, mode);
+    NUMBER number = readNumber(pHdata, _sString, mode);
 
     qint64 nValue = number.nValue;
 

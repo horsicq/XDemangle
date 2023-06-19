@@ -371,7 +371,7 @@ private:
 
     STRING readString(HDATA *pHdata, const QString &sString, MODE mode);
     NUMBER readNumber(HDATA *pHdata, const QString &sString, MODE mode);
-    NUMBER readNumberS(HDATA *pHdata, QString sString, MODE mode);
+    NUMBER readNumberS(HDATA *pHdata, const QString &sString, MODE mode);
     NUMBER readSymNumber(HDATA *pHdata, QString sString, MODE mode);
     static bool _compare(const QString &sString, const QString &sSignature);
     QChar _getStringEnd(const QString &sString);
