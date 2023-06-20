@@ -3917,21 +3917,22 @@ XDemangle::NUMBER XDemangle::readNumberS(XDemangle::HDATA *pHdata, const QString
     return result;
 }
 
-XDemangle::NUMBER XDemangle::readSymNumber(XDemangle::HDATA *pHdata, QString sString, XDemangle::MODE mode)
+XDemangle::NUMBER XDemangle::readSymNumber(XDemangle::HDATA *pHdata, const QString &sString, XDemangle::MODE mode)
 {
+    QString _sString = sString;
     NUMBER result = {};
 
     if (getSyntaxFromMode(mode) == SYNTAX_ITANIUM) {
-        while ((sString != "") && (isSignaturePresent(sString, &(pHdata->mapSymNumbers)))) {
+        while ((_sString != "") && (isSignaturePresent(_sString, &(pHdata->mapSymNumbers)))) {
             result.nValue *= 36;
 
-            SIGNATURE signature = getSignature(sString, &(pHdata->mapSymNumbers));
+            SIGNATURE signature = getSignature(_sString, &(pHdata->mapSymNumbers));
 
             result.nValue += signature.nValue;
 
             result.nSize++;
 
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
         }
     }
 
