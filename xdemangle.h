@@ -437,7 +437,7 @@ private:
     void addStringRef(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     void addArgRef(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     void addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString> listString);
-    bool isReplaceStringPresent(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    bool isReplaceStringPresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     bool isReplaceArgPresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     bool isLocalScopePresent(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
     SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
