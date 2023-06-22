@@ -598,28 +598,29 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
     return result;
 }
 
-qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     Q_UNUSED(pParameter)
 
     qint32 nResult = 0;
 
-    if (_compare(sString, "@_")) {
+    if (_compare(_sString, "@_")) {
         nResult += 2;
-        sString = sString.mid(2, -1);
+        _sString = _sString.mid(2, -1);
     } else {
         pSymbol->bIsValid = false;
     }
 
     bool bWchar = false;
 
-    if (_compare(sString, "0")) {
+    if (_compare(_sString, "0")) {
         nResult += 1;
-        sString = sString.mid(1, -1);
-    } else if (_compare(sString, "1")) {
+        _sString = _sString.mid(1, -1);
+    } else if (_compare(_sString, "1")) {
         bWchar = true;
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
     } else {
         pSymbol->bIsValid = false;
     }
@@ -629,9 +630,9 @@ qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol, X
     // TODO
 
     if (pSymbol->bIsValid) {
-        NUMBER number = readNumber(pHdata, sString, pSymbol->mode);
+        NUMBER number = readNumber(pHdata, _sString, pSymbol->mode);
         nResult += number.nSize;
-        sString = sString.mid(number.nSize, -1);
+        _sString = _sString.mid(number.nSize, -1);
     }
 
     return nResult;
