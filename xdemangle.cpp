@@ -638,24 +638,25 @@ qint32 XDemangle::ms_demangle_StringLiteralSymbol(XDemangle::DSYMBOL *pSymbol, X
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_UntypedVariable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_UntypedVariable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    qint32 nPSize = ms_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+    qint32 nPSize = ms_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
     nResult += nPSize;
-    sString = sString.mid(nPSize, -1);
+    _sString = _sString.mid(nPSize, -1);
 
     reverseList(&(pParameter->listDnames));
 
-    if (!_compare(sString, "8")) {
+    if (!_compare(_sString, "8")) {
         pSymbol->bIsValid = false;
     }
 
     if (pSymbol->bIsValid) {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
     }
 
     return nResult;
