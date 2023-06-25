@@ -29,45 +29,19 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
     QString sResult = tr("Unknown");
 
     switch (mode) {
-        case MODE_UNKNOWN:
-            sResult = tr("Unknown");
-            break;
-        case MODE_AUTO:
-            sResult = tr("Automatic");
-            break;
-        case MODE_MSVC:
-            sResult = QString("MSVC+++");
-            break;
-        case MODE_MSVC32:
-            sResult = QString("MSVC+++ 32");
-            break;
-        case MODE_MSVC64:
-            sResult = QString("MSVC+++ 64");
-            break;
-        case MODE_GNU_V3:
-            sResult = QString("GNU V3");
-            break;
-        case MODE_GCC_WIN:
-            sResult = QString("GNU C++ for Windows");
-            break;
-        case MODE_GCC_MAC:
-            sResult = QString("GNU C++ for MacOS");
-            break;
-        case MODE_JAVA:
-            sResult = QString("Java");
-            break;
-        case MODE_WATCOM:
-            sResult = QString("Watcom");
-            break;
-        case MODE_BORLAND32:
-            sResult = QString("Borland 32");
-            break;
-        case MODE_BORLAND64:
-            sResult = QString("Borland 64");
-            break;
-        case MODE_RUST:
-            sResult = QString("Rust");
-            break;
+        case MODE_UNKNOWN: sResult = tr("Unknown"); break;
+        case MODE_AUTO: sResult = tr("Automatic"); break;
+        case MODE_MSVC: sResult = QString("MSVC+++"); break;
+        case MODE_MSVC32: sResult = QString("MSVC+++ 32"); break;
+        case MODE_MSVC64: sResult = QString("MSVC+++ 64"); break;
+        case MODE_GNU_V3: sResult = QString("GNU V3"); break;
+        case MODE_GCC_WIN: sResult = QString("GNU C++ for Windows"); break;
+        case MODE_GCC_MAC: sResult = QString("GNU C++ for MacOS"); break;
+        case MODE_JAVA: sResult = QString("Java"); break;
+        case MODE_WATCOM: sResult = QString("Watcom"); break;
+        case MODE_BORLAND32: sResult = QString("Borland 32"); break;
+        case MODE_BORLAND64: sResult = QString("Borland 64"); break;
+        case MODE_RUST: sResult = QString("Rust"); break;
     }
 
     return sResult;
@@ -80,119 +54,44 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
     QString sResult = tr("Unknown");
 
     switch (type) {
-        case XTYPE_UNKNOWN:
-            sResult = QString("");
-            break;
-        case XTYPE_NONE:
-            sResult = QString("");
-            break;
-        case XTYPE_VOID:
-            sResult = QString("void");
-            break;
-        case XTYPE_BOOL:
-            sResult = QString("bool");
-            break;
-        case XTYPE_INT:
-            sResult = QString("int");
-            break;
-        case XTYPE_SCHAR:
-            sResult = QString("signed char");
-            break;
-        case XTYPE_CHAR:
-            sResult = QString("char");
-            break;
-        case XTYPE_UCHAR:
-            sResult = QString("unsigned char");
-            break;
-        case XTYPE_SHORT:
-            sResult = QString("short");
-            break;
-        case XTYPE_USHORT:
-            sResult = QString("unsigned short");
-            break;
-        case XTYPE_UINT:
-            sResult = QString("unsigned int");
-            break;
-        case XTYPE_LONG:
-            sResult = QString("long");
-            break;
-        case XTYPE_ULONG:
-            sResult = QString("unsigned long");
-            break;
-        case XTYPE_FLOAT:
-            sResult = QString("float");
-            break;
-        case XTYPE_FLOAT128:
-            sResult = QString("__float128");
-            break;
-        case XTYPE_DOUBLE:
-            sResult = QString("double");
-            break;
-        case XTYPE_LONGDOUBLE:
-            sResult = QString("long double");
-            break;
-        case XTYPE_LONGDOUBLE_64:
-            sResult = QString("long double");
-            break;
-        case XTYPE_LONGDOUBLE_80:
-            sResult = QString("long double");
-            break;
-        case XTYPE_INT64:
-            sResult = QString("__int64");
-            break;
-        case XTYPE_UINT64:
-            sResult = QString("unsigned __int64");
-            break;
-        case XTYPE_LONGLONG:
-            sResult = QString("long long");
-            break;
-        case XTYPE_ULONGLONG:
-            sResult = QString("unsigned long long");
-            break;
-        case XTYPE_CHAR8:
-            sResult = QString("char8_t");
-            break;
-        case XTYPE_CHAR16:
-            sResult = QString("char16_t");
-            break;
-        case XTYPE_CHAR32:
-            sResult = QString("char32_t");
-            break;
-        case XTYPE_DECIMAL32:
-            sResult = QString("decimal32");
-            break;
-        case XTYPE_DECIMAL64:
-            sResult = QString("decimal64");
-            break;
-        case XTYPE_DECIMAL128:
-            sResult = QString("decimal128");
-            break;
-        case XTYPE_WCHAR:
-            sResult = QString("wchar_t");
-            break;
-        case XTYPE_VARARGS:
-            sResult = QString("...");
-            break;
-        case XTYPE_CLASS:
-            sResult = QString("class");
-            break;
-        case XTYPE_UNION:
-            sResult = QString("union");
-            break;
-        case XTYPE_STRUCT:
-            sResult = QString("struct");
-            break;
-        case XTYPE_ENUM:
-            sResult = QString("enum");
-            break;
-        case XTYPE_POINTERTOFUNCTION:
-            sResult = QString("");
-            break;
-        case XTYPE_NULLPTR:
-            sResult = QString("std::nullptr_t");
-            break;  // TODO Check !!!
-        default:
-            sResult = "Unknown";
+        case XTYPE_UNKNOWN: sResult = QString(""); break;
+        case XTYPE_NONE: sResult = QString(""); break;
+        case XTYPE_VOID: sResult = QString("void"); break;
+        case XTYPE_BOOL: sResult = QString("bool"); break;
+        case XTYPE_INT: sResult = QString("int"); break;
+        case XTYPE_SCHAR: sResult = QString("signed char"); break;
+        case XTYPE_CHAR: sResult = QString("char"); break;
+        case XTYPE_UCHAR: sResult = QString("unsigned char"); break;
+        case XTYPE_SHORT: sResult = QString("short"); break;
+        case XTYPE_USHORT: sResult = QString("unsigned short"); break;
+        case XTYPE_UINT: sResult = QString("unsigned int"); break;
+        case XTYPE_LONG: sResult = QString("long"); break;
+        case XTYPE_ULONG: sResult = QString("unsigned long"); break;
+        case XTYPE_FLOAT: sResult = QString("float"); break;
+        case XTYPE_FLOAT128: sResult = QString("__float128"); break;
+        case XTYPE_DOUBLE: sResult = QString("double"); break;
+        case XTYPE_LONGDOUBLE: sResult = QString("long double"); break;
+        case XTYPE_LONGDOUBLE_64: sResult = QString("long double"); break;
+        case XTYPE_LONGDOUBLE_80: sResult = QString("long double"); break;
+        case XTYPE_INT64: sResult = QString("__int64"); break;
+        case XTYPE_UINT64: sResult = QString("unsigned __int64"); break;
+        case XTYPE_LONGLONG: sResult = QString("long long"); break;
+        case XTYPE_ULONGLONG: sResult = QString("unsigned long long"); break;
+        case XTYPE_CHAR8: sResult = QString("char8_t"); break;
+        case XTYPE_CHAR16: sResult = QString("char16_t"); break;
+        case XTYPE_CHAR32: sResult = QString("char32_t"); break;
+        case XTYPE_DECIMAL32: sResult = QString("decimal32"); break;
+        case XTYPE_DECIMAL64: sResult = QString("decimal64"); break;
+        case XTYPE_DECIMAL128: sResult = QString("decimal128"); break;
+        case XTYPE_WCHAR: sResult = QString("wchar_t"); break;
+        case XTYPE_VARARGS: sResult = QString("..."); break;
+        case XTYPE_CLASS: sResult = QString("class"); break;
+        case XTYPE_UNION: sResult = QString("union"); break;
+        case XTYPE_STRUCT: sResult = QString("struct"); break;
+        case XTYPE_ENUM: sResult = QString("enum"); break;
+        case XTYPE_POINTERTOFUNCTION: sResult = QString(""); break;
+        case XTYPE_NULLPTR: sResult = QString("std::nullptr_t"); break;  // TODO Check !!!
+        default: sResult = "Unknown";
     }
 
     return sResult;
@@ -205,39 +104,17 @@ QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle:
     QString sResult = QString("Unknown");
 
     switch (storageClass) {
-        case SC_UNKNOWN:
-            sResult = QString("");
-            break;
-        case SC_NEAR:
-            sResult = QString("");
-            break;
-        case SC_CONST:
-            sResult = QString("const");
-            break;
-        case SC_VOLATILE:
-            sResult = QString("volatile");
-            break;
-        case SC_CONSTVOLATILE:
-            sResult = QString("const volatile");
-            break;
-        case SC_FAR:
-            sResult = QString("");
-            break;
-        case SC_CONSTFAR:
-            sResult = QString("const");
-            break;
-        case SC_VOLATILEFAR:
-            sResult = QString("volatile");
-            break;
-        case SC_CONSTVOLATILEFAR:
-            sResult = QString("const volatile");
-            break;
-        case SC_HUGE:
-            sResult = QString("");
-            break;
-        case SC_EXECUTABLE:
-            sResult = QString("");
-            break;
+        case SC_UNKNOWN: sResult = QString(""); break;
+        case SC_NEAR: sResult = QString(""); break;
+        case SC_CONST: sResult = QString("const"); break;
+        case SC_VOLATILE: sResult = QString("volatile"); break;
+        case SC_CONSTVOLATILE: sResult = QString("const volatile"); break;
+        case SC_FAR: sResult = QString(""); break;
+        case SC_CONSTFAR: sResult = QString("const"); break;
+        case SC_VOLATILEFAR: sResult = QString("volatile"); break;
+        case SC_CONSTVOLATILEFAR: sResult = QString("const volatile"); break;
+        case SC_HUGE: sResult = QString(""); break;
+        case SC_EXECUTABLE: sResult = QString(""); break;
     }
 
     return sResult;
@@ -250,23 +127,12 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
     QString sResult = QString("Unknown");
 
     switch (objectClass) {
-        case OC_UNKNOWN:
-            sResult = QString("Unknown");
-            break;
-        case OC_GLOBALOBJECT:
-            sResult = QString("");
-            break;
-        case OC_PRIVATESTATICCLASSMEMBER:
-            sResult = QString("private: static");
-            break;
-        case OC_PROTECTEDSTATICCLASSMEMBER:
-            sResult = QString("protected: static");
-            break;
-        case OC_PUBLICSTATICCLASSMEMBER:
-            sResult = QString("public: static");
-            break;
-        default:
-            sResult = QString("Unknown");
+        case OC_UNKNOWN: sResult = QString("Unknown"); break;
+        case OC_GLOBALOBJECT: sResult = QString(""); break;
+        case OC_PRIVATESTATICCLASSMEMBER: sResult = QString("private: static"); break;
+        case OC_PROTECTEDSTATICCLASSMEMBER: sResult = QString("protected: static"); break;
+        case OC_PUBLICSTATICCLASSMEMBER: sResult = QString("public: static"); break;
+        default: sResult = QString("Unknown");
     }
 
     return sResult;
@@ -314,32 +180,15 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
     QString sResult = QString("Unknown");
 
     switch (functionConvention) {
-        case FC_UNKNOWN:
-            sResult = QString("");
-            break;
-        case FC_NONE:
-            sResult = QString("");
-            break;
-        case FC_CDECL:
-            sResult = QString("__cdecl");
-            break;
-        case FC_THISCALL:
-            sResult = QString("__thiscall");
-            break;
-        case FC_STDCALL:
-            sResult = QString("__stdcall");
-            break;
-        case FC_FASTCALL:
-            sResult = QString("__fastcall");
-            break;
-        case FC_CLRCALL:
-            sResult = QString("__clrcall");
-            break;
-        case FC_VECTORCALL:
-            sResult = QString("__vectorcall");
-            break;
-        default:
-            sResult = QString("Unknown");
+        case FC_UNKNOWN: sResult = QString(""); break;
+        case FC_NONE: sResult = QString(""); break;
+        case FC_CDECL: sResult = QString("__cdecl"); break;
+        case FC_THISCALL: sResult = QString("__thiscall"); break;
+        case FC_STDCALL: sResult = QString("__stdcall"); break;
+        case FC_FASTCALL: sResult = QString("__fastcall"); break;
+        case FC_CLRCALL: sResult = QString("__clrcall"); break;
+        case FC_VECTORCALL: sResult = QString("__vectorcall"); break;
+        default: sResult = QString("Unknown");
     }
 
     return sResult;
@@ -352,186 +201,66 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
     QString sResult = QString("Unknown");
 
     switch (_operator) {
-        case OP_UNKNOWN:
-            sResult = QString("Unknown");
-            break;
-        case OP_CONSTRUCTOR:
-            sResult = QString("");
-            break;
-        case OP_DESTRUCTOR:
-            sResult = QString("~");
-            break;
-        case OP_NEW:
-            sResult = QString("operator new");
-            break;
-        case OP_DELETE:
-            sResult = QString("operator delete");
-            break;
-        case OP_ASSIGN:
-            sResult = QString("operator=");
-            break;
-        case OP_RIGHTSHIFT:
-            sResult = QString("operator>>");
-            break;
-        case OP_LEFTSHIFT:
-            sResult = QString("operator<<");
-            break;
-        case OP_LOGICALNOT:
-            sResult = QString("operator!");
-            break;
-        case OP_EQUALS:
-            sResult = QString("operator==");
-            break;
-        case OP_NOTEQUALS:
-            sResult = QString("operator!=");
-            break;
-        case OP_ARRAYSUBSCRIPT:
-            sResult = QString("operator[]");
-            break;
-        case OP_POINTER:
-            sResult = QString("operator->");
-            break;
-        case OP_DEREFERENCE:
-            sResult = QString("operator*");
-            break;
-        case OP_REFERENCE:
-            sResult = QString("operator&");
-            break;
-        case OP_INCREMENT:
-            sResult = QString("operator++");
-            break;
-        case OP_DECREMENT:
-            sResult = QString("operator--");
-            break;
-        case OP_MINUS:
-            sResult = QString("operator-");
-            break;
-        case OP_PLUS:
-            sResult = QString("operator+");
-            break;
-        case OP_BITWISEAND:
-            sResult = QString("operator&");
-            break;
-        case OP_MEMBERPOINTER:
-            sResult = QString("operator->*");
-            break;
-        case OP_MULTIPLE:
-            sResult = QString("operator*");
-            break;
-        case OP_DIVIDE:
-            sResult = QString("operator/");
-            break;
-        case OP_MODULUS:
-            sResult = QString("operator%");
-            break;
-        case OP_LESSTHAN:
-            sResult = QString("operator<");
-            break;
-        case OP_LESSTHANEQUAL:
-            sResult = QString("operator<=");
-            break;
-        case OP_GREATERTHAN:
-            sResult = QString("operator>");
-            break;
-        case OP_GREATERTHANEQUAL:
-            sResult = QString("operator>=");
-            break;
-        case OP_COMMA:
-            sResult = QString("operator,");
-            break;
-        case OP_PARENS:
-            sResult = QString("operator()");
-            break;
-        case OP_BITWISENOT:
-            sResult = QString("operator~");
-            break;
-        case OP_BITWISEXOR:
-            sResult = QString("operator^");
-            break;
-        case OP_BITWISEOR:
-            sResult = QString("operator|");
-            break;
-        case OP_LOGICALAND:
-            sResult = QString("operator&&");
-            break;
-        case OP_LOGICALOR:
-            sResult = QString("operator||");
-            break;
-        case OP_TIMESEQUAL:
-            sResult = QString("operator*=");
-            break;
-        case OP_PLUSEQUAL:
-            sResult = QString("operator+=");
-            break;
-        case OP_MINUSEQUAL:
-            sResult = QString("operator-=");
-            break;
-        case OP_DIVEQUAL:
-            sResult = QString("operator/=");
-            break;
-        case OP_MODEQUAL:
-            sResult = QString("operator%=");
-            break;
-        case OP_RSHEQUAL:
-            sResult = QString("operator>>=");
-            break;
-        case OP_LSHEQUAL:
-            sResult = QString("operator<<=");
-            break;
-        case OP_BITWISEANDEQUAL:
-            sResult = QString("operator&=");
-            break;
-        case OP_BITWISEOREQUAL:
-            sResult = QString("operator|=");
-            break;
-        case OP_BITWISEXOREQUAL:
-            sResult = QString("operator^=");
-            break;
-        case OP_VBASEDTOR:
-            sResult = QString("`vbase dtor'");
-            break;
-        case OP_VECDELDTOR:
-            sResult = QString("`vector deleting dtor'");
-            break;
-        case OP_DEFAULTCTORCLOSURE:
-            sResult = QString("`default ctor closure'");
-            break;
-        case OP_SCALARDELDTOR:
-            sResult = QString("`scalar deleting dtor'");
-            break;
-        case OP_VECCTORITER:
-            sResult = QString("`vector ctor iterator'");
-            break;
-        case OP_VECDTORITER:
-            sResult = QString("`vector dtor iterator'");
-            break;
-        case OP_VECVBASECTORITER:
-            sResult = QString("`vector vbase ctor iterator'");
-            break;
-        case OP_VDISPMAP:
-            sResult = QString("`virtual displacement map'");
-            break;
-        case OP_EHVECCTORITER:
-            sResult = QString("`eh vector ctor iterator'");
-            break;
-        case OP_EHVECDTORITER:
-            sResult = QString("`eh vector dtor iterator'");
-            break;
-        case OP_EHVECVBASECTORITER:
-            sResult = QString("`eh vector vbase ctor iterator'");
-            break;
-        case OP_COPYCTORCLOSURE:
-            sResult = QString("`copy ctor closure'");
-            break;
-        case OP_ARRAYNEW:
-            sResult = QString("operator new[]");
-            break;
-        case OP_ARRAYDELETE:
-            sResult = QString("operator delete[]");
-            break;
-        case OP_TYPE:
-            sResult = QString("operator ");
-            break;
+        case OP_UNKNOWN: sResult = QString("Unknown"); break;
+        case OP_CONSTRUCTOR: sResult = QString(""); break;
+        case OP_DESTRUCTOR: sResult = QString("~"); break;
+        case OP_NEW: sResult = QString("operator new"); break;
+        case OP_DELETE: sResult = QString("operator delete"); break;
+        case OP_ASSIGN: sResult = QString("operator="); break;
+        case OP_RIGHTSHIFT: sResult = QString("operator>>"); break;
+        case OP_LEFTSHIFT: sResult = QString("operator<<"); break;
+        case OP_LOGICALNOT: sResult = QString("operator!"); break;
+        case OP_EQUALS: sResult = QString("operator=="); break;
+        case OP_NOTEQUALS: sResult = QString("operator!="); break;
+        case OP_ARRAYSUBSCRIPT: sResult = QString("operator[]"); break;
+        case OP_POINTER: sResult = QString("operator->"); break;
+        case OP_DEREFERENCE: sResult = QString("operator*"); break;
+        case OP_REFERENCE: sResult = QString("operator&"); break;
+        case OP_INCREMENT: sResult = QString("operator++"); break;
+        case OP_DECREMENT: sResult = QString("operator--"); break;
+        case OP_MINUS: sResult = QString("operator-"); break;
+        case OP_PLUS: sResult = QString("operator+"); break;
+        case OP_BITWISEAND: sResult = QString("operator&"); break;
+        case OP_MEMBERPOINTER: sResult = QString("operator->*"); break;
+        case OP_MULTIPLE: sResult = QString("operator*"); break;
+        case OP_DIVIDE: sResult = QString("operator/"); break;
+        case OP_MODULUS: sResult = QString("operator%"); break;
+        case OP_LESSTHAN: sResult = QString("operator<"); break;
+        case OP_LESSTHANEQUAL: sResult = QString("operator<="); break;
+        case OP_GREATERTHAN: sResult = QString("operator>"); break;
+        case OP_GREATERTHANEQUAL: sResult = QString("operator>="); break;
+        case OP_COMMA: sResult = QString("operator,"); break;
+        case OP_PARENS: sResult = QString("operator()"); break;
+        case OP_BITWISENOT: sResult = QString("operator~"); break;
+        case OP_BITWISEXOR: sResult = QString("operator^"); break;
+        case OP_BITWISEOR: sResult = QString("operator|"); break;
+        case OP_LOGICALAND: sResult = QString("operator&&"); break;
+        case OP_LOGICALOR: sResult = QString("operator||"); break;
+        case OP_TIMESEQUAL: sResult = QString("operator*="); break;
+        case OP_PLUSEQUAL: sResult = QString("operator+="); break;
+        case OP_MINUSEQUAL: sResult = QString("operator-="); break;
+        case OP_DIVEQUAL: sResult = QString("operator/="); break;
+        case OP_MODEQUAL: sResult = QString("operator%="); break;
+        case OP_RSHEQUAL: sResult = QString("operator>>="); break;
+        case OP_LSHEQUAL: sResult = QString("operator<<="); break;
+        case OP_BITWISEANDEQUAL: sResult = QString("operator&="); break;
+        case OP_BITWISEOREQUAL: sResult = QString("operator|="); break;
+        case OP_BITWISEXOREQUAL: sResult = QString("operator^="); break;
+        case OP_VBASEDTOR: sResult = QString("`vbase dtor'"); break;
+        case OP_VECDELDTOR: sResult = QString("`vector deleting dtor'"); break;
+        case OP_DEFAULTCTORCLOSURE: sResult = QString("`default ctor closure'"); break;
+        case OP_SCALARDELDTOR: sResult = QString("`scalar deleting dtor'"); break;
+        case OP_VECCTORITER: sResult = QString("`vector ctor iterator'"); break;
+        case OP_VECDTORITER: sResult = QString("`vector dtor iterator'"); break;
+        case OP_VECVBASECTORITER: sResult = QString("`vector vbase ctor iterator'"); break;
+        case OP_VDISPMAP: sResult = QString("`virtual displacement map'"); break;
+        case OP_EHVECCTORITER: sResult = QString("`eh vector ctor iterator'"); break;
+        case OP_EHVECDTORITER: sResult = QString("`eh vector dtor iterator'"); break;
+        case OP_EHVECVBASECTORITER: sResult = QString("`eh vector vbase ctor iterator'"); break;
+        case OP_COPYCTORCLOSURE: sResult = QString("`copy ctor closure'"); break;
+        case OP_ARRAYNEW: sResult = QString("operator new[]"); break;
+        case OP_ARRAYDELETE: sResult = QString("operator delete[]"); break;
+        case OP_TYPE: sResult = QString("operator "); break;
     }
 
     return sResult;
