@@ -391,44 +391,45 @@ qint32 XDemangle::ms_demangle_UntypedVariable(XDemangle::DSYMBOL *pSymbol, XDema
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_SpecialTable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = _sString;
     qint32 nResult = 0;
 
-    qint32 nNSSize = ms_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+    qint32 nNSSize = ms_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
     reverseList(&(pParameter->listDnames));
 
     nResult += nNSSize;
-    sString = sString.mid(nNSSize, -1);
+    _sString = _sString.mid(nNSSize, -1);
 
-    if ((!_compare(sString, "6")) && (!_compare(sString, "7"))) {
+    if ((!_compare(_sString, "6")) && (!_compare(_sString, "7"))) {
         pSymbol->bIsValid = false;
     }
 
     if (pSymbol->bIsValid) {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
-        if (isSignaturePresent(sString, &(pHdata->mapQualifiers))) {
-            SIGNATURE signature = getSignature(sString, &(pHdata->mapQualifiers));
+        if (isSignaturePresent(_sString, &(pHdata->mapQualifiers))) {
+            SIGNATURE signature = getSignature(_sString, &(pHdata->mapQualifiers));
 
             pParameter->nQualifier = signature.nValue;
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
             nResult += signature.nSize;
         }
 
-        if (_compare(sString, "@")) {
+        if (_compare(_sString, "@")) {
             nResult += 1;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
         } else {
             DPARAMETER parameter = {};
             parameter.st = ST_NAME;
 
-            qint32 nPSize = ms_demangle_NameScope(pSymbol, pHdata, &parameter, sString);
+            qint32 nPSize = ms_demangle_NameScope(pSymbol, pHdata, &parameter, _sString);
 
             nResult += nPSize;
-            sString = sString.mid(nPSize, -1);
+            _sString = _sString.mid(nPSize, -1);
 
             reverseList(&(parameter.listDnames));
 
