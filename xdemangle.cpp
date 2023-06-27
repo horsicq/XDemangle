@@ -152,22 +152,16 @@ QString XDemangle::accessIdToString(quint32 nFunctionMod, XDemangle::MODE mode)
     bool bStatic = nFunctionMod & FM_STATIC;
     bool bVirtual = nFunctionMod & FM_VIRTUAL;
 
-    if (nFunctionMod & FM_PRIVATE)
-        sResult += QString("private:");
-    else if (nFunctionMod & FM_PROTECTED)
-        sResult += QString("protected:");
-    else if (nFunctionMod & FM_PUBLIC)
-        sResult += QString("public:");
-    else
-        bStatic = false;
+    if (nFunctionMod & FM_PRIVATE) sResult += QString("private:");
+    else if (nFunctionMod & FM_PROTECTED) sResult += QString("protected:");
+    else if (nFunctionMod & FM_PUBLIC) sResult += QString("public:");
+    else bStatic = false;
 
     if ((nFunctionMod & FM_STATIC) || (nFunctionMod & FM_VIRTUAL)) {
         if (sResult != "") sResult += " ";
 
-        if (bStatic)
-            sResult += QString("static");
-        else if (bVirtual)
-            sResult += QString("virtual");
+        if (bStatic) sResult += QString("static");
+        else if (bVirtual) sResult += QString("virtual");
     }
 
     return sResult;
@@ -272,14 +266,10 @@ QString XDemangle::qualIdToPointerString(quint32 nQual, XDemangle::MODE mode)
 
     QString sResult;
 
-    if (nQual & QUAL_POINTER)
-        sResult += "*";
-    else if (nQual & QUAL_REFERENCE)
-        sResult += "&";
-    else if (nQual & QUAL_DOUBLEREFERENCE)
-        sResult += "&&";
-    else if (nQual & QUAL_RVALUEREF)
-        sResult += "&&";
+    if (nQual & QUAL_POINTER) sResult += "*";
+    else if (nQual & QUAL_REFERENCE) sResult += "&";
+    else if (nQual & QUAL_DOUBLEREFERENCE) sResult += "&&";
+    else if (nQual & QUAL_RVALUEREF) sResult += "&&";
 
     if (nQual & QUAL_CONST) {
         sResult += "const";
@@ -293,10 +283,8 @@ QString XDemangle::qualIdToPointerString(quint32 nQual, XDemangle::MODE mode)
         sResult += "volatile";
     }
 
-    if (nQual & QUAL_SIGNED)
-        sResult += "signed";
-    else if (nQual & QUAL_UNSIGNED)
-        sResult += "unsigned";
+    if (nQual & QUAL_SIGNED) sResult += "signed";
+    else if (nQual & QUAL_UNSIGNED) sResult += "unsigned";
 
     return sResult;
 }
