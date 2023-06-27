@@ -787,33 +787,35 @@ qint32 XDemangle::ms_demangle_UnkTypeName(XDemangle::DSYMBOL *pSymbol, XDemangle
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, QString sString, NB nb)
+qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, NB nb)
 {
+    QString _sString = sString;
+
     qint32 nResult = 0;
 
-    if (isReplaceStringPresent(pSymbol, pHdata, sString)) {
-        SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, sString);
+    if (isReplaceStringPresent(pSymbol, pHdata, _sString)) {
+        SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, _sString);
         // TODO Error empty String
         DNAME dname = {};
         dname.sName = signature.sString;
 
         pParameter->listDnames.append(dname);
 
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
         nResult += signature.nSize;
-    } else if (_compare(sString, "?$")) {
-        qint32 nTSize = ms_demangle_Template(pSymbol, pHdata, pParameter, sString, nb);
-        sString = sString.mid(nTSize, -1);
+    } else if (_compare(_sString, "?$")) {
+        qint32 nTSize = ms_demangle_Template(pSymbol, pHdata, pParameter, _sString, nb);
+        _sString = _sString.mid(nTSize, -1);
         nResult += nTSize;
-    } else if (isSignaturePresent(sString, &(pHdata->mapOperators))) {
+    } else if (isSignaturePresent(_sString, &(pHdata->mapOperators))) {
         DNAME dname = {};
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapOperators));
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapOperators));
         dname._operator = (OP)signature.nValue;
         nResult += signature.nSize;
 
         pParameter->listDnames.append(dname);
     } else {
-        STRING string = readString(pHdata, sString, pSymbol->mode);
+        STRING string = readString(pHdata, _sString, pSymbol->mode);
 
         if (string.nSize) {
             if (nb & NB_SIMPLE) {
@@ -825,7 +827,7 @@ qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemang
 
             pParameter->listDnames.append(dname);
 
-            sString = sString.mid(string.nSize, -1);
+            _sString = _sString.mid(string.nSize, -1);
             nResult += string.nSize;
         }
     }
