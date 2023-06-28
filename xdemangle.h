@@ -444,7 +444,7 @@ private:
     SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
     SIGNATURE getLocalScopeSignature(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
 
-    QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sName, QString sPrefix);
+    QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, const QString &sName, QString sPrefix);
     QString _nameToString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
 
     DPARAMETER getLastPointerParameter(DPARAMETER *pParameter);
