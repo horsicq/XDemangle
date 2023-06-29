@@ -1203,84 +1203,85 @@ qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::H
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    while (sString != "") {
-        if (_compare(sString, "@")) {
+    while (_sString != "") {
+        if (_compare(_sString, "@")) {
             break;
         }
 
-        if (_compare(sString, "$S")) {
+        if (_compare(_sString, "$S")) {
             nResult += 2;
-            sString = sString.mid(2, -1);
+            _sString = _sString.mid(2, -1);
         }
 
-        if (_compare(sString, "$$V") || _compare(sString, "$$Z")) {
+        if (_compare(_sString, "$$V") || _compare(_sString, "$$Z")) {
             nResult += 3;
-            sString = sString.mid(3, -1);
+            _sString = _sString.mid(3, -1);
         }
 
-        if (_compare(sString, "$$$V")) {
+        if (_compare(_sString, "$$$V")) {
             nResult += 4;
-            sString = sString.mid(4, -1);
+            _sString = _sString.mid(4, -1);
         }
 
-        if (_compare(sString, "$$Y")) {
+        if (_compare(_sString, "$$Y")) {
             nResult += 3;
-            sString = sString.mid(3, -1);
+            _sString = _sString.mid(3, -1);
 
             pSymbol->bIsValid = false;
 #ifdef QT_DEBUG
             qDebug("TODO: Template alias");
 #endif
-        } else if (_compare(sString, "$$B")) {
+        } else if (_compare(_sString, "$$B")) {
             // TODO Check
             nResult += 3;
-            sString = sString.mid(3, -1);
+            _sString = _sString.mid(3, -1);
 
             DPARAMETER parameter = {};
 
-            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, sString, MSDT_DROP);
+            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, _sString, MSDT_DROP);
 
             pParameter->listParameters.append(parameter);
 
             nResult += nTSize;
-            sString = sString.mid(nTSize, -1);
-        } else if (_compare(sString, "$$C")) {
+            _sString = _sString.mid(nTSize, -1);
+        } else if (_compare(_sString, "$$C")) {
             nResult += 3;
-            sString = sString.mid(3, -1);
+            _sString = _sString.mid(3, -1);
 
             DPARAMETER parameter = {};
 
-            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, sString, MSDT_MANGLE);
+            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, _sString, MSDT_MANGLE);
 
             pParameter->listParameters.append(parameter);
 
             nResult += nTSize;
-            sString = sString.mid(nTSize, -1);
-        } else if (_compare(sString, "$1") || _compare(sString, "$H") || _compare(sString, "$I") || _compare(sString, "$J")) {
+            _sString = _sString.mid(nTSize, -1);
+        } else if (_compare(_sString, "$1") || _compare(_sString, "$H") || _compare(_sString, "$I") || _compare(_sString, "$J")) {
             nResult += 2;
-            sString = sString.mid(2, -1);
+            _sString = _sString.mid(2, -1);
 
             pSymbol->bIsValid = false;
 #ifdef QT_DEBUG
             qDebug("TODO: Template");
 #endif
-        } else if (_compare(sString, "$E?")) {
+        } else if (_compare(_sString, "$E?")) {
             nResult += 3;
-            sString = sString.mid(3, -1);
+            _sString = _sString.mid(3, -1);
 
             pSymbol->bIsValid = false;
 #ifdef QT_DEBUG
             qDebug("TODO: Reference to symbol");
 #endif
-        } else if (_compare(sString, "$0")) {
+        } else if (_compare(_sString, "$0")) {
             nResult += 2;
-            sString = sString.mid(2, -1);
+            _sString = _sString.mid(2, -1);
 
-            NUMBER number = readNumber(pHdata, sString, pSymbol->mode);
+            NUMBER number = readNumber(pHdata, _sString, pSymbol->mode);
 
             DPARAMETER parameter = {};
 
@@ -1290,16 +1291,16 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
             pParameter->listParameters.append(parameter);
 
             nResult += number.nSize;
-            sString = sString.mid(number.nSize, -1);
+            _sString = _sString.mid(number.nSize, -1);
         } else {
             DPARAMETER parameter = {};
 
-            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, sString, MSDT_DROP);
+            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, _sString, MSDT_DROP);
 
             pParameter->listParameters.append(parameter);
 
             nResult += nTSize;
-            sString = sString.mid(nTSize, -1);
+            _sString = _sString.mid(nTSize, -1);
 
             if (!(pSymbol->bIsValid)) {
                 break;
@@ -1307,8 +1308,8 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
         }
     }
 
-    if (_compare(sString, "@")) {
-        sString = sString.mid(1, -1);
+    if (_compare(_sString, "@")) {
+        _sString = _sString.mid(1, -1);
         nResult += 1;
     }
 
