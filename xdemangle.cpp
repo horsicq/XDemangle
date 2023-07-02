@@ -911,19 +911,20 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Declarator(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pDParameter, QString sString)
+qint32 XDemangle::ms_demangle_Declarator(DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pDParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    qint32 nFNSize = ms_demangle_FullSymbolName(pSymbol, pHdata, pDParameter, sString);
+    qint32 nFNSize = ms_demangle_FullSymbolName(pSymbol, pHdata, pDParameter, _sString);
 
     nResult += nFNSize;
-    sString = sString.mid(nFNSize, -1);
+    _sString = _sString.mid(nFNSize, -1);
 
-    qint32 nRSize = ms_demangle_Parameters(pSymbol, pHdata, pDParameter, sString);
+    qint32 nRSize = ms_demangle_Parameters(pSymbol, pHdata, pDParameter, _sString);
 
     nResult += nRSize;
-    sString = sString.mid(nRSize, -1);
+    _sString = _sString.mid(nRSize, -1);
 
     return nResult;
 }

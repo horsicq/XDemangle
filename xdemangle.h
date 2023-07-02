@@ -423,7 +423,7 @@ private:
     qint32 ms_demangle_UnkTypeName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bSave);
     qint32 ms_demangle_UnkSymbolName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, NB nb);
     qint32 ms_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
-    qint32 ms_demangle_Declarator(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_Declarator(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
     qint32 ms_demangle_Variable(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
