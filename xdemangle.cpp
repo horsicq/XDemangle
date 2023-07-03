@@ -464,66 +464,67 @@ qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol, XDem
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, QString sString, MSDT msdt)
+qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, MSDT msdt)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
     if (msdt == MSDT_MANGLE) {
-        if (isSignaturePresent(sString, &(pHdata->mapQualifiers))) {
-            SIGNATURE signature = getSignature(sString, &(pHdata->mapQualifiers));
+        if (isSignaturePresent(_sString, &(pHdata->mapQualifiers))) {
+            SIGNATURE signature = getSignature(_sString, &(pHdata->mapQualifiers));
 
             pParameter->nQualifier = signature.nValue;
 
             nResult += signature.nSize;
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
         }
     } else if (msdt == MSDT_RESULT) {
-        if (_compare(sString, "?")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "?")) {
+            _sString = _sString.mid(1, -1);
             nResult += 1;
 
-            if (isSignaturePresent(sString, &(pHdata->mapQualifiers))) {
-                SIGNATURE signature = getSignature(sString, &(pHdata->mapQualifiers));
+            if (isSignaturePresent(_sString, &(pHdata->mapQualifiers))) {
+                SIGNATURE signature = getSignature(_sString, &(pHdata->mapQualifiers));
 
                 pParameter->nQualifier = signature.nValue;
 
                 nResult += signature.nSize;
-                sString = sString.mid(signature.nSize, -1);
+                _sString = _sString.mid(signature.nSize, -1);
             }
         }
     }
 
-    if (isSignaturePresent(sString, &(pHdata->mapTagTypes))) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapTagTypes));
+    if (isSignaturePresent(_sString, &(pHdata->mapTagTypes))) {
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapTagTypes));
         pParameter->type = (XTYPE)signature.nValue;
         pParameter->st = ST_TYPE;
 
         nResult += signature.nSize;
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
 
-        qint32 nFNSize = ms_demangle_FullTypeName(pSymbol, pHdata, pParameter, sString);
+        qint32 nFNSize = ms_demangle_FullTypeName(pSymbol, pHdata, pParameter, _sString);
 
         nResult += nFNSize;
-        sString = sString.mid(nFNSize, -1);
-    } else if (isSignaturePresent(sString, &(pHdata->mapPointerTypes))) {
-        if (ms_isPointerMember(pSymbol, pHdata, sString)) {
-            qint32 nPTSize = ms_demangle_MemberPointerType(pSymbol, pHdata, pParameter, sString);
+        _sString = _sString.mid(nFNSize, -1);
+    } else if (isSignaturePresent(_sString, &(pHdata->mapPointerTypes))) {
+        if (ms_isPointerMember(pSymbol, pHdata, _sString)) {
+            qint32 nPTSize = ms_demangle_MemberPointerType(pSymbol, pHdata, pParameter, _sString);
 
             nResult += nPTSize;
-            sString = sString.mid(nPTSize, -1);
+            _sString = _sString.mid(nPTSize, -1);
         } else if (pSymbol->bIsValid) {
-            qint32 nPTSize = ms_demangle_PointerType(pSymbol, pHdata, pParameter, sString);
+            qint32 nPTSize = ms_demangle_PointerType(pSymbol, pHdata, pParameter, _sString);
 
             nResult += nPTSize;
-            sString = sString.mid(nPTSize, -1);
+            _sString = _sString.mid(nPTSize, -1);
         }
-    } else if (_compare(sString, "Y"))  // Array
+    } else if (_compare(_sString, "Y"))  // Array
     {
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
         nResult += 1;
 
         while (pSymbol->bIsValid) {
-            NUMBER number = readNumber(pHdata, sString, pSymbol->mode);
+            NUMBER number = readNumber(pHdata, _sString, pSymbol->mode);
 
             if (number.nSize == 0) {
                 break;
@@ -531,56 +532,56 @@ qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA
 
             pParameter->listIndexes.append(number.nValue);
 
-            sString = sString.mid(number.nSize, -1);
+            _sString = _sString.mid(number.nSize, -1);
             nResult += number.nSize;
         }
 
-        if (_compare(sString, "$$C")) {
-            sString = sString.mid(3, -1);
+        if (_compare(_sString, "$$C")) {
+            _sString = _sString.mid(3, -1);
             nResult += 3;
 
-            if (isSignaturePresent(sString, &(pHdata->mapQualifiers))) {
-                SIGNATURE signature = getSignature(sString, &(pHdata->mapQualifiers));
+            if (isSignaturePresent(_sString, &(pHdata->mapQualifiers))) {
+                SIGNATURE signature = getSignature(_sString, &(pHdata->mapQualifiers));
 
                 pParameter->nQualifier |= signature.nValue;
 
                 nResult += signature.nSize;
-                sString = sString.mid(signature.nSize, -1);
+                _sString = _sString.mid(signature.nSize, -1);
             }
         }
 
-        qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, pParameter, sString, MSDT_DROP);
+        qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, pParameter, _sString, MSDT_DROP);
 
-        sString = sString.mid(nTSize, -1);
+        _sString = _sString.mid(nTSize, -1);
         nResult += nTSize;
-    } else if (isSignaturePresent(sString, &(pHdata->mapTypes))) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapTypes));
+    } else if (isSignaturePresent(_sString, &(pHdata->mapTypes))) {
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapTypes));
         pParameter->type = (XTYPE)signature.nValue;
         pParameter->st = ST_TYPE;
 
         nResult += signature.nSize;
-        sString = sString.mid(signature.nSize, -1);
-    } else if (_compare(sString, "$$A8@@"))  // Function
+        _sString = _sString.mid(signature.nSize, -1);
+    } else if (_compare(_sString, "$$A8@@"))  // Function
     {
-        sString = sString.mid(6, -1);
+        _sString = _sString.mid(6, -1);
         nResult += 6;
 
         pParameter->st = ST_FUNCTION;
 
-        qint32 nFSize = ms_demangle_FunctionType(pSymbol, pHdata, pParameter, sString, true);
+        qint32 nFSize = ms_demangle_FunctionType(pSymbol, pHdata, pParameter, _sString, true);
 
-        sString = sString.mid(nFSize, -1);
+        _sString = _sString.mid(nFSize, -1);
         nResult += nFSize;
-    } else if (_compare(sString, "$$A6"))  // Function
+    } else if (_compare(_sString, "$$A6"))  // Function
     {
-        sString = sString.mid(4, -1);
+        _sString = _sString.mid(4, -1);
         nResult += 4;
 
         pParameter->st = ST_FUNCTION;
 
-        qint32 nFSize = ms_demangle_FunctionType(pSymbol, pHdata, pParameter, sString, false);
+        qint32 nFSize = ms_demangle_FunctionType(pSymbol, pHdata, pParameter, _sString, false);
 
-        sString = sString.mid(nFSize, -1);
+        _sString = _sString.mid(nFSize, -1);
         nResult += nFSize;
     } else {
 #ifdef QT_DEBUG

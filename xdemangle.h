@@ -415,7 +415,7 @@ private:
     qint32 ms_demangle_UntypedVariable(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_SpecialTable(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_LocalStaticGuard(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
-    qint32 ms_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, MSDT msdt);
+    qint32 ms_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, MSDT msdt);
     qint32 ms_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_MemberPointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
     qint32 ms_demangle_FullTypeName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
