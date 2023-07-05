@@ -31,9 +31,9 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
     switch (mode) {
         case MODE_UNKNOWN: sResult = tr("Unknown"); break;
         case MODE_AUTO: sResult = tr("Automatic"); break;
-        case MODE_MSVC: sResult = QString("MSVC+++"); break;
-        case MODE_MSVC32: sResult = QString("MSVC+++ 32"); break;
-        case MODE_MSVC64: sResult = QString("MSVC+++ 64"); break;
+        case MODE_MSVC: sResult = QString("MSVC++"); break;
+        case MODE_MSVC32: sResult = QString("MSVC++ 32"); break;
+        case MODE_MSVC64: sResult = QString("MSVC++ 64"); break;
         case MODE_GNU_V3: sResult = QString("GNU V3"); break;
         case MODE_GCC_WIN: sResult = QString("GNU C++ for Windows"); break;
         case MODE_GCC_MAC: sResult = QString("GNU C++ for MacOS"); break;
@@ -710,19 +710,20 @@ qint32 XDemangle::ms_demangle_MemberPointerType(XDemangle::DSYMBOL *pSymbol, XDe
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_FullTypeName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_FullTypeName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    qint32 nUnkName = ms_demangle_UnkTypeName(pSymbol, pHdata, pParameter, sString, true);
+    qint32 nUnkName = ms_demangle_UnkTypeName(pSymbol, pHdata, pParameter, _sString, true);
     nResult += nUnkName;
 
-    sString = sString.mid(nUnkName, -1);
+    _sString = _sString.mid(nUnkName, -1);
 
-    qint32 nNameScope = ms_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+    qint32 nNameScope = ms_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
     nResult += nNameScope;
 
-    sString = sString.mid(nNameScope, -1);
+    _sString = _sString.mid(nNameScope, -1);
 
     reverseList(&(pParameter->listDnames));
 

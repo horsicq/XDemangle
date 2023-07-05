@@ -418,7 +418,7 @@ private:
     qint32 ms_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, MSDT msdt);
     qint32 ms_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_MemberPointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
-    qint32 ms_demangle_FullTypeName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_FullTypeName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_FullSymbolName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
     qint32 ms_demangle_UnkTypeName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bSave);
     qint32 ms_demangle_UnkSymbolName(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, NB nb);
