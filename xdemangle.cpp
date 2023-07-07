@@ -839,53 +839,55 @@ qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemang
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
+
     qint32 nResult = 0;
 
-    while (sString != "") {
-        if (isReplaceStringPresent(pSymbol, pHdata, sString)) {
-            SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, sString);
+    while (_sString != "") {
+        if (isReplaceStringPresent(pSymbol, pHdata, _sString)) {
+            SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, _sString);
             // TODO Error empty String
             DNAME dname = {};
             dname.sName = signature.sString;
 
             pParameter->listDnames.append(dname);
 
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
             nResult += signature.nSize;
-        } else if (_compare(sString, "?$")) {
-            qint32 nTSize = ms_demangle_Template(pSymbol, pHdata, pParameter, sString, NB_TEMPLATE);
-            sString = sString.mid(nTSize, -1);
+        } else if (_compare(_sString, "?$")) {
+            qint32 nTSize = ms_demangle_Template(pSymbol, pHdata, pParameter, _sString, NB_TEMPLATE);
+            _sString = _sString.mid(nTSize, -1);
             nResult += nTSize;
-        } else if (_compare(sString, "?A")) {
+        } else if (_compare(_sString, "?A")) {
 #ifdef QT_DEBUG
             qDebug("TODO: AnonymousNamespaceName");
 #endif
-            sString = sString.mid(2, -1);
+            _sString = _sString.mid(2, -1);
             nResult += 2;
-        } else if (isLocalScopePresent(pSymbol, pHdata, sString)) {
-            SIGNATURE signature = getLocalScopeSignature(pSymbol, pHdata, sString);
+        } else if (isLocalScopePresent(pSymbol, pHdata, _sString)) {
+            SIGNATURE signature = getLocalScopeSignature(pSymbol, pHdata, _sString);
 
             DNAME dnameLocalScope = {};
             dnameLocalScope.sName = QString("`%1'").arg(signature.sValue);
 
             pParameter->listDnames.append(dnameLocalScope);
 
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
             nResult += signature.nSize;
 
-            DSYMBOL symbol = ms_getSymbol(sString, pSymbol->mode, pHdata);
+            DSYMBOL symbol = ms_getSymbol(_sString, pSymbol->mode, pHdata);
 
             DNAME dnameSymbol = {};
             dnameSymbol.sName = QString("`%1'").arg(dsymbolToString(symbol));
 
             pParameter->listDnames.append(dnameSymbol);
 
-            sString = sString.mid(symbol.nSize, -1);
+            _sString = _sString.mid(symbol.nSize, -1);
             nResult += symbol.nSize;
         } else {
-            STRING string = readString(pHdata, sString, pSymbol->mode);
+            STRING string = readString(pHdata, _sString, pSymbol->mode);
 
             if (string.nSize) {
                 addStringRef(pSymbol, pHdata, string.sString);
@@ -895,14 +897,14 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
                 pParameter->listDnames.append(dname);
 
-                sString = sString.mid(string.nSize, -1);
+                _sString = _sString.mid(string.nSize, -1);
                 nResult += string.nSize;
             }
         }
 
-        if (_compare(sString, "@")) {
+        if (_compare(_sString, "@")) {
             nResult += 1;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
 
             break;
         }
