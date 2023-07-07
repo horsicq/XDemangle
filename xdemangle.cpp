@@ -730,19 +730,20 @@ qint32 XDemangle::ms_demangle_FullTypeName(XDemangle::DSYMBOL *pSymbol, XDemangl
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_FullSymbolName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_FullSymbolName(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    qint32 nUnkName = ms_demangle_UnkSymbolName(pSymbol, pHdata, pParameter, sString, NB_SIMPLE);
+    qint32 nUnkName = ms_demangle_UnkSymbolName(pSymbol, pHdata, pParameter, _sString, NB_SIMPLE);
     nResult += nUnkName;
 
-    sString = sString.mid(nUnkName, -1);
+    _sString = _sString.mid(nUnkName, -1);
 
-    qint32 nNameScope = ms_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+    qint32 nNameScope = ms_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
     nResult += nNameScope;
 
-    sString = sString.mid(nNameScope, -1);
+    _sString = _sString.mid(nNameScope, -1);
 
     reverseList(&(pParameter->listDnames));
 
