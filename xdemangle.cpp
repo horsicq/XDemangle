@@ -1170,12 +1170,13 @@ qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XD
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, XDemangle::NB nb)
+qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString, XDemangle::NB nb)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    if (_compare(sString, "?$")) {
-        sString = sString.mid(2, -1);
+    if (_compare(_sString, "?$")) {
+        _sString = _sString.mid(2, -1);
         nResult += 2;
 
         XDemangle::HDATA hdata = *pHdata;
@@ -1185,12 +1186,12 @@ qint32 XDemangle::ms_demangle_Template(XDemangle::DSYMBOL *pSymbol, XDemangle::H
         DPARAMETER parameter = {};
         parameter.st = ST_TEMPLATE;
 
-        qint32 nNName = ms_demangle_UnkSymbolName(pSymbol, &hdata, &parameter, sString, NB_SIMPLE);
-        sString = sString.mid(nNName, -1);
+        qint32 nNName = ms_demangle_UnkSymbolName(pSymbol, &hdata, &parameter, _sString, NB_SIMPLE);
+        _sString = _sString.mid(nNName, -1);
         nResult += nNName;
 
-        qint32 nTName = ms_demangle_TemplateParameters(pSymbol, &hdata, &parameter, sString);
-        sString = sString.mid(nTName, -1);
+        qint32 nTName = ms_demangle_TemplateParameters(pSymbol, &hdata, &parameter, _sString);
+        _sString = _sString.mid(nTName, -1);
         nResult += nTName;
 
         QString sName = _nameToString(pSymbol, &parameter);
