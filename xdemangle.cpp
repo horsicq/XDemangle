@@ -2777,24 +2777,25 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_PointerType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::itanium_demangle_PointerType(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    if (isSignaturePresent(sString, &(pHdata->mapPointerTypes))) {
+    if (isSignaturePresent(_sString, &(pHdata->mapPointerTypes))) {
         pParameter->st = ST_POINTER;
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapPointerTypes));
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapPointerTypes));
         pParameter->nQualifier = signature.nValue;
 
         nResult += signature.nSize;
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
 
         DPARAMETER parameter = {};
 
-        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, sString);
+        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, _sString);
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
+        _sString = _sString.mid(nPSize, -1);
 
         pParameter->listPointer.append(parameter);
     }
