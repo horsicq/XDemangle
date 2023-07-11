@@ -1351,45 +1351,47 @@ qint32 XDemangle::ms_demangle_ExtQualifiers(XDemangle::DSYMBOL *pSymbol, const Q
     return nResult;
 }
 
-bool XDemangle::ms_isPointerMember(XDemangle::DSYMBOL *pSymbol, HDATA *pHdata, QString sString)
+bool XDemangle::ms_isPointerMember(XDemangle::DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString)
 {
-    if (_compare(sString, "$")) {
+    QString _sString = sString;
+
+    if (_compare(_sString, "$")) {
         // rvalue ref
         return false;
-    } else if (_compare(sString, "A")) {
+    } else if (_compare(_sString, "A")) {
         // ref
         return false;
     }
     // PQRS
-    sString = sString.mid(1, -1);
+    _sString = _sString.mid(1, -1);
 
-    if (isSignaturePresent(sString, &(pHdata->mapNumbers))) {
-        if ((!_compare(sString, "6")) && (!_compare(sString, "8"))) {
+    if (isSignaturePresent(_sString, &(pHdata->mapNumbers))) {
+        if ((!_compare(_sString, "6")) && (!_compare(_sString, "8"))) {
             pSymbol->bIsValid = false;
 
             return false;
         }
 
-        return _compare(sString, "8");
+        return _compare(_sString, "8");
     }
 
     quint32 nQual = 0;
 
-    qint32 nESize = ms_demangle_ExtQualifiers(pSymbol, sString, &nQual);
+    qint32 nESize = ms_demangle_ExtQualifiers(pSymbol, _sString, &nQual);
 
-    sString = sString.mid(nESize, -1);
+    _sString = _sString.mid(nESize, -1);
 
-    if (sString == "") {
+    if (_sString == "") {
         pSymbol->bIsValid = false;
 
         return false;
     }
 
-    if (_compare(sString, "A") || _compare(sString, "B") || _compare(sString, "C") || _compare(sString, "D")) {
+    if (_compare(_sString, "A") || _compare(_sString, "B") || _compare(_sString, "C") || _compare(_sString, "D")) {
         return false;
     }
 
-    if (_compare(sString, "Q") || _compare(sString, "R") || _compare(sString, "S") || _compare(sString, "T")) {
+    if (_compare(_sString, "Q") || _compare(_sString, "R") || _compare(_sString, "S") || _compare(_sString, "T")) {
         return true;
     }
 
