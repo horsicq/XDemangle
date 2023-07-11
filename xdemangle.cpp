@@ -2463,17 +2463,18 @@ qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemang
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    while (sString != "") {
+    while (_sString != "") {
         DPARAMETER parameter = {};
 
-        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, sString);
+        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, _sString);
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
+        _sString = _sString.mid(nPSize, -1);
 
         pParameter->listParameters.append(parameter);
 
@@ -2490,14 +2491,14 @@ qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDema
             break;
         }
 
-        if (_compare(sString, "E")) {
+        if (_compare(_sString, "E")) {
             nResult++;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
 
             break;
         }
 
-        if (_compare(sString, "@") && (pSymbol->mode == MODE_GCC_WIN)) {
+        if (_compare(_sString, "@") && (pSymbol->mode == MODE_GCC_WIN)) {
             break;
         }
     }
