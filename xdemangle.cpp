@@ -955,22 +955,23 @@ qint32 XDemangle::ms_demangle_Parameters(DSYMBOL *pSymbol, XDemangle::HDATA *pHd
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    if (_compare(sString, "$$J0")) {
+    if (_compare(_sString, "$$J0")) {
         nResult += 4;
-        sString = sString.mid(4, -1);
+        _sString = _sString.mid(4, -1);
         pParameter->nAccess = FM_EXTERNC;
     }
 
-    if (isSignaturePresent(sString, &(pHdata->mapAccessMods))) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapAccessMods));
+    if (isSignaturePresent(_sString, &(pHdata->mapAccessMods))) {
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapAccessMods));
         pParameter->nAccess |= signature.nValue;
 
         nResult += signature.nSize;
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
     }
 
     if (pParameter->nAccess & FM_STATICTHISADJUST) {
@@ -988,10 +989,10 @@ qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::H
     if (!(pParameter->nAccess & FM_NOPARAMETERLIST)) {
         bool bThisQual = !(pParameter->nAccess & (FM_GLOBAL | FM_STATIC));
 
-        qint32 nFSize = ms_demangle_FunctionType(pSymbol, pHdata, pParameter, sString, bThisQual);
+        qint32 nFSize = ms_demangle_FunctionType(pSymbol, pHdata, pParameter, _sString, bThisQual);
 
         nResult += nFSize;
-        sString = sString.mid(nFSize, -1);
+        _sString = _sString.mid(nFSize, -1);
     }
 
     return nResult;
