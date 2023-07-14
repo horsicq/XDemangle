@@ -456,7 +456,7 @@ private:
     qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
     qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString, bool bReturn);
     qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
-    qint32 itanium_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 itanium_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     QString itanium_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
 

@@ -2509,14 +2509,15 @@ qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDema
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
     bool bAdd = true;
 
-    if (isReplaceArgPresent(pSymbol, pHdata, sString)) {
-        SIGNATURE signature = getReplaceArgSignature(pSymbol, pHdata, sString);
+    if (isReplaceArgPresent(pSymbol, pHdata, _sString)) {
+        SIGNATURE signature = getReplaceArgSignature(pSymbol, pHdata, _sString);
 
         DNAME dname = {};
         dname.sName = signature.sString;
@@ -2526,164 +2527,164 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         pParameter->st = ST_NAME;
 
         nResult += signature.nSize;
-        sString = sString.mid(signature.nSize, -1);
-    } else if (isSignaturePresent(sString, &(pHdata->mapPointerTypes)))  // Pointers
+        _sString = _sString.mid(signature.nSize, -1);
+    } else if (isSignaturePresent(_sString, &(pHdata->mapPointerTypes)))  // Pointers
     {
-        qint32 nPSize = itanium_demangle_PointerType(pSymbol, pHdata, pParameter, sString);
+        qint32 nPSize = itanium_demangle_PointerType(pSymbol, pHdata, pParameter, _sString);
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
-    } else if (_compare(sString, "U")) {
+        _sString = _sString.mid(nPSize, -1);
+    } else if (_compare(_sString, "U")) {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         pParameter->st = ST_TARGET;
 
-        qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+        qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
         nResult += nNSSize;
-        sString = sString.mid(nNSSize, -1);
+        _sString = _sString.mid(nNSSize, -1);
 
         DPARAMETER parameter = {};
 
-        qint32 nTSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, sString);
+        qint32 nTSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, _sString);
 
         pParameter->listTarget.append(parameter);
 
         nResult += nTSize;
-        sString = sString.mid(nTSize, -1);
-    } else if (_compare(sString, "A"))  // Array
+        _sString = _sString.mid(nTSize, -1);
+    } else if (_compare(_sString, "A"))  // Array
     {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
-        NUMBER number = readNumber(pHdata, sString, pSymbol->mode);
+        NUMBER number = readNumber(pHdata, _sString, pSymbol->mode);
         pParameter->listIndexes.append(number.nValue);
 
         nResult += number.nSize;
-        sString = sString.mid(number.nSize, -1);
+        _sString = _sString.mid(number.nSize, -1);
 
         pParameter->st = ST_POINTER;
 
-        if (_compare(sString, "_")) {
+        if (_compare(_sString, "_")) {
             nResult += 1;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
         } else {
             pSymbol->bIsValid = false;
         }
 
         DPARAMETER parameter = {};
 
-        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, sString);
+        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, _sString);
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
+        _sString = _sString.mid(nPSize, -1);
 
         pParameter->listPointer.append(parameter);
-    } else if (_compare(sString, "F"))  // Function
+    } else if (_compare(_sString, "F"))  // Function
     {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         pParameter->st = ST_FUNCTION;
 
-        qint32 nFSize = itanium_demangle_Function(pSymbol, pHdata, pParameter, sString, true);
+        qint32 nFSize = itanium_demangle_Function(pSymbol, pHdata, pParameter, _sString, true);
 
         nResult += nFSize;
-        sString = sString.mid(nFSize, -1);
-    } else if (_compare(sString, "M"))  // Pointer to member
+        _sString = _sString.mid(nFSize, -1);
+    } else if (_compare(_sString, "M"))  // Pointer to member
     {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         pParameter->st = ST_POINTER;
 
         DPARAMETER parameterClass = {};
 
-        qint32 nClassSize = itanium_demangle_Type(pSymbol, pHdata, &parameterClass, sString);
+        qint32 nClassSize = itanium_demangle_Type(pSymbol, pHdata, &parameterClass, _sString);
 
         nResult += nClassSize;
-        sString = sString.mid(nClassSize, -1);
+        _sString = _sString.mid(nClassSize, -1);
 
         DPARAMETER parameterMember = {};
 
-        qint32 nMemberSize = itanium_demangle_Type(pSymbol, pHdata, &parameterMember, sString);
+        qint32 nMemberSize = itanium_demangle_Type(pSymbol, pHdata, &parameterMember, _sString);
 
         nResult += nMemberSize;
-        sString = sString.mid(nMemberSize, -1);
+        _sString = _sString.mid(nMemberSize, -1);
 
         parameterMember.listClass.append(parameterClass);
         pParameter->listPointer.append(parameterMember);
-    } else if (_compare(sString, "L"))  // Const
+    } else if (_compare(_sString, "L"))  // Const
     {
         pParameter->st = ST_CONST;
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
-        qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+        qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
         if (nNSSize) {
             nResult += nNSSize;
-            sString = sString.mid(nNSSize, -1);
+            _sString = _sString.mid(nNSSize, -1);
 
-            NUMBER number = readNumberS(pHdata, sString, pSymbol->mode);
+            NUMBER number = readNumberS(pHdata, _sString, pSymbol->mode);
 
             pParameter->varConst = number.nValue;
 
             nResult += number.nSize;
-            sString = sString.mid(number.nSize, -1);
-        } else if (isSignaturePresent(sString, &(pHdata->mapTypes))) {
-            SIGNATURE signature = getSignature(sString, &(pHdata->mapTypes));
+            _sString = _sString.mid(number.nSize, -1);
+        } else if (isSignaturePresent(_sString, &(pHdata->mapTypes))) {
+            SIGNATURE signature = getSignature(_sString, &(pHdata->mapTypes));
 
             pParameter->typeConst = (XTYPE)signature.nValue;
 
             nResult += signature.nSize;
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
 
-            NUMBER number = readNumberS(pHdata, sString, pSymbol->mode);
+            NUMBER number = readNumberS(pHdata, _sString, pSymbol->mode);
 
             pParameter->varConst = number.nValue;
 
             nResult += number.nSize;
-            sString = sString.mid(number.nSize, -1);
+            _sString = _sString.mid(number.nSize, -1);
 
             pSymbol->bIsValid = true;
         } else {
 #ifdef QT_DEBUG
-            qDebug("TODO: unknown const %s", sString.toLatin1().data());
+            qDebug("TODO: unknown const %s", _sString.toLatin1().data());
 #endif
             pSymbol->bIsValid = false;
         }
 
-        if (_compare(sString, "E")) {
+        if (_compare(_sString, "E")) {
             nResult += 1;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
         }
-    } else if (_compare(sString, "X")) {
+    } else if (_compare(_sString, "X")) {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
-        qint32 nTSize = itanium_demangle_Type(pSymbol, pHdata, pParameter, sString);
+        qint32 nTSize = itanium_demangle_Type(pSymbol, pHdata, pParameter, _sString);
 
         nResult += nTSize;
-        sString = sString.mid(nTSize, -1);
+        _sString = _sString.mid(nTSize, -1);
 
-        if (_compare(sString, "E")) {
+        if (_compare(_sString, "E")) {
             nResult += 1;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
         }
-    } else if (_compare(sString, "J")) {
+    } else if (_compare(_sString, "J")) {
         nResult += 1;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         //        pSymbol->bIsValid=true;
 
         DPARAMETER parameter = {};
         parameter.st = ST_TEMPLATE;
-        qint32 nPSize = itanium_demangle_Parameters(pSymbol, pHdata, &parameter, sString);
+        qint32 nPSize = itanium_demangle_Parameters(pSymbol, pHdata, &parameter, _sString);
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
+        _sString = _sString.mid(nPSize, -1);
 
         QString sTemplate = itanium_parameterToString(pSymbol, &parameter, "");
 
@@ -2709,50 +2710,50 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         pParameter->bTemplatePresent = true;
 
-        if (_compare(sString, "E")) {
+        if (_compare(_sString, "E")) {
             nResult += 1;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
         }
-    } else if (_compare(sString, "Dp")) {
+    } else if (_compare(_sString, "Dp")) {
         nResult += 2;
-        sString = sString.mid(2, -1);
+        _sString = _sString.mid(2, -1);
 
-        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, pParameter, sString);
+        qint32 nPSize = itanium_demangle_Type(pSymbol, pHdata, pParameter, _sString);
         pParameter->st = ST_PACKEDTYPE;
 
         nResult += nPSize;
-        sString = sString.mid(nPSize, -1);
-    } else if (isSignaturePresent(sString, &(pHdata->mapTypes)))  // Simple types
+        _sString = _sString.mid(nPSize, -1);
+    } else if (isSignaturePresent(_sString, &(pHdata->mapTypes)))  // Simple types
     {
         pParameter->st = ST_TYPE;
-        SIGNATURE signatureType = getSignature(sString, &(pHdata->mapTypes));
+        SIGNATURE signatureType = getSignature(_sString, &(pHdata->mapTypes));
         pParameter->type = (XTYPE)signatureType.nValue;
 
         nResult += signatureType.nSize;
-        sString = sString.mid(signatureType.nSize, -1);
-    } else if (_compare(sString, "@")) {
+        _sString = _sString.mid(signatureType.nSize, -1);
+    } else if (_compare(_sString, "@")) {
         if (pSymbol->mode != MODE_GCC_WIN) {
             pSymbol->bIsValid = false;
         }
     } else {
         pParameter->st = ST_NAME;
 
-        if (isReplaceStringPresent(pSymbol, pHdata, sString)) {
+        if (isReplaceStringPresent(pSymbol, pHdata, _sString)) {
             bAdd = false;
         }
 
-        qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+        qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
-        if (pHdata->mapStd.contains(sString.left(2)) && (nNSSize == 2)) {
+        if (pHdata->mapStd.contains(_sString.left(2)) && (nNSSize == 2)) {
             bAdd = false;
         }
 
         nResult += nNSSize;
-        sString = sString.mid(nNSSize, -1);
+        _sString = _sString.mid(nNSSize, -1);
 
         if (nNSSize == 0) {
 #ifdef QT_DEBUG
-            qDebug("TODO: type %s", sString.toLatin1().data());
+            qDebug("TODO: type %s", _sString.toLatin1().data());
 #endif
             pSymbol->bIsValid = false;
         }
