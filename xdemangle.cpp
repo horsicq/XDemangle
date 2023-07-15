@@ -998,34 +998,35 @@ qint32 XDemangle::ms_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::H
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_Variable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_Variable(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    if (isSignaturePresent(sString, &(pHdata->mapAccessMods))) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapAccessMods));
+    if (isSignaturePresent(_sString, &(pHdata->mapAccessMods))) {
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapAccessMods));
 
         pParameter->nAccess = signature.nValue;
 
         nResult += signature.nSize;
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
     }
 
     DPARAMETER parameter = {};
     parameter.st = ST_TYPE;
 
-    qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, sString, MSDT_DROP);
+    qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, _sString, MSDT_DROP);
 
     pParameter->listParameters.append(parameter);
 
     nResult += nTSize;
-    sString = sString.mid(nTSize, -1);
+    _sString = _sString.mid(nTSize, -1);
 
-    if (isSignaturePresent(sString, &(pHdata->mapQualifiers))) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapQualifiers));
+    if (isSignaturePresent(_sString, &(pHdata->mapQualifiers))) {
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapQualifiers));
 
         pParameter->nQualifier = signature.nValue;
-        sString = sString.mid(signature.nSize, -1);
+        _sString = _sString.mid(signature.nSize, -1);
         nResult += signature.nSize;
     }
 
