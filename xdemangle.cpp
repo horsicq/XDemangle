@@ -2443,25 +2443,26 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString, bool bReturn)
+qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString, bool bReturn)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
     if (bReturn) {
         DPARAMETER parameter = {};
 
-        qint32 nRSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, sString);
+        qint32 nRSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, _sString);
 
         pParameter->listReturn.append(parameter);
 
         nResult += nRSize;
-        sString = sString.mid(nRSize, -1);
+        _sString = _sString.mid(nRSize, -1);
     }
 
-    qint32 nFSize = itanium_demangle_Parameters(pSymbol, pHdata, pParameter, sString);
+    qint32 nFSize = itanium_demangle_Parameters(pSymbol, pHdata, pParameter, _sString);
 
     nResult += nFSize;
-    sString = sString.mid(nFSize, -1);
+    _sString = _sString.mid(nFSize, -1);
 
     return nResult;
 }
