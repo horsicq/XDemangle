@@ -1494,20 +1494,21 @@ bool XDemangle::isReplaceArgPresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDAT
     return bResult;
 }
 
-bool XDemangle::isLocalScopePresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+bool XDemangle::isLocalScopePresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, const QString &sString)
 {
+    QString _sString = sString;
     bool bResult = false;
 
     if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_MICROSOFT) {
-        if (_compare(sString, "?")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "?")) {
+            _sString = _sString.mid(1, -1);
 
-            NUMBER number = readNumber(pHdata, sString, pSymbol->mode);
+            NUMBER number = readNumber(pHdata, _sString, pSymbol->mode);
 
             if (number.nSize) {
-                sString = sString.mid(number.nSize, -1);
+                _sString = _sString.mid(number.nSize, -1);
 
-                if (_compare(sString, "?")) {
+                if (_compare(_sString, "?")) {
                     bResult = true;
                 }
             }
