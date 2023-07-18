@@ -1576,31 +1576,33 @@ XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pS
     return result;
 }
 
-XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, const QString &sString)
 {
+    QString _sString = sString;
+
     SIGNATURE result = {};
 
-    QString sOrigString = sString;
+    QString sOrigString = _sString;
 
     qint32 nIndex = 0;
 
     if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_MICROSOFT) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapNumbers));
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapNumbers));
         result.nSize = 1;
         nIndex = signature.nValue;
     } else if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_ITANIUM) {
-        if (_compare(sString, "T")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "T")) {
+            _sString = _sString.mid(1, -1);
 
-            NUMBER number = readSymNumber(pHdata, sString, pSymbol->mode);
+            NUMBER number = readSymNumber(pHdata, _sString, pSymbol->mode);
 
             if (number.nSize) {
-                sString = sString.mid(number.nSize, -1);
+                _sString = _sString.mid(number.nSize, -1);
                 result.nValue = number.nValue + 1;
             }
 
-            if (_compare(sString, "_")) {
-                sString = sString.mid(1, -1);
+            if (_compare(_sString, "_")) {
+                _sString = _sString.mid(1, -1);
 
                 result.nSize = 2 + number.nSize;
 
@@ -2252,14 +2254,15 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
 
 qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    if (_compare(sString, "Z")) {
+    if (_compare(_sString, "Z")) {
         nResult++;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         DPARAMETER parameter = {};
-        qint32 nESize = itanium_demangle_Encoding(pSymbol, pHdata, &parameter, sString);
+        qint32 nESize = itanium_demangle_Encoding(pSymbol, pHdata, &parameter, _sString);
 
         DNAME dname = {};
         dname.sName = itanium_parameterToString(pSymbol, &parameter, "");
@@ -2267,28 +2270,28 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
         pParameter->listDnames.append(dname);
 
         nResult += nESize;
-        sString = sString.mid(nESize, -1);
+        _sString = _sString.mid(nESize, -1);
     }
 
     bool bNested = false;
 
-    if (_compare(sString, "N")) {
+    if (_compare(_sString, "N")) {
         nResult++;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         bNested = true;
     }
 
-    if (_compare(sString, "K")) {
+    if (_compare(_sString, "K")) {
         nResult++;
-        sString = sString.mid(1, -1);
+        _sString = _sString.mid(1, -1);
 
         pParameter->nQualifier = QUAL_CONST;
     }
 
     QList<QString> listAddString;
 
-    while (sString != "") {
+    while (_sString != "") {
         //        pHdata->listArgRef.clear();
 
         DNAME dname = {};
@@ -2297,64 +2300,64 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
         bool bSpecial = false;
         bool bOperator = false;
 
-        if (isReplaceStringPresent(pSymbol, pHdata, sString)) {
-            SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, sString);
+        if (isReplaceStringPresent(pSymbol, pHdata, _sString)) {
+            SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, _sString);
 
             dname.sName = join(&signature.listStrings, "::");
 
             nResult += signature.nSize;
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
 
             bAdd = false;
-        } else if (_compare(sString, "St")) {
+        } else if (_compare(_sString, "St")) {
             nResult += 2;
-            sString = sString.mid(2, -1);
+            _sString = _sString.mid(2, -1);
 
             dname.sName = "std";
 
             bAdd = false;
             bSpecial = true;
-        } else if (pHdata->mapStd.contains(sString.left(2))) {
-            QString sStd = pHdata->mapStd.value(sString.left(2));
+        } else if (pHdata->mapStd.contains(_sString.left(2))) {
+            QString sStd = pHdata->mapStd.value(_sString.left(2));
 
             nResult += 2;
-            sString = sString.mid(2, -1);
+            _sString = _sString.mid(2, -1);
 
             dname.sName = sStd;
 
             bAdd = false;
             bSpecial = false;
-        } else if (_compare(sString, "cv"))  // Conversion
+        } else if (_compare(_sString, "cv"))  // Conversion
         {
             nResult += 2;
-            sString = sString.mid(2, -1);
+            _sString = _sString.mid(2, -1);
 
             DPARAMETER parameter = {};
 
-            qint32 nTSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, sString);
+            qint32 nTSize = itanium_demangle_Type(pSymbol, pHdata, &parameter, _sString);
 
             nResult += nTSize;
-            sString = sString.mid(nTSize, -1);
+            _sString = _sString.mid(nTSize, -1);
 
             dname.sName = QString("operator %1").arg(itanium_parameterToString(pSymbol, &parameter, ""));
 
             // TODO _
-        } else if (isSignaturePresent(sString, &(pHdata->mapOperators))) {
-            SIGNATURE signature = getSignature(sString, &(pHdata->mapOperators));
+        } else if (isSignaturePresent(_sString, &(pHdata->mapOperators))) {
+            SIGNATURE signature = getSignature(_sString, &(pHdata->mapOperators));
 
             dname._operator = (OP)signature.nValue;
 
             nResult += signature.nSize;
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
 
             bOperator = true;
         } else {
-            STRING string = readString(pHdata, sString, pSymbol->mode);
+            STRING string = readString(pHdata, _sString, pSymbol->mode);
 
             dname.sName = string.sString;
 
             nResult += string.nSize;
-            sString = sString.mid(string.nSize, -1);
+            _sString = _sString.mid(string.nSize, -1);
 
             if (string.nSize == 0) {
                 pSymbol->bIsValid = false;
@@ -2367,10 +2370,10 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             listAddString.append(dname.sName);
         }
 
-        if (_compare(sString, "I"))  // Template
+        if (_compare(_sString, "I"))  // Template
         {
             nResult++;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
 
             if (bAdd) {
                 addStringListRef(pSymbol, pHdata, listAddString);
@@ -2380,10 +2383,10 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
             DPARAMETER parameter = {};
             parameter.st = ST_TEMPLATE;
-            qint32 nPSize = itanium_demangle_Parameters(pSymbol, pHdata, &parameter, sString);
+            qint32 nPSize = itanium_demangle_Parameters(pSymbol, pHdata, &parameter, _sString);
 
             nResult += nPSize;
-            sString = sString.mid(nPSize, -1);
+            _sString = _sString.mid(nPSize, -1);
 
             QString sTemplate = itanium_parameterToString(pSymbol, &parameter, "");
 
@@ -2411,24 +2414,24 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             pParameter->bTemplatePresent = true;
         }
 
-        if (_compare(sString, "B"))  // abi::source
+        if (_compare(_sString, "B"))  // abi::source
         {
             nResult++;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
 
-            STRING string = readString(pHdata, sString, pSymbol->mode);
+            STRING string = readString(pHdata, _sString, pSymbol->mode);
 
             dname.sName += QString("[abi:%1]").arg(string.sString);
 
             nResult += string.nSize;
-            sString = sString.mid(string.nSize, -1);
+            _sString = _sString.mid(string.nSize, -1);
         }
 
         pParameter->listDnames.append(dname);
 
-        if (bNested && _compare(sString, "E")) {
+        if (bNested && _compare(_sString, "E")) {
             nResult++;
-            sString = sString.mid(1, -1);
+            _sString = _sString.mid(1, -1);
 
             break;
         } else if ((!bNested) && (!bSpecial)) {

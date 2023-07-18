@@ -441,7 +441,7 @@ private:
     bool isReplaceArgPresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     bool isLocalScopePresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
-    SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     SIGNATURE getLocalScopeSignature(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
 
     QString ms_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, const QString &sName, QString sPrefix);
@@ -453,7 +453,7 @@ private:
     // libelftc_dem_gnu3.c
     QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sPrefix);
     qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
-    qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bReturn);
     qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
