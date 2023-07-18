@@ -2250,7 +2250,7 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
     qint32 nResult = 0;
 
