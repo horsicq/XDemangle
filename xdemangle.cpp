@@ -1120,24 +1120,25 @@ qint32 XDemangle::ms_demangle_FunctionType(XDemangle::DSYMBOL *pSymbol, XDemangl
     return nResult;
 }
 
-qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
-    while (sString != "") {
+    while (_sString != "") {
         bool bBreak = false;
 
-        if (_compare(sString, "@")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "@")) {
+            _sString = _sString.mid(1, -1);
             nResult += 1;
 
             break;
-        } else if (_compare(sString, "Z")) {
+        } else if (_compare(_sString, "Z")) {
             bBreak = true;
         }
 
-        if (isReplaceArgPresent(pSymbol, pHdata, sString)) {
-            SIGNATURE signature = getReplaceArgSignature(pSymbol, pHdata, sString);
+        if (isReplaceArgPresent(pSymbol, pHdata, _sString)) {
+            SIGNATURE signature = getReplaceArgSignature(pSymbol, pHdata, _sString);
 
             DPARAMETER parameter = {};
 
@@ -1145,20 +1146,20 @@ qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XD
 
             pParameter->listParameters.append(parameter);
 
-            sString = sString.mid(signature.nSize, -1);
+            _sString = _sString.mid(signature.nSize, -1);
             nResult += signature.nSize;
         } else {
             DPARAMETER parameter = {};
 
-            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, sString, MSDT_DROP);
+            qint32 nTSize = ms_demangle_Type(pSymbol, pHdata, &parameter, _sString, MSDT_DROP);
 
             pParameter->listParameters.append(parameter);
 
-            QString sArg = sString.left(nTSize);
+            QString sArg = _sString.left(nTSize);
             addArgRef(pSymbol, pHdata, sArg);
 
             nResult += nTSize;
-            sString = sString.mid(nTSize, -1);
+            _sString = _sString.mid(nTSize, -1);
         }
 
         if (bBreak) {

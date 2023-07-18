@@ -428,7 +428,7 @@ private:
     qint32 ms_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_Variable(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_FunctionType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bThisQual);
-    qint32 ms_demangle_FunctionParameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 ms_demangle_FunctionParameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_Template(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, NB nb);
     qint32 ms_demangle_TemplateParameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 ms_demangle_ExtQualifiers(DSYMBOL *pSymbol, const QString &sString, quint32 *pnQual);
