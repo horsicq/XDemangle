@@ -2217,15 +2217,16 @@ QString XDemangle::itanium_parameterToString(XDemangle::DSYMBOL *pSymbol, XDeman
     return sResult;
 }
 
-qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, QString sString)
+qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    QString _sString = sString;
     qint32 nResult = 0;
 
     pParameter->st = ST_VARIABLE;
 
-    qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, sString);
+    qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
 
-    sString = sString.mid(nNSSize, -1);
+    _sString = _sString.mid(nNSSize, -1);
     nResult += nNSSize;
 
     bool bReturn = false;
@@ -2234,16 +2235,16 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
         bReturn = pParameter->listDnames.last().bTemplates;  // TODO Check!!!
     }
 
-    qint32 nPSize = itanium_demangle_Function(pSymbol, pHdata, pParameter, sString, bReturn);
+    qint32 nPSize = itanium_demangle_Function(pSymbol, pHdata, pParameter, _sString, bReturn);
 
-    sString = sString.mid(nPSize, -1);
+    _sString = _sString.mid(nPSize, -1);
     nResult += nPSize;
 
     if (nPSize) {
         pParameter->st = ST_FUNCTION;
     }
 
-    if (_compare(sString, "@") && (pSymbol->mode == MODE_GCC_WIN)) {
+    if (_compare(_sString, "@") && (pSymbol->mode == MODE_GCC_WIN)) {
         if (pParameter->functionConvention != FC_FASTCALL) {
             pParameter->functionConvention = FC_STDCALL;
         }

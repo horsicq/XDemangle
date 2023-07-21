@@ -452,7 +452,7 @@ private:
 
     // libelftc_dem_gnu3.c
     QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sPrefix);
-    qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, QString sString);
+    qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bReturn);
     qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
