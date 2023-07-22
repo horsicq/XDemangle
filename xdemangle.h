@@ -451,7 +451,7 @@ private:
     QString ms_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sName);
 
     // libelftc_dem_gnu3.c
-    QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sPrefix);
+    QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, const QString &sPrefix);
     qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bReturn);
