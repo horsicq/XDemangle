@@ -1521,31 +1521,32 @@ bool XDemangle::isLocalScopePresent(XDemangle::DSYMBOL *pSymbol, XDemangle::HDAT
     return bResult;
 }
 
-XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, QString sString)
+XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, const QString &sString)
 {
+    QString _sString = sString;
     SIGNATURE result = {};
 
     qint32 nIndex = -1;
 
     if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_MICROSOFT) {
-        SIGNATURE signature = getSignature(sString, &(pHdata->mapNumbers));
+        SIGNATURE signature = getSignature(_sString, &(pHdata->mapNumbers));
 
         nIndex = signature.nValue;
         result.nSize = 1;
         result.nValue = signature.nValue;
     } else if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_ITANIUM) {
-        if (_compare(sString, "S")) {
-            sString = sString.mid(1, -1);
+        if (_compare(_sString, "S")) {
+            _sString = _sString.mid(1, -1);
 
-            NUMBER number = readSymNumber(pHdata, sString, pSymbol->mode);
+            NUMBER number = readSymNumber(pHdata, _sString, pSymbol->mode);
 
             if (number.nSize) {
-                sString = sString.mid(number.nSize, -1);
+                _sString = _sString.mid(number.nSize, -1);
                 result.nValue = number.nValue + 1;
             }
 
-            if (_compare(sString, "_")) {
-                sString = sString.mid(1, -1);
+            if (_compare(_sString, "_")) {
+                _sString = _sString.mid(1, -1);
 
                 result.nSize = 2 + number.nSize;
 
@@ -1979,7 +1980,7 @@ XDemangle::DPARAMETER XDemangle::getLastPointerParameter(XDemangle::DPARAMETER *
     return result;
 }
 
-QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, QString sName)
+QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, const QString &sName)
 {
     QString sResult;
 

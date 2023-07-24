@@ -440,7 +440,7 @@ private:
     bool isReplaceStringPresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     bool isReplaceArgPresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     bool isLocalScopePresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
-    SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol, HDATA *pHdata, QString sString);
+    SIGNATURE getReplaceStringSignature(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     SIGNATURE getReplaceArgSignature(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     SIGNATURE getLocalScopeSignature(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
 
@@ -448,7 +448,7 @@ private:
     QString _nameToString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
 
     DPARAMETER getLastPointerParameter(DPARAMETER *pParameter);
-    QString ms_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter, QString sName);
+    QString ms_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter, const QString &sName);
 
     // libelftc_dem_gnu3.c
     QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, const QString &sPrefix);
