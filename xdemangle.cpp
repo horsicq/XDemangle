@@ -1675,7 +1675,7 @@ XDemangle::SIGNATURE XDemangle::getLocalScopeSignature(XDemangle::DSYMBOL *pSymb
     return result;
 }
 
-QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, const QString &sName, QString sPrefix)
+QString XDemangle::ms_parameterToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAMETER *pParameter, const QString &sName, const QString &sPrefix)
 {
     QString sResult;
 
