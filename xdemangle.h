@@ -436,7 +436,7 @@ private:
 
     void addStringRef(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     void addArgRef(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
-    void addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString> listString);
+    void addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, const QList<QString> &listString);
     bool isReplaceStringPresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     bool isReplaceArgPresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);
     bool isLocalScopePresent(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString);

@@ -1433,7 +1433,7 @@ void XDemangle::addArgRef(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata,
     }
 }
 
-void XDemangle::addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, QList<QString> listString)
+void XDemangle::addStringListRef(DSYMBOL *pSymbol, HDATA *pHdata, const QList<QString> &listString)
 {
     if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_ITANIUM) {
         pHdata->listListStringRef.append(listString);
