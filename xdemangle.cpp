@@ -51,7 +51,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
 {
     Q_UNUSED(mode)  // mb TODO
 
-    QString sResult = tr("Unknown");
+    QString sResult;
 
     switch (type) {
         case XTYPE_UNKNOWN: sResult = QString(""); break;
@@ -91,7 +91,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_ENUM: sResult = QString("enum"); break;
         case XTYPE_POINTERTOFUNCTION: sResult = QString(""); break;
         case XTYPE_NULLPTR: sResult = QString("std::nullptr_t"); break;  // TODO Check !!!
-        default: sResult = "Unknown";
+        default: sResult = tr("Unknown");
     }
 
     return sResult;
@@ -101,7 +101,7 @@ QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle:
 {
     Q_UNUSED(mode)  // TODO
 
-    QString sResult = QString("Unknown");
+    QString sResult = tr("Unknown");
 
     switch (storageClass) {
         case SC_UNKNOWN: sResult = QString(""); break;
@@ -124,7 +124,7 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
 {
     Q_UNUSED(mode)  // TODO
 
-    QString sResult = QString("Unknown");
+    QString sResult;
 
     switch (objectClass) {
         case OC_UNKNOWN: sResult = QString("Unknown"); break;
@@ -132,7 +132,7 @@ QString XDemangle::objectClassIdToString(OC objectClass, XDemangle::MODE mode)
         case OC_PRIVATESTATICCLASSMEMBER: sResult = QString("private: static"); break;
         case OC_PROTECTEDSTATICCLASSMEMBER: sResult = QString("protected: static"); break;
         case OC_PUBLICSTATICCLASSMEMBER: sResult = QString("public: static"); break;
-        default: sResult = QString("Unknown");
+        default: sResult = tr("Unknown");
     }
 
     return sResult;
@@ -171,7 +171,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
 {
     Q_UNUSED(mode)  // TODO
 
-    QString sResult = QString("Unknown");
+    QString sResult;
 
     switch (functionConvention) {
         case FC_UNKNOWN: sResult = QString(""); break;
@@ -182,7 +182,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_FASTCALL: sResult = QString("__fastcall"); break;
         case FC_CLRCALL: sResult = QString("__clrcall"); break;
         case FC_VECTORCALL: sResult = QString("__vectorcall"); break;
-        default: sResult = QString("Unknown");
+        default: sResult = tr("Unknown");
     }
 
     return sResult;
@@ -192,7 +192,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
 {
     Q_UNUSED(mode)  // TODO
 
-    QString sResult = QString("Unknown");
+    QString sResult = tr("Unknown");
 
     switch (_operator) {
         case OP_UNKNOWN: sResult = QString("Unknown"); break;
