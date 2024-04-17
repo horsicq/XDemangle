@@ -42,6 +42,8 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
         case MODE_BORLAND32: sResult = QString("Borland 32"); break;
         case MODE_BORLAND64: sResult = QString("Borland 64"); break;
         case MODE_RUST: sResult = QString("Rust"); break;
+        case MODE_GNAT: sResult = QString("GNAT"); break;
+        case MODE_DLANG: sResult = QString("DLANG"); break;
     }
 
     return sResult;
@@ -3161,6 +3163,10 @@ QString XDemangle::demangle(const QString &sString, XDemangle::MODE mode)
         sResult = XCppfilt::demangleJavaV3(_sString);
     } else if (mode == MODE_RUST) {
         sResult = XCppfilt::demangleRust(_sString);
+    } else if (mode == MODE_GNAT) {
+        sResult = XCppfilt::demangleGNAT(_sString);
+    } else if (mode == MODE_DLANG) {
+        sResult = XCppfilt::demangleDLANG(_sString);
     } else if (mode == MODE_BORLAND32) {
         DSYMBOL symbol = borland_getSymbol(_sString, mode);
 
@@ -3452,6 +3458,8 @@ QList<XDemangle::MODE> XDemangle::getSupportedModes()
     listResult.append(MODE_MSVC64);
     listResult.append(MODE_JAVA);
     listResult.append(MODE_RUST);
+    listResult.append(MODE_GNAT);
+    listResult.append(MODE_DLANG);
 
     return listResult;
 }

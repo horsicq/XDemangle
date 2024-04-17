@@ -46,7 +46,9 @@ public:
         MODE_BORLAND32,
         MODE_BORLAND64,
         MODE_WATCOM,
-        MODE_RUST
+        MODE_RUST,
+        MODE_GNAT,
+        MODE_DLANG
         // TODO more !!!
     };
 
