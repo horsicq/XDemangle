@@ -172,7 +172,7 @@ public:
         ST_VTABLE,
         ST_VFTABLE,
         ST_VBTABLE,
-        ST_TYPEINFO,  // TODO
+        ST_TYPEINFO,
         ST_TYPEINFONAME,
         ST_TEMPLATE,
         ST_CONST,
