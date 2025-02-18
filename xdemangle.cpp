@@ -3135,6 +3135,10 @@ QString XDemangle::demangle(const QString &sString, XDemangle::MODE mode)
 
     QString _sString = sString;
 
+    if (mode == MODE_AUTO) {
+        mode = detectMode(_sString);
+    }
+
     if (mode == MODE_GNU_V3) {
         sResult = XCppfilt::demangleGnuV3(_sString);
     } else if (mode == MODE_GCC_WIN) {
