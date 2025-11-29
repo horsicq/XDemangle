@@ -103,7 +103,8 @@ public:
         XTYPE_MEMBER,
         XTYPE_FUNCTION,
         XTYPE_NULLPTR,
-        XTYPE_CONST
+        XTYPE_CONST,
+        XTYPE_NTSTATUS
     };
 
     enum OC {

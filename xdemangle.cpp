@@ -95,6 +95,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_ENUM: sResult = QString("enum"); break;
         case XTYPE_POINTERTOFUNCTION: sResult = QString(""); break;
         case XTYPE_NULLPTR: sResult = QString("std::nullptr_t"); break;  // TODO Check !!!
+        case XTYPE_NTSTATUS: sResult = QString("NTSTATUS"); break; // Used by Drivers
         default: sResult = tr("Unknown");
     }
 
