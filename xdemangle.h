@@ -66,9 +66,11 @@ public:
         XTYPE_UNKNOWN = 0,
         XTYPE_NONE,  // For Constructors & Destructors
         XTYPE_BOOL,
+        XTYPE_BOOL8,
         XTYPE_BYTE,
         XTYPE__BYTE,
         XTYPE_VOID,
+        XTYPE_LPVOID,
         XTYPE_INT,
         XTYPE_INTPTR,
         XTYPE_SINT,
@@ -88,6 +90,7 @@ public:
         XTYPE_LONGDOUBLE_64,
         XTYPE_LONGDOUBLE_80,
         XTYPE_INT16,
+        XTYPE_INT32,
         XTYPE_INT64,
         XTYPE_UINT64,
         XTYPE_LONGLONG,
@@ -113,14 +116,23 @@ public:
         XTYPE_NTSTATUS,
         XTYPE_DWORD,
         XTYPE__DWORD,
+        XTYPE_QWORD,
+        XTYPE__QWORD,
         XTYPE_HWND,
         XTYPE_HDC,
         XTYPE_LRESULT,
         XTYPE_HRESULT,
+        XTYPE_HMODULE,
+        XTYPE_HGLOBAL,
+        XTYPE_HLOCAL,
         XTYPE_LSTATUS,
         XTYPE_SURFACE,
+        XTYPE_BSTR,
+        XTYPE_BCSTR,
         XTYPE_LPCSTR,
+        XTYPE_LPWSTR,
         XTYPE_SIZET,
+        XTYPE_WINTT,
         XTYPE_FILE,
         XTYPE_LOCALEFACET,
         XTYPE_CCHECKLISTBOX,
@@ -129,7 +141,8 @@ public:
         XTYPE_STDEXCEPTION,
         XTYPE_FARPROC,
         XTYPE_HANDLE,
-        XTYPE_HKEY
+        XTYPE_HKEY,
+        XTYPE_M128
     };
 
     enum OC {

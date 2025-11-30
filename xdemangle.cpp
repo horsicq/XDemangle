@@ -61,7 +61,9 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_UNKNOWN: sResult = QString(""); break;
         case XTYPE_NONE: sResult = QString(""); break;
         case XTYPE_VOID: sResult = QString("void"); break;
+        case XTYPE_LPVOID: sResult = QString("LPVOID"); break;
         case XTYPE_BOOL: sResult = QString("bool"); break;
+        case XTYPE_BOOL8: sResult = QString("BOOL8"); break;
         case XTYPE_BYTE: sResult = QString("byte"); break;
         case XTYPE__BYTE: sResult = QString("_BYTE"); break;
         case XTYPE_INT: sResult = QString("int"); break;
@@ -83,6 +85,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_LONGDOUBLE_64: sResult = QString("long double"); break;
         case XTYPE_LONGDOUBLE_80: sResult = QString("long double"); break;
         case XTYPE_INT16: sResult = QString("__int16"); break;
+        case XTYPE_INT32: sResult = QString("__int32"); break;
         case XTYPE_INT64: sResult = QString("__int64"); break;
         case XTYPE_UINT64: sResult = QString("unsigned __int64"); break;
         case XTYPE_LONGLONG: sResult = QString("long long"); break;
@@ -104,14 +107,23 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_NTSTATUS: sResult = QString("NTSTATUS"); break; // Used by Drivers
         case XTYPE_DWORD: sResult = QString("DWORD"); break;
         case XTYPE__DWORD: sResult = QString("_DWORD"); break;
+        case XTYPE_QWORD: sResult = QString("QWORD"); break;
+        case XTYPE__QWORD: sResult = QString("_QWORD"); break;
         case XTYPE_HWND: sResult = QString("HWND"); break;
         case XTYPE_HDC: sResult = QString("HDC"); break;
         case XTYPE_LRESULT: sResult = QString("LRESULT"); break;
         case XTYPE_HRESULT: sResult = QString("HRESULT"); break;
+        case XTYPE_HMODULE: sResult = QString("HMODULE"); break;
+        case XTYPE_HGLOBAL: sResult = QString("HGLOBAL"); break;
+        case XTYPE_HLOCAL: sResult = QString("HLOCAL"); break;
         case XTYPE_LSTATUS: sResult = QString("LSTATUS"); break;
         case XTYPE_SURFACE: sResult = QString("surface"); break;
+        case XTYPE_BSTR: sResult = QString("BSTR"); break;
+        case XTYPE_BCSTR: sResult = QString("BCSTR"); break;
         case XTYPE_LPCSTR: sResult = QString("LPCSTR"); break;
+        case XTYPE_LPWSTR: sResult = QString("LPWSTR"); break;
         case XTYPE_SIZET: sResult = QString("size_t"); break;
+        case XTYPE_WINTT: sResult = QString("wint_t"); break;
         case XTYPE_FILE: sResult = QString("FILE"); break;
         case XTYPE_LOCALEFACET: sResult = QString("std::locale::facet"); break;
         case XTYPE_CCHECKLISTBOX: sResult = QString("CCheckListBox"); break;
@@ -121,6 +133,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_FARPROC: sResult = QString("FARPROC"); break;
         case XTYPE_HANDLE: sResult = QString("HANDLE"); break;
         case XTYPE_HKEY: sResult = QString("HKEY"); break;
+        case XTYPE_M128: sResult = QString("__m128"); break;
         default: sResult = tr("Unknown");
     }
 
