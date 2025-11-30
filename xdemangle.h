@@ -142,7 +142,14 @@ public:
         XTYPE_FARPROC,
         XTYPE_HANDLE,
         XTYPE_HKEY,
-        XTYPE_M128
+        XTYPE_M128,
+        XTYPE_CFILE,
+        XTYPE_CWND,
+        XTYPE_CSTRINGARRAY,
+        XTYPE_CDialog,
+        XTYPE_AFXTERMAPPSTATE,
+        XTYPE_AFXMODULESTATE,
+        XTYPE_AFXMODULETHREADSTATE
     };
 
     enum OC {

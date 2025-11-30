@@ -134,6 +134,13 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_HANDLE: sResult = QString("HANDLE"); break;
         case XTYPE_HKEY: sResult = QString("HKEY"); break;
         case XTYPE_M128: sResult = QString("__m128"); break;
+        case XTYPE_CFILE: sResult = QString("CFile"); break;
+        case XTYPE_CWND: sResult = QString("CWnd"); break;
+        case XTYPE_CSTRINGARRAY: sResult = QString("CStringArray"); break;
+        case XTYPE_CDialog: sResult = QString("CDialog"); break;
+        case XTYPE_AFXTERMAPPSTATE: sResult = QString("_AFX_TERM_APP_STATE"); break;
+        case XTYPE_AFXMODULESTATE: sResult = QString("AFX_MODULE_STATE"); break;
+        case XTYPE_AFXMODULETHREADSTATE: sResult = QString("AFX_MODULE_THREAD_STATE"); break;
         default: sResult = tr("Unknown");
     }
 
