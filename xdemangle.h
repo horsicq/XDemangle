@@ -71,6 +71,7 @@ public:
         XTYPE_VOID,
         XTYPE_INT,
         XTYPE_INTPTR,
+        XTYPE_SINT,
         XTYPE_SCHAR,
         XTYPE_CHAR,
         XTYPE_UCHAR,
@@ -115,6 +116,7 @@ public:
         XTYPE_HWND,
         XTYPE_HDC,
         XTYPE_LRESULT,
+        XTYPE_HRESULT,
         XTYPE_LSTATUS,
         XTYPE_SURFACE,
         XTYPE_LPCSTR,
@@ -123,7 +125,10 @@ public:
         XTYPE_LOCALEFACET,
         XTYPE_CCHECKLISTBOX,
         XTYPE__WORD,
-        XTYPE_IOSTREAMINIT
+        XTYPE_IOSTREAMINIT,
+        XTYPE_STDEXCEPTION,
+        XTYPE_FARPROC,
+        XTYPE_HANDLE
     };
 
     enum OC {
@@ -139,6 +144,7 @@ public:
         SC_UNKNOWN = 0,
         SC_NEAR,
         SC_CONST,
+        SC_CONSTCHAR,
         SC_VOLATILE,
         SC_CONSTVOLATILE,
         SC_FAR,
@@ -177,6 +183,7 @@ public:
         FC_THISCALL,
         FC_THISCALLPOINTER,
         FC_STDCALL,
+        FC_STDCALLPOINTER,
         FC_FASTCALL,
         FC_MSFASTCALL,
         FC_REGCALL,

@@ -65,6 +65,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_BYTE: sResult = QString("byte"); break;
         case XTYPE__BYTE: sResult = QString("_BYTE"); break;
         case XTYPE_INT: sResult = QString("int"); break;
+        case XTYPE_SINT: sResult = QString("signed int"); break;
         case XTYPE_INTPTR: sResult = QString("INT_PTR"); break;
         case XTYPE_SCHAR: sResult = QString("signed char"); break;
         case XTYPE_CHAR: sResult = QString("char"); break;
@@ -106,6 +107,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_HWND: sResult = QString("HWND"); break;
         case XTYPE_HDC: sResult = QString("HDC"); break;
         case XTYPE_LRESULT: sResult = QString("LRESULT"); break;
+        case XTYPE_HRESULT: sResult = QString("HRESULT"); break;
         case XTYPE_LSTATUS: sResult = QString("LSTATUS"); break;
         case XTYPE_SURFACE: sResult = QString("surface"); break;
         case XTYPE_LPCSTR: sResult = QString("LPCSTR"); break;
@@ -115,6 +117,9 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_CCHECKLISTBOX: sResult = QString("CCheckListBox"); break;
         case XTYPE__WORD: sResult = QString("_WORD"); break;
         case XTYPE_IOSTREAMINIT: sResult = QString("Iostream_init"); break;
+        case XTYPE_STDEXCEPTION: sResult = QString("std::exception"); break;
+        case XTYPE_FARPROC: sResult = QString("FARPROC"); break;
+        case XTYPE_HANDLE: sResult = QString("HANDLE"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -131,6 +136,7 @@ QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle:
         case SC_UNKNOWN: sResult = QString(""); break;
         case SC_NEAR: sResult = QString(""); break;
         case SC_CONST: sResult = QString("const"); break;
+        case SC_CONSTCHAR: sResult = QString("const char"); break;
         case SC_VOLATILE: sResult = QString("volatile"); break;
         case SC_CONSTVOLATILE: sResult = QString("const volatile"); break;
         case SC_FAR: sResult = QString(""); break;
@@ -205,6 +211,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_THISCALL: sResult = QString("__thiscall"); break;
         case FC_THISCALLPOINTER: sResult = QString("*__thiscall"); break;
         case FC_STDCALL: sResult = QString("__stdcall"); break;
+        case FC_STDCALLPOINTER: sResult = QString("*__stdcall"); break;
         case FC_FASTCALL: sResult = QString("__fastcall"); break;
         case FC_CLRCALL: sResult = QString("__clrcall"); break;
         case FC_VECTORCALL: sResult = QString("__vectorcall"); break;
