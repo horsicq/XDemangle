@@ -106,6 +106,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_HWND: sResult = QString("HWND"); break;
         case XTYPE_HDC: sResult = QString("HDC"); break;
         case XTYPE_LRESULT: sResult = QString("LRESULT"); break;
+        case XTYPE_LSTATUS: sResult = QString("LSTATUS"); break;
         case XTYPE_SURFACE: sResult = QString("surface"); break;
         case XTYPE_LPCSTR: sResult = QString("LPCSTR"); break;
         case XTYPE_SIZET: sResult = QString("size_t"); break;

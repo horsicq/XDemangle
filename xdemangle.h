@@ -115,6 +115,7 @@ public:
         XTYPE_HWND,
         XTYPE_HDC,
         XTYPE_LRESULT,
+        XTYPE_LSTATUS,
         XTYPE_SURFACE,
         XTYPE_LPCSTR,
         XTYPE_SIZET,
