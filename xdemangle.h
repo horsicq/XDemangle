@@ -128,7 +128,8 @@ public:
         XTYPE_IOSTREAMINIT,
         XTYPE_STDEXCEPTION,
         XTYPE_FARPROC,
-        XTYPE_HANDLE
+        XTYPE_HANDLE,
+        XTYPE_HKEY
     };
 
     enum OC {
@@ -193,6 +194,7 @@ public:
         FC_VECTORCALL,
         FC_USERCALL,
         FC_USERPURGE,
+        FC_USERPURGEPOINTER,
         FC_NORETURN
     };
 

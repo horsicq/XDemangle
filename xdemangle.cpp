@@ -120,6 +120,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_STDEXCEPTION: sResult = QString("std::exception"); break;
         case XTYPE_FARPROC: sResult = QString("FARPROC"); break;
         case XTYPE_HANDLE: sResult = QString("HANDLE"); break;
+        case XTYPE_HKEY: sResult = QString("HKEY"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -217,6 +218,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_VECTORCALL: sResult = QString("__vectorcall"); break;
         case FC_USERCALL: sResult = QString("__usercall"); break;
         case FC_USERPURGE: sResult = QString("__userpurge"); break;
+        case FC_USERPURGEPOINTER: sResult = QString("*__userpurge"); break;
         case FC_NORETURN: sResult = QString("__noreturn"); break;
         default: sResult = tr("Unknown");
     }
