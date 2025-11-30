@@ -113,8 +113,16 @@ public:
         XTYPE_DWORD,
         XTYPE__DWORD,
         XTYPE_HWND,
+        XTYPE_HDC,
         XTYPE_LRESULT,
-        XTYPE_SURFACE
+        XTYPE_SURFACE,
+        XTYPE_LPCSTR,
+        XTYPE_SIZET,
+        XTYPE_FILE,
+        XTYPE_LOCALEFACET,
+        XTYPE_CCHECKLISTBOX,
+        XTYPE__WORD,
+        XTYPE_IOSTREAMINIT
     };
 
     enum OC {
@@ -176,7 +184,8 @@ public:
         FC_SWIFT,
         FC_VECTORCALL,
         FC_USERCALL,
-        FC_USERPURGE
+        FC_USERPURGE,
+        FC_NORETURN
     };
 
     enum ST {

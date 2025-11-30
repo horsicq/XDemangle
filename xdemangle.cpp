@@ -104,8 +104,16 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_DWORD: sResult = QString("DWORD"); break;
         case XTYPE__DWORD: sResult = QString("_DWORD"); break;
         case XTYPE_HWND: sResult = QString("HWND"); break;
+        case XTYPE_HDC: sResult = QString("HDC"); break;
         case XTYPE_LRESULT: sResult = QString("LRESULT"); break;
         case XTYPE_SURFACE: sResult = QString("surface"); break;
+        case XTYPE_LPCSTR: sResult = QString("LPCSTR"); break;
+        case XTYPE_SIZET: sResult = QString("size_t"); break;
+        case XTYPE_FILE: sResult = QString("FILE"); break;
+        case XTYPE_LOCALEFACET: sResult = QString("std::locale::facet"); break;
+        case XTYPE_CCHECKLISTBOX: sResult = QString("CCheckListBox"); break;
+        case XTYPE__WORD: sResult = QString("_WORD"); break;
+        case XTYPE_IOSTREAMINIT: sResult = QString("Iostream_init"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -201,6 +209,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_VECTORCALL: sResult = QString("__vectorcall"); break;
         case FC_USERCALL: sResult = QString("__usercall"); break;
         case FC_USERPURGE: sResult = QString("__userpurge"); break;
+        case FC_NORETURN: sResult = QString("__noreturn"); break;
         default: sResult = tr("Unknown");
     }
 
