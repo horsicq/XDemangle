@@ -309,7 +309,7 @@ XDemangle::SYNTAX XDemangle::getSyntaxFromMode(XDemangle::MODE mode)
 {
     SYNTAX result = SYNTAX_UNKNOWN;
 
-    if ((mode == MODE_MSVC32) || (mode == MODE_MSVC64) || (mode == MODE_MSVC)) {
+    if ((mode == MODE_MSVC32) || (mode == MODE_MSVC64) || (mode == MODE_MSVC) || (mode == MODE_MSVCARM32) || (mode == MODE_MSVCARM64)) {
         result = SYNTAX_MICROSOFT;
     } else if ((mode == MODE_GNU_V3) || (mode == MODE_GCC_MAC) || (mode == MODE_GCC_WIN)) {
         result = SYNTAX_ITANIUM;
@@ -3463,6 +3463,8 @@ QList<XDemangle::MODE> XDemangle::getSupportedModes()
     listResult.append(MODE_MSVC);
     listResult.append(MODE_MSVC32);
     listResult.append(MODE_MSVC64);
+    listResult.append(MODE_MSVCARM32);
+    listResult.append(MODE_MSVCARM64);
     listResult.append(MODE_JAVA);
     listResult.append(MODE_RUST);
     listResult.append(MODE_GNAT);
