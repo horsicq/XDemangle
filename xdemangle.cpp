@@ -62,13 +62,17 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_NONE: sResult = QString(""); break;
         case XTYPE_VOID: sResult = QString("void"); break;
         case XTYPE_BOOL: sResult = QString("bool"); break;
+        case XTYPE_BYTE: sResult = QString("byte"); break;
+        case XTYPE__BYTE: sResult = QString("_BYTE"); break;
         case XTYPE_INT: sResult = QString("int"); break;
+        case XTYPE_INTPTR: sResult = QString("INT_PTR"); break;
         case XTYPE_SCHAR: sResult = QString("signed char"); break;
         case XTYPE_CHAR: sResult = QString("char"); break;
         case XTYPE_UCHAR: sResult = QString("unsigned char"); break;
         case XTYPE_SHORT: sResult = QString("short"); break;
         case XTYPE_USHORT: sResult = QString("unsigned short"); break;
         case XTYPE_UINT: sResult = QString("unsigned int"); break;
+        case XTYPE__UINT8: sResult = QString("unsigned __int8"); break;
         case XTYPE_LONG: sResult = QString("long"); break;
         case XTYPE_ULONG: sResult = QString("unsigned long"); break;
         case XTYPE_FLOAT: sResult = QString("float"); break;
@@ -77,6 +81,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_LONGDOUBLE: sResult = QString("long double"); break;
         case XTYPE_LONGDOUBLE_64: sResult = QString("long double"); break;
         case XTYPE_LONGDOUBLE_80: sResult = QString("long double"); break;
+        case XTYPE_INT16: sResult = QString("__int16"); break;
         case XTYPE_INT64: sResult = QString("__int64"); break;
         case XTYPE_UINT64: sResult = QString("unsigned __int64"); break;
         case XTYPE_LONGLONG: sResult = QString("long long"); break;
@@ -96,6 +101,11 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_POINTERTOFUNCTION: sResult = QString(""); break;
         case XTYPE_NULLPTR: sResult = QString("std::nullptr_t"); break;  // TODO Check !!!
         case XTYPE_NTSTATUS: sResult = QString("NTSTATUS"); break; // Used by Drivers
+        case XTYPE_DWORD: sResult = QString("DWORD"); break;
+        case XTYPE__DWORD: sResult = QString("_DWORD"); break;
+        case XTYPE_HWND: sResult = QString("HWND"); break;
+        case XTYPE_LRESULT: sResult = QString("LRESULT"); break;
+        case XTYPE_SURFACE: sResult = QString("surface"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -182,11 +192,15 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_UNKNOWN: sResult = QString(""); break;
         case FC_NONE: sResult = QString(""); break;
         case FC_CDECL: sResult = QString("__cdecl"); break;
+        case FC_CDECLPOINTER: sResult = QString("*__cdecl"); break;
         case FC_THISCALL: sResult = QString("__thiscall"); break;
+        case FC_THISCALLPOINTER: sResult = QString("*__thiscall"); break;
         case FC_STDCALL: sResult = QString("__stdcall"); break;
         case FC_FASTCALL: sResult = QString("__fastcall"); break;
         case FC_CLRCALL: sResult = QString("__clrcall"); break;
         case FC_VECTORCALL: sResult = QString("__vectorcall"); break;
+        case FC_USERCALL: sResult = QString("__usercall"); break;
+        case FC_USERPURGE: sResult = QString("__userpurge"); break;
         default: sResult = tr("Unknown");
     }
 

@@ -66,14 +66,18 @@ public:
         XTYPE_UNKNOWN = 0,
         XTYPE_NONE,  // For Constructors & Destructors
         XTYPE_BOOL,
+        XTYPE_BYTE,
+        XTYPE__BYTE,
         XTYPE_VOID,
         XTYPE_INT,
+        XTYPE_INTPTR,
         XTYPE_SCHAR,
         XTYPE_CHAR,
         XTYPE_UCHAR,
         XTYPE_SHORT,
         XTYPE_USHORT,
         XTYPE_UINT,
+        XTYPE__UINT8,
         XTYPE_LONG,
         XTYPE_ULONG,
         XTYPE_FLOAT,
@@ -82,6 +86,7 @@ public:
         XTYPE_LONGDOUBLE,
         XTYPE_LONGDOUBLE_64,
         XTYPE_LONGDOUBLE_80,
+        XTYPE_INT16,
         XTYPE_INT64,
         XTYPE_UINT64,
         XTYPE_LONGLONG,
@@ -104,7 +109,12 @@ public:
         XTYPE_FUNCTION,
         XTYPE_NULLPTR,
         XTYPE_CONST,
-        XTYPE_NTSTATUS
+        XTYPE_NTSTATUS,
+        XTYPE_DWORD,
+        XTYPE__DWORD,
+        XTYPE_HWND,
+        XTYPE_LRESULT,
+        XTYPE_SURFACE
     };
 
     enum OC {
@@ -152,9 +162,11 @@ public:
         FC_UNKNOWN = 0,
         FC_NONE,
         FC_CDECL,
+        FC_CDECLPOINTER,
         FC_PASCAL,
         FC_FORTRAN,
         FC_THISCALL,
+        FC_THISCALLPOINTER,
         FC_STDCALL,
         FC_FASTCALL,
         FC_MSFASTCALL,
@@ -162,7 +174,9 @@ public:
         FC_CLRCALL,
         FC_EABI,
         FC_SWIFT,
-        FC_VECTORCALL
+        FC_VECTORCALL,
+        FC_USERCALL,
+        FC_USERPURGE
     };
 
     enum ST {
