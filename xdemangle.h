@@ -160,7 +160,8 @@ public:
         XTYPE_HMENU,
         XTYPE_HBRUSH,
         XTYPE_EXCEPTION,
-        XTYPE_ERRNOT
+        XTYPE_ERRNOT,
+        XTYPE_LARGEINTEGER
 
     };
 
@@ -227,7 +228,12 @@ public:
         FC_USERCALL,
         FC_USERPURGE,
         FC_USERPURGEPOINTER,
-        FC_NORETURN
+        FC_NORETURN,
+        FC_SWIFT1,
+        FC_SWIFT2,
+        FC_SWIFT3,
+        FC_RESTRICT,
+        FC_UNALIGNED
     };
 
     enum ST {

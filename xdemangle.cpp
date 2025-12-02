@@ -152,6 +152,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_HMENU: sResult = QString("HMENU"); break;
         case XTYPE_EXCEPTION: sResult = QString("exception"); break;
         case XTYPE_ERRNOT: sResult = QString("errno_t"); break;
+        case XTYPE_LARGEINTEGER: sResult = QString("LARGE_INTERGER"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -251,6 +252,12 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_USERPURGE: sResult = QString("__userpurge"); break;
         case FC_USERPURGEPOINTER: sResult = QString("*__userpurge"); break;
         case FC_NORETURN: sResult = QString("__noreturn"); break;
+        case FC_PASCAL: sResult = QString("__pascal"); break;
+        case FC_SWIFT1: sResult = QString("__swift_1"); break;
+        case FC_SWIFT2: sResult = QString("__swift_2"); break;
+        case FC_SWIFT3: sResult = QString("__swift_3"); break;
+        case FC_RESTRICT: sResult = QString("__restrict"); break;
+        case FC_UNALIGNED: sResult = QString("__unaligned"); break;
         default: sResult = tr("Unknown");
     }
 
