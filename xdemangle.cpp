@@ -299,6 +299,7 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_LESSTHANEQUAL: sResult = QString("operator<="); break;
         case OP_GREATERTHAN: sResult = QString("operator>"); break;
         case OP_GREATERTHANEQUAL: sResult = QString("operator>="); break;
+        case OP_THREWAYCOMPARISON: sResult = QString("operator<=>"); break;
         case OP_COMMA: sResult = QString("operator,"); break;
         case OP_PARENS: sResult = QString("operator()"); break;
         case OP_BITWISENOT: sResult = QString("operator~"); break;

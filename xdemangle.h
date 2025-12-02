@@ -296,6 +296,7 @@ public:
         OP_LESSTHANEQUAL,
         OP_GREATERTHAN,
         OP_GREATERTHANEQUAL,
+        OP_THREWAYCOMPARISON,
         OP_COMMA,
         OP_PARENS,
         OP_BITWISENOT,
