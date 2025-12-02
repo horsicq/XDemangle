@@ -1983,6 +1983,9 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                 } else if (sOperator == "std::string") {
                     sOperator = "std::basic_string<char, std::char_traits<char>, std::allocator<char> >";
                     bReplace = true;
+                } else if (sOperator == "std::basic_string") {
+                    sOperator = "std::basic_string<>::basic_string<>, std::basic_string<>::operator= >";
+                    bReplace = true;
                 }
 
                 if (bReplace) {
