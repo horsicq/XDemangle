@@ -73,6 +73,7 @@ public:
         XTYPE_LPVOID,
         XTYPE_INT,
         XTYPE_INTPTR,
+        XTYPE_UINTPTR,
         XTYPE_SINT,
         XTYPE_SCHAR,
         XTYPE_CHAR,
@@ -149,7 +150,18 @@ public:
         XTYPE_CDialog,
         XTYPE_AFXTERMAPPSTATE,
         XTYPE_AFXMODULESTATE,
-        XTYPE_AFXMODULETHREADSTATE
+        XTYPE_AFXMODULETHREADSTATE,
+        XTYPE_LPCRITICALSECTION,
+        XTYPE_HGDIOBJ,
+        XTYPE_COLORREF,
+        XTYPE_HBITMAP,
+        XTYPE_HPALETTE,
+        XTYPE_HCURSOR,
+        XTYPE_HMENU,
+        XTYPE_HBRUSH,
+        XTYPE_EXCEPTION,
+        XTYPE_ERRNOT
+
     };
 
     enum OC {

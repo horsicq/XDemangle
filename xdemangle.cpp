@@ -69,6 +69,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_INT: sResult = QString("int"); break;
         case XTYPE_SINT: sResult = QString("signed int"); break;
         case XTYPE_INTPTR: sResult = QString("INT_PTR"); break;
+        case XTYPE_UINTPTR: sResult = QString("UINT_PTR"); break;
         case XTYPE_SCHAR: sResult = QString("signed char"); break;
         case XTYPE_CHAR: sResult = QString("char"); break;
         case XTYPE_UCHAR: sResult = QString("unsigned char"); break;
@@ -141,6 +142,16 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_AFXTERMAPPSTATE: sResult = QString("_AFX_TERM_APP_STATE"); break;
         case XTYPE_AFXMODULESTATE: sResult = QString("AFX_MODULE_STATE"); break;
         case XTYPE_AFXMODULETHREADSTATE: sResult = QString("AFX_MODULE_THREAD_STATE"); break;
+        case XTYPE_LPCRITICALSECTION: sResult = QString("LPCRITICAL_SECTION"); break;
+        case XTYPE_HGDIOBJ: sResult = QString("HGDIOBJ"); break;
+        case XTYPE_COLORREF: sResult = QString("COLORREF"); break;
+        case XTYPE_HBITMAP: sResult = QString("HBITMAP"); break;
+        case XTYPE_HPALETTE: sResult = QString("HPALETTE"); break;
+        case XTYPE_HBRUSH: sResult = QString("HBRUSH"); break;
+        case XTYPE_HCURSOR: sResult = QString("HCURSOR"); break;
+        case XTYPE_HMENU: sResult = QString("HMENU"); break;
+        case XTYPE_EXCEPTION: sResult = QString("exception"); break;
+        case XTYPE_ERRNOT: sResult = QString("errno_t"); break;
         default: sResult = tr("Unknown");
     }
 
