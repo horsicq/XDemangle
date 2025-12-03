@@ -73,7 +73,6 @@ public:
         XTYPE_LPVOID,
         XTYPE_INT,
         XTYPE_INTPTR,
-        XTYPE_UINTPTR,
         XTYPE_SINT,
         XTYPE_SCHAR,
         XTYPE_CHAR,
@@ -524,4 +523,5 @@ private:
 };
 
 #endif  // XDEMANGLE_H
+
 
