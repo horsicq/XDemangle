@@ -143,25 +143,7 @@ public:
         XTYPE_FARPROC,
         XTYPE_HANDLE,
         XTYPE_HKEY,
-        XTYPE_M128,
-        XTYPE_CFILE,
-        XTYPE_CWND,
-        XTYPE_CSTRINGARRAY,
-        XTYPE_CDialog,
-        XTYPE_AFXTERMAPPSTATE,
-        XTYPE_AFXMODULESTATE,
-        XTYPE_AFXMODULETHREADSTATE,
-        XTYPE_LPCRITICALSECTION,
-        XTYPE_HGDIOBJ,
-        XTYPE_COLORREF,
-        XTYPE_HBITMAP,
-        XTYPE_HPALETTE,
-        XTYPE_HCURSOR,
-        XTYPE_HMENU,
-        XTYPE_HBRUSH,
-        XTYPE_EXCEPTION,
-        XTYPE_ERRNOT,
-        XTYPE_LARGEINTEGER
+        XTYPE_M128
 
     };
 
@@ -228,12 +210,7 @@ public:
         FC_USERCALL,
         FC_USERPURGE,
         FC_USERPURGEPOINTER,
-        FC_NORETURN,
-        FC_SWIFT1,
-        FC_SWIFT2,
-        FC_SWIFT3,
-        FC_RESTRICT,
-        FC_UNALIGNED
+        FC_NORETURN
     };
 
     enum ST {
@@ -296,7 +273,6 @@ public:
         OP_LESSTHANEQUAL,
         OP_GREATERTHAN,
         OP_GREATERTHANEQUAL,
-        OP_THREWAYCOMPARISON,
         OP_COMMA,
         OP_PARENS,
         OP_BITWISENOT,
@@ -548,3 +524,4 @@ private:
 };
 
 #endif  // XDEMANGLE_H
+
