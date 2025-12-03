@@ -69,7 +69,6 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_INT: sResult = QString("int"); break;
         case XTYPE_SINT: sResult = QString("signed int"); break;
         case XTYPE_INTPTR: sResult = QString("INT_PTR"); break;
-        case XTYPE_UINTPTR: sResult = QString("UINT_PTR"); break;
         case XTYPE_SCHAR: sResult = QString("signed char"); break;
         case XTYPE_CHAR: sResult = QString("char"); break;
         case XTYPE_UCHAR: sResult = QString("unsigned char"); break;
@@ -135,24 +134,6 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_HANDLE: sResult = QString("HANDLE"); break;
         case XTYPE_HKEY: sResult = QString("HKEY"); break;
         case XTYPE_M128: sResult = QString("__m128"); break;
-        case XTYPE_CFILE: sResult = QString("CFile"); break;
-        case XTYPE_CWND: sResult = QString("CWnd"); break;
-        case XTYPE_CSTRINGARRAY: sResult = QString("CStringArray"); break;
-        case XTYPE_CDialog: sResult = QString("CDialog"); break;
-        case XTYPE_AFXTERMAPPSTATE: sResult = QString("_AFX_TERM_APP_STATE"); break;
-        case XTYPE_AFXMODULESTATE: sResult = QString("AFX_MODULE_STATE"); break;
-        case XTYPE_AFXMODULETHREADSTATE: sResult = QString("AFX_MODULE_THREAD_STATE"); break;
-        case XTYPE_LPCRITICALSECTION: sResult = QString("LPCRITICAL_SECTION"); break;
-        case XTYPE_HGDIOBJ: sResult = QString("HGDIOBJ"); break;
-        case XTYPE_COLORREF: sResult = QString("COLORREF"); break;
-        case XTYPE_HBITMAP: sResult = QString("HBITMAP"); break;
-        case XTYPE_HPALETTE: sResult = QString("HPALETTE"); break;
-        case XTYPE_HBRUSH: sResult = QString("HBRUSH"); break;
-        case XTYPE_HCURSOR: sResult = QString("HCURSOR"); break;
-        case XTYPE_HMENU: sResult = QString("HMENU"); break;
-        case XTYPE_EXCEPTION: sResult = QString("exception"); break;
-        case XTYPE_ERRNOT: sResult = QString("errno_t"); break;
-        case XTYPE_LARGEINTEGER: sResult = QString("LARGE_INTERGER"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -252,12 +233,6 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_USERPURGE: sResult = QString("__userpurge"); break;
         case FC_USERPURGEPOINTER: sResult = QString("*__userpurge"); break;
         case FC_NORETURN: sResult = QString("__noreturn"); break;
-        case FC_PASCAL: sResult = QString("__pascal"); break;
-        case FC_SWIFT1: sResult = QString("__swift_1"); break;
-        case FC_SWIFT2: sResult = QString("__swift_2"); break;
-        case FC_SWIFT3: sResult = QString("__swift_3"); break;
-        case FC_RESTRICT: sResult = QString("__restrict"); break;
-        case FC_UNALIGNED: sResult = QString("__unaligned"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -299,7 +274,6 @@ QString XDemangle::operatorIdToString(XDemangle::OP _operator, XDemangle::MODE m
         case OP_LESSTHANEQUAL: sResult = QString("operator<="); break;
         case OP_GREATERTHAN: sResult = QString("operator>"); break;
         case OP_GREATERTHANEQUAL: sResult = QString("operator>="); break;
-        case OP_THREWAYCOMPARISON: sResult = QString("operator<=>"); break;
         case OP_COMMA: sResult = QString("operator,"); break;
         case OP_PARENS: sResult = QString("operator()"); break;
         case OP_BITWISENOT: sResult = QString("operator~"); break;
@@ -1982,9 +1956,6 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                     bReplace = true;
                 } else if (sOperator == "std::string") {
                     sOperator = "std::basic_string<char, std::char_traits<char>, std::allocator<char> >";
-                    bReplace = true;
-                } else if (sOperator == "std::basic_string") {
-                    sOperator = "std::basic_string<>::basic_string<>, std::basic_string<>::operator= >";
                     bReplace = true;
                 }
 
