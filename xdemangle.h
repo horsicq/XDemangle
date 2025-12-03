@@ -80,6 +80,7 @@ public:
         XTYPE_SHORT,
         XTYPE_USHORT,
         XTYPE_UINT,
+        XTYPE_UINTPTR,
         XTYPE__UINT8,
         XTYPE_LONG,
         XTYPE_ULONG,
