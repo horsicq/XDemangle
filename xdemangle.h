@@ -547,8 +547,3 @@ private:
 };
 
 #endif  // XDEMANGLE_H
-<<<<<<< HEAD
-
-
-=======
->>>>>>> parent of 657c5c3 (remove not defined XTYPE values)
