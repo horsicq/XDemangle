@@ -41,6 +41,7 @@ public:
         MODE_MSVC64,
         MODE_MSVCARM32,
         MODE_MSVCARM64,
+        MODE_GNU_V2,
         MODE_GNU_V3,  // Generic
         MODE_GCC_WIN,
         MODE_GCC_MAC,

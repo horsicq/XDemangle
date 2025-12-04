@@ -36,6 +36,7 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
         case MODE_MSVC64: sResult = QString("MSVC++ 64"); break;
         case MODE_MSVCARM32: sResult = QString("MSVC++ ARM32"); break;
         case MODE_MSVCARM64: sResult = QString("MSVC++ ARM64"); break;
+        case MODE_GNU_V3: sResult = QString("GNU V2"); break; // GCC 2.9.x
         case MODE_GNU_V3: sResult = QString("GNU V3"); break;
         case MODE_GCC_WIN: sResult = QString("GNU C++ for Windows"); break;
         case MODE_GCC_MAC: sResult = QString("GNU C++ for MacOS"); break;
