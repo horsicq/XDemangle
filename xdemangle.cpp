@@ -64,7 +64,9 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_VOID: sResult = QString("void"); break;
         case XTYPE_LPVOID: sResult = QString("LPVOID"); break;
         case XTYPE_BOOL: sResult = QString("bool"); break;
+        case XTYPE_VCRTBOOL: sResult = QString("__vcrt_bool"); break;
         case XTYPE_BOOL8: sResult = QString("BOOL8"); break;
+        case XTYPE_WINBOOL: sResult = QString("WINBOOL"); break;
         case XTYPE_BYTE: sResult = QString("byte"); break;
         case XTYPE__BYTE: sResult = QString("_BYTE"); break;
         case XTYPE_INT: sResult = QString("int"); break;
@@ -138,6 +140,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_M128: sResult = QString("__m128"); break;
         case XTYPE_CFILE: sResult = QString("CFile"); break;
         case XTYPE_CWND: sResult = QString("CWnd"); break;
+        case XTYPE_CSTRING: sResult = QString("CString"); break;
         case XTYPE_CSTRINGARRAY: sResult = QString("CStringArray"); break;
         case XTYPE_CDialog: sResult = QString("CDialog"); break;
         case XTYPE_AFXTERMAPPSTATE: sResult = QString("_AFX_TERM_APP_STATE"); break;
@@ -154,6 +157,15 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_EXCEPTION: sResult = QString("exception"); break;
         case XTYPE_ERRNOT: sResult = QString("errno_t"); break;
         case XTYPE_LARGEINTEGER: sResult = QString("LARGE_INTERGER"); break;
+        case XTYPE_LPTOPLEVELEXCEPTIONFILTER: sResult = QString("LPTOP_LEVEL_EXCEPTION_FILTER"); break;
+        case XTYPE_TYPEINFO: sResult = QString("type_info"); break;
+        case XTYPE_BOOLEAN: sResult = QString("BOOLEAN"); break;
+        case XTYPE_PCWSTR: sResult = QString("PCWSTR"); break;
+        case XTYPE_HHOOK: sResult = QString("HHOOK"); break;
+        case XTYPE_LPDIRECTDRAW: sResult = QString("LPDIRECTDRAW"); break;
+        case XTYPE_STDIOSBASE: sResult = QString("std::ios_base"); break;
+        case XTYPE_PIMAGESECTIONHEADER: sResult = QString("PIMAGE_SECTION_HEADER"); break;
+        case XTYPE_STDOSTREAMSENTRY: sResult = QString("std::ostream::sentry"); break;
         default: sResult = tr("Unknown");
     }
 

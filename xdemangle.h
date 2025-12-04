@@ -67,6 +67,7 @@ public:
         XTYPE_UNKNOWN = 0,
         XTYPE_NONE,  // For Constructors & Destructors
         XTYPE_BOOL,
+        XTYPE_VCRTBOOL,
         XTYPE_BOOL8,
         XTYPE_BYTE,
         XTYPE__BYTE,
@@ -147,6 +148,7 @@ public:
         XTYPE_M128,
         XTYPE_CFILE,
         XTYPE_CWND,
+        XTYPE_CSTRING,
         XTYPE_CSTRINGARRAY,
         XTYPE_CDialog,
         XTYPE_AFXTERMAPPSTATE,
@@ -162,7 +164,17 @@ public:
         XTYPE_HBRUSH,
         XTYPE_EXCEPTION,
         XTYPE_ERRNOT,
-        XTYPE_LARGEINTEGER
+        XTYPE_LARGEINTEGER,
+        XTYPE_LPTOPLEVELEXCEPTIONFILTER,
+        XTYPE_TYPEINFO,
+        XTYPE_BOOLEAN,
+        XTYPE_PCWSTR,
+        XTYPE_HHOOK,
+        XTYPE_LPDIRECTDRAW,
+        XTYPE_STDIOSBASE,
+        XTYPE_PIMAGESECTIONHEADER,
+        XTYPE_WINBOOL,
+        XTYPE_STDOSTREAMSENTRY
 
     };
 
