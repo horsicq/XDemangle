@@ -1986,10 +1986,10 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                 bool bReplace = false;
 
                 if (sOperator == "std::istream") {
-                    sOperator = "std::basic_istream<char, std::char_traits<char> >";
+                    sOperator = "std::basic_istream<char, std::char_traits<char>, std::basic_istream<unsigned short> >";
                     bReplace = true;
                 } else if (sOperator == "std::ostream") {
-                    sOperator = "std::basic_ostream<char, std::char_traits<char> >";
+                    sOperator = "std::basic_ostream<char, std::char_traits<char>, std::basic_ostream<unsigned short> >";
                     bReplace = true;
                 } else if (sOperator == "std::iostream") {
                     sOperator = "std::basic_iostream<char, std::char_traits<char> >";
@@ -1999,6 +1999,12 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                     bReplace = true;
                 } else if (sOperator == "std::basic_string") {
                     sOperator = "std::basic_string<>::basic_string<>, std::basic_string<>::operator= >";
+                    bReplace = true;
+                } else if (sOperator == "std::basic_streambuf") {
+                    sOperator = "std::basic_streambuf<unsigned short>";
+                    bReplace = true;
+                } else if (sOperator == "std::basic_filebuf") {
+                    sOperator = "std::basic_filebuf<unsigned short>";
                     bReplace = true;
                 }
 
