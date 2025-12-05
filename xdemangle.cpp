@@ -73,6 +73,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_SINT: sResult = QString("signed int"); break;
         case XTYPE_INTPTR: sResult = QString("INT_PTR"); break;
         case XTYPE_UINTPTR: sResult = QString("UINT_PTR"); break;
+        case XTYPE_UINTPTRT: sResult = QString("uintptr_t"); break;
         case XTYPE_SCHAR: sResult = QString("signed char"); break;
         case XTYPE_CHAR: sResult = QString("char"); break;
         case XTYPE_UCHAR: sResult = QString("unsigned char"); break;
