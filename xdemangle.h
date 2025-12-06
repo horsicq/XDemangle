@@ -93,9 +93,11 @@ public:
         XTYPE_LONGDOUBLE,
         XTYPE_LONGDOUBLE_64,
         XTYPE_LONGDOUBLE_80,
+        XTYPE_INT8,
         XTYPE_INT16,
         XTYPE_INT32,
         XTYPE_INT64,
+        XTYPE_INT128,
         XTYPE_UINT64,
         XTYPE_LONGLONG,
         XTYPE_ULONGLONG,
@@ -175,7 +177,12 @@ public:
         XTYPE_STDIOSBASE,
         XTYPE_PIMAGESECTIONHEADER,
         XTYPE_WINBOOL,
-        XTYPE_STDOSTREAMSENTRY
+        XTYPE_STDOSTREAMSENTRY,
+        XTYPE_W64,
+        XTYPE_GC,
+        XTYPE_PIN,
+        XTYPE_BOX,
+        XTYPE_BASED
     };
 
     enum OC {
@@ -198,6 +205,7 @@ public:
         SC_CONSTFAR,
         SC_VOLATILEFAR,
         SC_CONSTVOLATILEFAR,
+        SC_CONSTCLASS,
         SC_HUGE,
         SC_EXECUTABLE
     };

@@ -89,9 +89,11 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_LONGDOUBLE: sResult = QString("long double"); break;
         case XTYPE_LONGDOUBLE_64: sResult = QString("long double"); break;
         case XTYPE_LONGDOUBLE_80: sResult = QString("long double"); break;
+        case XTYPE_INT8: sResult = QString("__int8"); break;
         case XTYPE_INT16: sResult = QString("__int16"); break;
         case XTYPE_INT32: sResult = QString("__int32"); break;
         case XTYPE_INT64: sResult = QString("__int64"); break;
+        case XTYPE_INT128: sResult = QString("__int128"); break;
         case XTYPE_UINT64: sResult = QString("unsigned __int64"); break;
         case XTYPE_LONGLONG: sResult = QString("long long"); break;
         case XTYPE_ULONGLONG: sResult = QString("unsigned long long"); break;
@@ -167,6 +169,11 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_STDIOSBASE: sResult = QString("std::ios_base"); break;
         case XTYPE_PIMAGESECTIONHEADER: sResult = QString("PIMAGE_SECTION_HEADER"); break;
         case XTYPE_STDOSTREAMSENTRY: sResult = QString("std::ostream::sentry"); break;
+        case XTYPE_W64: sResult = QString("__w64"); break;
+        case XTYPE_GC: sResult = QString("__gc"); break;
+        case XTYPE_PIN: sResult = QString("__pin"); break;
+        case XTYPE_BOX: sResult = QString("__box"); break;
+        case XTYPE_BASED: sResult = QString("__based"); break;
         default: sResult = tr("Unknown");
     }
 
@@ -190,6 +197,7 @@ QString XDemangle::storageClassIdToString(XDemangle::SC storageClass, XDemangle:
         case SC_CONSTFAR: sResult = QString("const"); break;
         case SC_VOLATILEFAR: sResult = QString("volatile"); break;
         case SC_CONSTVOLATILEFAR: sResult = QString("const volatile"); break;
+        case SC_CONSTCLASS: sResult = QString("const class"); break;
         case SC_HUGE: sResult = QString(""); break;
         case SC_EXECUTABLE: sResult = QString(""); break;
     }
