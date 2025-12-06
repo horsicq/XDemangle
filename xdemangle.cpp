@@ -174,6 +174,15 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_PIN: sResult = QString("__pin"); break;
         case XTYPE_BOX: sResult = QString("__box"); break;
         case XTYPE_BASED: sResult = QString("__based"); break;
+        case XTYPE_QSTRING: sResult = QString("QString"); break;
+        case XTYPE_QMAPNODEBASE: sResult = QString("QMapNodeBase"); break;
+        case XTYPE_QTHREAD: sResult = QString("QThread"); break;
+        case XTYPE_QMETAOBJECT: sResult = QString("QMetaObject"); break;
+        case XTYPE_QLISTDATA: sResult = QString("QListData"); break;
+        case XTYPE_QSPACERITEM: sResult = QString("QSpacerItem"); break;
+        case XTYPE_QWIDGET: sResult = QString("QWidget"); break;
+        case XTYPE_QOBJECT: sResult = QString("QObject"); break;
+        case XTYPE_QNETWORKACCESSMANAGER: sResult = QString("QNetworkAccessManager"); break;
         default: sResult = tr("Unknown");
     }
 

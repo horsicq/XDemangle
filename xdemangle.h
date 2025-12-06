@@ -182,7 +182,16 @@ public:
         XTYPE_GC,
         XTYPE_PIN,
         XTYPE_BOX,
-        XTYPE_BASED
+        XTYPE_BASED,
+        XTYPE_QSTRING,
+        XTYPE_QMAPNODEBASE,
+        XTYPE_QTHREAD,
+        XTYPE_QMETAOBJECT,
+        XTYPE_QLISTDATA,
+        XTYPE_QSPACERITEM,
+        XTYPE_QWIDGET,
+        XTYPE_QOBJECT,
+        XTYPE_QNETWORKACCESSMANAGER
     };
 
     enum OC {
