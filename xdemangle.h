@@ -176,7 +176,6 @@ public:
         XTYPE_PIMAGESECTIONHEADER,
         XTYPE_WINBOOL,
         XTYPE_STDOSTREAMSENTRY
-
     };
 
     enum OC {

@@ -36,7 +36,7 @@ QString XDemangle::modeIdToString(XDemangle::MODE mode)
         case MODE_MSVC64: sResult = QString("MSVC++ 64"); break;
         case MODE_MSVCARM32: sResult = QString("MSVC++ ARM32"); break;
         case MODE_MSVCARM64: sResult = QString("MSVC++ ARM64"); break;
-        case MODE_GNU_V2: sResult = QString("GNU V2"); break; // GCC 2.9.x
+        case MODE_GNU_V2: sResult = QString("GNU V2"); break;  // GCC 2.9.x
         case MODE_GNU_V3: sResult = QString("GNU V3"); break;
         case MODE_GCC_WIN: sResult = QString("GNU C++ for Windows"); break;
         case MODE_GCC_MAC: sResult = QString("GNU C++ for MacOS"); break;
@@ -109,7 +109,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_ENUM: sResult = QString("enum"); break;
         case XTYPE_POINTERTOFUNCTION: sResult = QString(""); break;
         case XTYPE_NULLPTR: sResult = QString("std::nullptr_t"); break;  // TODO Check !!!
-        case XTYPE_NTSTATUS: sResult = QString("NTSTATUS"); break; // Used by Drivers
+        case XTYPE_NTSTATUS: sResult = QString("NTSTATUS"); break;       // Used by Drivers
         case XTYPE_DWORD: sResult = QString("DWORD"); break;
         case XTYPE__DWORD: sResult = QString("_DWORD"); break;
         case XTYPE_QWORD: sResult = QString("QWORD"); break;
@@ -4401,4 +4401,3 @@ QMap<QString, QString> XDemangle::getStd(MODE mode)
 
     return mapResult;
 }
-
