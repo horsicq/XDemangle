@@ -183,6 +183,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_QWIDGET: sResult = QString("QWidget"); break;
         case XTYPE_QOBJECT: sResult = QString("QObject"); break;
         case XTYPE_QNETWORKACCESSMANAGER: sResult = QString("QNetworkAccessManager"); break;
+        case XTYPE_PTR64: sResult = QString("__ptr64"); break;
         default: sResult = tr("Unknown");
     }
 

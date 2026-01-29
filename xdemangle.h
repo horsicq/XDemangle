@@ -191,7 +191,8 @@ public:
         XTYPE_QSPACERITEM,
         XTYPE_QWIDGET,
         XTYPE_QOBJECT,
-        XTYPE_QNETWORKACCESSMANAGER
+        XTYPE_QNETWORKACCESSMANAGER,
+        XTYPE_PTR64
     };
 
     enum OC {
