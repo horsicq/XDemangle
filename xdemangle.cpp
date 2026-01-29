@@ -2007,7 +2007,7 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                     sOperator = "std::basic_istream<char, std::char_traits<char>, std::basic_istream<unsigned short> >";
                     bReplace = true;
                 } else if (sOperator == "std::ostream") {
-                    sOperator = "std::basic_ostream<char, std::char_traits<char>, std::basic_ostream<unsigned short> >";
+                    sOperator = "std::basic_ostream<char, std::char_traits<char>, std::basic_ostream<unsigned short> >, std::basic_ostream<>::operator<<";
                     bReplace = true;
                 } else if (sOperator == "std::iostream") {
                     sOperator = "std::basic_iostream<char, std::char_traits<char> >";
