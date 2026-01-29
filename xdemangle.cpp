@@ -2016,7 +2016,7 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                     sOperator = "std::basic_string<char, std::char_traits<char>, std::allocator<char> >";
                     bReplace = true;
                 } else if (sOperator == "std::basic_string") {
-                    sOperator = "std::basic_string<>::basic_string<>, std::basic_string<>::operator= >";
+                    sOperator = "std::basic_string<>::basic_string<>, std::basic_string<>::operator= >, std::basic_string<>::operator[]";
                     bReplace = true;
                 } else if (sOperator == "std::basic_streambuf") {
                     sOperator = "std::basic_streambuf<unsigned short>";
@@ -2026,6 +2026,9 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                     bReplace = true;
                 } else if (sOperator == "std::ctype") {
                     sOperator = "std::ctype<char>";
+                    bReplace = true;
+                } else if (sOperator == "std::basic_ios") {
+                    sOperator = "std::basic_ios<>::~basic_ios<>";
                     bReplace = true;
                 }
 
