@@ -2024,6 +2024,9 @@ QString XDemangle::_nameToString(XDemangle::DSYMBOL *pSymbol, XDemangle::DPARAME
                 } else if (sOperator == "std::basic_filebuf") {
                     sOperator = "std::basic_filebuf<unsigned short>";
                     bReplace = true;
+                } else if (sOperator == "std::ctype") {
+                    sOperator = "std::ctype<char>";
+                    bReplace = true;
                 }
 
                 if (bReplace) {
