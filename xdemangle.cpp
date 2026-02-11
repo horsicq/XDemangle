@@ -273,6 +273,8 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_NONE: sResult = QString(""); break;
         case FC_CDECL: sResult = QString("__cdecl"); break;
         case FC_CDECLPOINTER: sResult = QString("*__cdecl"); break;
+        case FC_CDECL16FAR: sResult = QString("__cdecl16far"); break;
+        case FC_CDECL16NEAR: sResult = QString("__cdecl16near"); break;
         case FC_THISCALL: sResult = QString("__thiscall"); break;
         case FC_THISCALLPOINTER: sResult = QString("*__thiscall"); break;
         case FC_STDCALL: sResult = QString("__stdcall"); break;
@@ -4425,3 +4427,4 @@ QMap<QString, QString> XDemangle::getStd(MODE mode)
 
     return mapResult;
 }
+
