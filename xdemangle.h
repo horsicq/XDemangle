@@ -243,6 +243,8 @@ public:
         FC_NONE,
         FC_CDECL,
         FC_CDECLPOINTER,
+        FC_CDECL16FAR,
+        FC_CDECL16NEAR,
         FC_PASCAL,
         FC_FORTRAN,
         FC_THISCALL,
@@ -579,3 +581,4 @@ private:
 };
 
 #endif  // XDEMANGLE_H
+
