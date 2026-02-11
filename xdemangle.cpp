@@ -278,6 +278,7 @@ QString XDemangle::functionConventionIdToString(XDemangle::FC functionConvention
         case FC_THISCALL: sResult = QString("__thiscall"); break;
         case FC_THISCALLPOINTER: sResult = QString("*__thiscall"); break;
         case FC_STDCALL: sResult = QString("__stdcall"); break;
+        case FC_STDCALL16FAR: sResult = QString("__stdcall16far"); break;
         case FC_STDCALLPOINTER: sResult = QString("*__stdcall"); break;
         case FC_FASTCALL: sResult = QString("__fastcall"); break;
         case FC_CLRCALL: sResult = QString("__clrcall"); break;
@@ -4427,4 +4428,5 @@ QMap<QString, QString> XDemangle::getStd(MODE mode)
 
     return mapResult;
 }
+
 
