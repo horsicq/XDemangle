@@ -251,6 +251,7 @@ public:
         FC_THISCALLPOINTER,
         FC_STDCALL,
         FC_STDCALLPOINTER,
+        FC_STDCALL16FAR,
         FC_FASTCALL,
         FC_MSFASTCALL,
         FC_REGCALL,
@@ -581,4 +582,5 @@ private:
 };
 
 #endif  // XDEMANGLE_H
+
 
