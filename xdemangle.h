@@ -583,5 +583,3 @@ private:
 };
 
 #endif  // XDEMANGLE_H
-
-

@@ -4429,5 +4429,3 @@ QMap<QString, QString> XDemangle::getStd(MODE mode)
 
     return mapResult;
 }
-
-
