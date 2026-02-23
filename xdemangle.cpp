@@ -185,6 +185,9 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_QNETWORKACCESSMANAGER: sResult = QString("QNetworkAccessManager"); break;
         case XTYPE_PTR64: sResult = QString("__ptr64"); break;
         case XTYPE_ATOM: sResult = QString("ATOM"); break;
+        case XTYPE_PULONG: sResult = QString("PULONG"); break;
+        case XTYPE_MMRESULT: sResult = QString("MRESULT"); break;
+        case XTYPE_WPARAM: sResult = QString("WPARAM"); break;
         default: sResult = tr("Unknown");
     }
 

@@ -194,6 +194,9 @@ public:
         XTYPE_QNETWORKACCESSMANAGER,
         XTYPE_PTR64,
         XTYPE_ATOM,
+        XTYPE_PULONG,
+        XTYPE_MMRESULT,
+        XTYPE_WPARAM,
     };
 
     enum OC {
