@@ -197,6 +197,7 @@ public:
         XTYPE_PULONG,
         XTYPE_MMRESULT,
         XTYPE_WPARAM,
+        XTYPE_HINSTANCE,
     };
 
     enum OC {

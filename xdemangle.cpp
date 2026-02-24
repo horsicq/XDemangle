@@ -188,6 +188,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_PULONG: sResult = QString("PULONG"); break;
         case XTYPE_MMRESULT: sResult = QString("MRESULT"); break;
         case XTYPE_WPARAM: sResult = QString("WPARAM"); break;
+        case XTYPE_HINSTANCE: sResult = QString("HINSTANCE"); break;
         default: sResult = tr("Unknown");
     }
 
