@@ -142,7 +142,9 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_HANDLE: sResult = QString("HANDLE"); break;
         case XTYPE_HKEY: sResult = QString("HKEY"); break;
         case XTYPE_M128: sResult = QString("__m128"); break;
+        case XTYPE_CEXCEPTION: sResult = QString("CException"); break;
         case XTYPE_CFILE: sResult = QString("CFile"); break;
+        case XTYPE_CFILEFIND: sResult = QString("CFileFind"); break;
         case XTYPE_CWND: sResult = QString("CWnd"); break;
         case XTYPE_CSTRING: sResult = QString("CString"); break;
         case XTYPE_CSTRINGARRAY: sResult = QString("CStringArray"); break;
