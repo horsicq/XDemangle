@@ -121,6 +121,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_LRESULT: sResult = QString("LRESULT"); break;
         case XTYPE_HRESULT: sResult = QString("HRESULT"); break;
         case XTYPE_HMODULE: sResult = QString("HMODULE"); break;
+        case XTYPE_HMONITOR: sResult = QString("HMONITOR"); break;
         case XTYPE_HGLOBAL: sResult = QString("HGLOBAL"); break;
         case XTYPE_HLOCAL: sResult = QString("HLOCAL"); break;
         case XTYPE_LSTATUS: sResult = QString("LSTATUS"); break;

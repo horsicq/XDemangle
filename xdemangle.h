@@ -129,6 +129,7 @@ public:
         XTYPE_LRESULT,
         XTYPE_HRESULT,
         XTYPE_HMODULE,
+        XTYPE_HMONITOR,
         XTYPE_HGLOBAL,
         XTYPE_HLOCAL,
         XTYPE_LSTATUS,
