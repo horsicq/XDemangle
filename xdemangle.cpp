@@ -2133,7 +2133,7 @@ QString XDemangle::ms_getPointerString(XDemangle::DSYMBOL *pSymbol, XDemangle::D
         QString sPointer = qualIdToPointerString(parameter.nQualifier, pSymbol->mode);
 
         if (_sName != "") {
-            sPointer = QString("%1::%2").arg(_sName, sPointer);
+            sPointer = QString("%1::%2").arg(_sName).arg(sPointer);
         }
 
         if (i == 0) {
@@ -3288,7 +3288,7 @@ QString XDemangle::demangle(const QString &sString, XDemangle::MODE mode)
         sResult = XCppfilt::demangleGnuV3(_sString);
 
         if (sPrefix != "") {
-            sResult = QString("%1 %2").arg(sPrefix, sResult);
+            sResult = QString("%1 %2").arg(sPrefix).arg(sResult);
         }
     } else if (mode == MODE_GCC_MAC) {
         if (_compare(_sString, "__Z")) {
