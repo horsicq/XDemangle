@@ -1,12 +1,7 @@
 include_directories(${CMAKE_CURRENT_LIST_DIR})
-include_directories(${CMAKE_CURRENT_LIST_DIR}/../XLLVMDemangler/3rdparty/)
-include_directories(${CMAKE_CURRENT_LIST_DIR}/../XLLVMDemangler/3rdparty/llvm/Demangle/)
 
-if (NOT DEFINED XCPPFILT_SOURCES)
-    include(${CMAKE_CURRENT_LIST_DIR}/../XCppfilt/xcppfilt.cmake)
-    set(XDEMANGLE_SOURCES ${XDEMANGLE_SOURCES} ${XCPPFILT_SOURCES})
-endif()
-
+# XDemangle is fully self-contained: all demanglers (MSVC, Itanium/GNU/GCC, Java,
+# Borland, Watcom, Rust, D, GNAT/Ada) are implemented natively in xdemangle.cpp.
 set(XDEMANGLE_SOURCES
     ${XDEMANGLE_SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/xdemangle.cpp

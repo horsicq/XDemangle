@@ -7,10 +7,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/xdemangle.cpp
 
-!contains(XCONFIG, xcppfilt) {
-    XCONFIG += xcppfilt
-    include($$PWD/../XCppfilt/xcppfilt.pri)
-}
+# XDemangle is fully self-contained (no XCppfilt / libiberty dependency).
 
 !contains(XCONFIG, xarchive) {
     XCONFIG += xarchive

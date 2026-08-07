@@ -27,7 +27,6 @@
 #ifdef QT_DEBUG
 #include <QDebug>
 #endif
-#include "xcppfilt.h"
 
 class XDemangle : public QObject {
     Q_OBJECT
@@ -51,7 +50,13 @@ public:
         MODE_WATCOM,
         MODE_RUST,
         MODE_GNAT,
-        MODE_DLANG
+        MODE_DLANG,
+        MODE_SWIFT,
+        MODE_GO,
+        MODE_HASKELL,
+        MODE_OCAML,
+        MODE_TRU64,   // DEC/Compaq Tru64 C++ (ARM-style, '__X' signature marker)
+        MODE_SUN      // SunPro / Sun Studio C++ ('__1c' scheme)
         // TODO more !!!
     };
 
@@ -60,7 +65,10 @@ public:
         SYNTAX_MICROSOFT,
         SYNTAX_ITANIUM,
         SYNTAX_BORLAND,
-        SYNTAX_WATCOM
+        SYNTAX_WATCOM,
+        SYNTAX_GNU2,
+        SYNTAX_SWIFT,
+        SYNTAX_SUN
     };
 
     enum XTYPE {
@@ -98,6 +106,8 @@ public:
         XTYPE_INT32,
         XTYPE_INT64,
         XTYPE_INT128,
+        XTYPE_UINT128,
+        XTYPE_HALF,
         XTYPE_UINT64,
         XTYPE_LONGLONG,
         XTYPE_ULONGLONG,
@@ -443,6 +453,7 @@ public:
         qint32 nSize;
         MODE mode;
         DPARAMETER paramMain;
+        QString sResult;  // Used by Watcom (fully rendered declaration)
     };
 
     explicit XDemangle(QObject *pParent = nullptr);
@@ -461,6 +472,7 @@ public:
     DSYMBOL ms_getSymbol(const QString &sString, MODE mode, HDATA *pHdata = nullptr);
     DSYMBOL itanium_getSymbol(const QString &sString, MODE mode);
     DSYMBOL borland_getSymbol(const QString &sString, MODE mode);
+    DSYMBOL watcom_getSymbol(const QString &sString, MODE mode);
     static MODE detectMode(const QString &sString);
     static QList<MODE> getAllModes();
     static QList<MODE> getSupportedModes();
@@ -587,6 +599,195 @@ private:
     qint32 borland_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     QString borland_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
     QString borland_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
+
+    // Watcom (Open Watcom C++) - schema-driven recursive-descent, renders directly to a string
+    QString watcom_parseScopedName(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString, qint32 *pnPos, bool bAllowOperator);
+    QString watcom_parseName(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString, qint32 *pnPos);
+    QString watcom_parseTemplateArgs(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString, qint32 *pnPos);
+    QString watcom_parseType(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString, qint32 *pnPos, const QString &sCore);
+    qint64 watcom_parseBase32(const QString &sString, qint32 *pnPos);
+    qint64 watcom_parseBase10(const QString &sString, qint32 *pnPos);
+    static QChar watcom_charAt(const QString &sString, qint32 nPos);
+    static qint32 watcom_charToDigit(QChar cChar);
+    static bool watcom_isIdentifierChar(QChar cChar);
+    static bool watcom_pointeeNeedsParen(const QString &sString, qint32 nPos);
+    static QString watcom_memoryModelString(SC storageClass);
+    static QString watcom_joinBaseCore(const QString &sBase, const QString &sCore);
+    static QString watcom_renderQualified(const QList<QString> &listChain);
+
+    // GNAT / Ada (native port of libiberty ada_demangle; encoding: gcc/ada/exp_dbug.ads)
+    QString gnat_demangle(const QString &sString);
+    static bool gnat_demangleName(const QString &sMangled, QString *psResult);
+    static bool gnat_isLower(QChar cChar);
+    static bool gnat_isDigit(QChar cChar);
+
+    // D language (native port of libiberty d-demangle). Positions are absolute
+    // indices into sMangled; parse functions return the new position or -1 on failure.
+    struct DLANGINFO {
+        QString sMangled;
+        qint32 nLastBackref;
+    };
+    QString dlang_demangle(const QString &sString);
+    qint32 dlang_parse_mangle(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_parse_qualified(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, bool bSuffixModifiers);
+    qint32 dlang_identifier(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_lname(QString *psDecl, qint32 nPos, quint32 nLen, DLANGINFO *pInfo);
+    qint32 dlang_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_function_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_function_type_noreturn(QString *psArgs, QString *psCall, QString *psAttr, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_function_args(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_call_convention(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_type_modifiers(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_attributes(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_parse_tuple(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_parse_template(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, quint32 nLen);
+    qint32 dlang_template_args(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_template_symbol_param(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_value(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, const QString &sName, QChar cType);
+    qint32 dlang_parse_integer(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, QChar cType);
+    qint32 dlang_parse_real(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_parse_string(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_parse_arrayliteral(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_parse_assocarray(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_parse_structlit(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, const QString &sName);
+    qint32 dlang_number(qint32 nPos, DLANGINFO *pInfo, quint32 *pnRet);
+    qint32 dlang_hexdigit(qint32 nPos, DLANGINFO *pInfo, qint32 *pnRet);
+    qint32 dlang_decode_backref(qint32 nPos, DLANGINFO *pInfo, quint64 *pnRet);
+    qint32 dlang_backref(qint32 nPos, DLANGINFO *pInfo, qint32 *pnTarget);
+    qint32 dlang_symbol_backref(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
+    qint32 dlang_type_backref(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, bool bIsFunction);
+    bool dlang_symbol_name_p(qint32 nPos, DLANGINFO *pInfo);
+    static bool dlang_call_convention_p(QChar cChar);
+
+    // Haskell (GHC Z-encoding), OCaml, Go - small self-contained schemes
+    QString haskell_demangle(const QString &sString);
+    QString ocaml_demangle(const QString &sString);
+    QString go_demangle(const QString &sString);
+
+    // SunPro / Sun Studio C++ ('__1c' scheme). Conservative subset (free functions,
+    // fundamental-type params), all-or-nothing: bails to raw on anything not modeled.
+    QString sun_demangle(const QString &sString);
+    static bool sun_builtin(QChar cCode, QString *psType);
+
+    // GNU v2 (pre-Itanium GCC 2.x / ARM style) - native port of the common paths of
+    // the historical libiberty cplus-dem.c (function/member/operator/ctor/dtor/args/
+    // fundamental+qualified+template types, T/N back-references, vtable/static specials).
+    struct GNU2INFO {
+        QString sMangled;
+        qint32 nPos;
+        bool bErrored;
+        QList<QString> listRemembered;  // remembered arg types (T<n>/N<r><n> back-refs)
+        QStringList listTmplArgs;       // template-function args (X<idx>)
+        QString sReturn;                // template-function return type
+        bool bExpectReturn;
+    };
+    QString gnu2_demangle(const QString &sString, bool bAllowXMarker = false);
+    bool gnu2_special(const QString &sMangled, QString *psResult);
+    QString gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, const QString &sFuncName, bool bCtor, bool bAllowXMarker = false);
+    bool gnu2_integralValue(GNU2INFO *pI, QString *psResult);
+    bool gnu2_args(GNU2INFO *pI, QString *psResult);
+    bool gnu2_type(GNU2INFO *pI, QString *psResult);
+    bool gnu2_fundType(GNU2INFO *pI, QString *psResult);
+    bool gnu2_qualified(GNU2INFO *pI, QString *psResult, QString *psLastName);
+    bool gnu2_template(GNU2INFO *pI, QString *psResult, QString *psBareName);
+    QString gnu2_className(GNU2INFO *pI, bool *pbOk);
+    static QString gnu2_operatorName(const QString &sCode, bool *pbOk);
+    static qint64 gnu2_consumeCount(const QString &sM, qint32 *pnPos, bool *pbOk);
+    static qint64 gnu2_getCount(const QString &sM, qint32 *pnPos, bool *pbOk);
+
+    // Swift ($s / _$s / $S / _$S). Post-order node-stack demangler; all-or-nothing
+
+    // Swift ($s / _$s / $S / _$S). Post-order node-stack demangler; all-or-nothing
+    // (only fully-parsed symbols render, otherwise the raw string is returned).
+    struct SWNODE {
+        qint32 nKind;
+        QString sText;
+        QStringList slItems;  // for tuples: the element type texts (enables labels)
+        QString sAux;         // for function types: the result-type text (enables entity re-render)
+        QChar cKind;          // for nominal types: the kind letter (C=class/V=struct/O=enum/...)
+        bool bTuple = false;  // true only for tuple nodes (their sText is already parenthesized)
+        bool bFunc = false;   // true for function-type nodes (need parens under ? / sugar)
+    };
+    struct SWIFTINFO {
+        QString sSym;
+        qint32 nPos;
+        bool bErrored;
+        QList<SWNODE> stackNodes;
+        QList<SWNODE> listSubst;
+    };
+    QString swift_demangle(const QString &sString);
+    static QChar swift_peek(SWIFTINFO *pI);
+    static QChar swift_nextc(SWIFTINFO *pI);
+    static bool swift_eat(SWIFTINFO *pI, QChar cChar);
+    static qint64 swift_parseNatural(SWIFTINFO *pI, bool *pbOk);
+    static qint64 swift_parseIndex(SWIFTINFO *pI, bool *pbOk);
+    void swift_push(SWIFTINFO *pI, qint32 nKind, const QString &sText);
+    void swift_pushSubst(SWIFTINFO *pI, qint32 nKind, const QString &sText);
+    bool swift_pop(SWIFTINFO *pI, SWNODE *pOut);
+    QString swift_readIdentifier(SWIFTINFO *pI, bool *pbOk);
+    void swift_demangleTop(SWIFTINFO *pI);
+    void swift_demangleKnownType(SWIFTINFO *pI);
+    void swift_demangleBuiltin(SWIFTINFO *pI);
+    void swift_demangleNominal(SWIFTINFO *pI, QChar cKind);
+    void swift_demangleBoundGeneric(SWIFTINFO *pI);
+    void swift_demangleTuple(SWIFTINFO *pI);
+    void swift_demangleSubstitution(SWIFTINFO *pI);
+    void swift_demangleFunction(SWIFTINFO *pI);
+    void swift_demangleRequirement(SWIFTINFO *pI);   // 'R...' -> a where-clause requirement / param marker
+    void swift_demangleParamCounts(SWIFTINFO *pI);   // 'r' GENERIC-PARAM-COUNT*  -> a param-count node
+    void swift_finishGenericSig(SWIFTINFO *pI);       // 'l' -> assemble "<params where reqs>"
+    QString swift_parseGPIName(SWIFTINFO *pI, bool *pbOk);  // GENERIC-PARAM-INDEX -> absolute param name
+    QString swift_takeGenericSig(SWIFTINFO *pI);      // pop a pending generic-sig node (or "")
+    QList<XDemangle::SWNODE> swift_popTypeList(SWIFTINFO *pI);
+    static QString swift_genericParamName(qint64 nDepth, qint64 nIndex);
+
+    // Rust (native port of libiberty rust-demangle: legacy _ZN..E + v0 _R..)
+    struct RUSTINFO {
+        QString sSym;   // symbol body after the _R / _ZN prefix
+        qint32 nSymLen;
+        qint32 nNext;
+        bool bErrored;
+        bool bSkipping;
+        bool bVerbose;
+        qint32 nVersion;  // 0 = v0, -1 = legacy
+        qint32 nBoundLifetimeDepth;
+        QString sOut;
+    };
+    struct RUSTIDENT {
+        qint32 nAsciiStart;
+        qint32 nAsciiLen;
+        qint32 nPunyStart;
+        qint32 nPunyLen;
+    };
+    QString rust_demangle(const QString &sString);
+    // shared helpers
+    static QChar rust_peek(RUSTINFO *pR);
+    static bool rust_eat(RUSTINFO *pR, QChar cChar);
+    static QChar rust_next(RUSTINFO *pR);
+    static void rust_print_str(RUSTINFO *pR, const QString &sString);
+    static void rust_print_uint64(RUSTINFO *pR, quint64 nValue);
+    static void rust_print_uint64_hex(RUSTINFO *pR, quint64 nValue);
+    static const char *rust_basic_type(QChar cTag);
+    RUSTIDENT rust_parse_ident(RUSTINFO *pR);
+    void rust_print_ident(RUSTINFO *pR, const RUSTIDENT &ident);
+    static qint32 rust_decode_legacy_escape(const QString &sString, qint32 nPos, qint32 nLen, qint32 *pnEscapeLen);
+    // v0
+    quint64 rust_parse_integer_62(RUSTINFO *pR);
+    quint64 rust_parse_opt_integer_62(RUSTINFO *pR, QChar cTag);
+    quint64 rust_parse_disambiguator(RUSTINFO *pR);
+    qint32 rust_parse_hex_nibbles(RUSTINFO *pR, quint64 *pnValue);
+    void rust_demangle_path(RUSTINFO *pR, bool bInValue);
+    void rust_demangle_generic_arg(RUSTINFO *pR);
+    void rust_demangle_type(RUSTINFO *pR);
+    void rust_demangle_binder(RUSTINFO *pR);
+    bool rust_demangle_path_maybe_open_generics(RUSTINFO *pR);
+    void rust_demangle_dyn_trait(RUSTINFO *pR);
+    void rust_demangle_const(RUSTINFO *pR);
+    void rust_demangle_const_uint(RUSTINFO *pR, QChar cTag);
+    void rust_demangle_const_int(RUSTINFO *pR, QChar cTag);
+    void rust_demangle_const_bool(RUSTINFO *pR);
+    void rust_demangle_const_char(RUSTINFO *pR);
+    void rust_print_lifetime_from_index(RUSTINFO *pR, quint64 nLt);
 };
 
 #endif  // XDEMANGLE_H
