@@ -5080,8 +5080,11 @@ QString XDemangle::gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, c
 
     if (watcom_charAt(I.sMangled, I.nPos) == QChar('F')) {
         I.nPos++;
-    } else if (bAllowXMarker && (watcom_charAt(I.sMangled, I.nPos) == QChar('X'))) {
-        I.nPos++;  // DEC/Tru64 ARM-mode uses '__X' where GNU/ARM use '__F'
+    } else if (bAllowXMarker && !I.bExpectReturn && (watcom_charAt(I.sMangled, I.nPos) == QChar('X'))) {
+        // DEC/Tru64 ARM-mode uses '__X' where GNU/ARM use '__F'. Guard against template
+        // functions (H-form: bExpectReturn set, NO marker) whose arg list begins with an
+        // 'X<idx>' back-reference -- that leading 'X' is an argument, not the marker.
+        I.nPos++;
     }
 
     QString sArgs;
@@ -5901,7 +5904,13 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
             sProto = ctx.sText + QString(".") + proto.sText;
         }
         if (!bOk || (assoc.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
-        swift_push(pI, SWK_REQ, sSubj + QString(".") + assoc.sText + QString(": ") + sProto);
+        // The dependent member type "subj.assoc" is itself substitutable -> Swift adds it.
+        QString sDep = sSubj + QString(".") + assoc.sText;
+        SWNODE dep;
+        dep.nKind = SWK_TYPE;
+        dep.sText = sDep;
+        pI->listSubst.append(dep);
+        swift_push(pI, SWK_REQ, sDep + QString(": ") + sProto);
         return;
     }
     if (d == QChar('b')) {  // type 'Rb' GPI -> base class "subj: Type"
@@ -5921,7 +5930,12 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         SWNODE ty;
         if (!swift_pop(pI, &ty)) return;
         if (!bOk || (assoc.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
-        swift_push(pI, SWK_REQ, sSubj + QString(".") + assoc.sText + QString(": ") + ty.sText);
+        QString sDep = sSubj + QString(".") + assoc.sText;
+        SWNODE dep;
+        dep.nKind = SWK_TYPE;
+        dep.sText = sDep;
+        pI->listSubst.append(dep);
+        swift_push(pI, SWK_REQ, sDep + QString(": ") + ty.sText);
         return;
     }
     if (d == QChar('s')) {  // type 'Rs' GPI -> same-type "subj == Type"
@@ -5941,7 +5955,12 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         SWNODE ty;
         if (!swift_pop(pI, &ty)) return;
         if (!bOk || (assoc.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
-        swift_push(pI, SWK_REQ, sSubj + QString(".") + assoc.sText + QString(" == ") + ty.sText);
+        QString sDep = sSubj + QString(".") + assoc.sText;
+        SWNODE dep;
+        dep.nKind = SWK_TYPE;
+        dep.sText = sDep;
+        pI->listSubst.append(dep);
+        swift_push(pI, SWK_REQ, sDep + QString(" == ") + ty.sText);
         return;
     }
     if (d == QChar('Q')) {  // protocol substitution 'RQ' -> conformance whose subject is a dependent-type subst
@@ -6011,7 +6030,9 @@ void XDemangle::swift_finishGenericSig(SWIFTINFO *pI)
         // depth-suffixed names -- not modeled here -> bail to raw rather than collapse it
         // to a single group (never occurs in compiler-emitted symbols).
         if (cnt.slItems.size() >= 2) { pI->bErrored = true; return; }
-        if (!cnt.slItems.isEmpty()) {
+        if (cnt.slItems.isEmpty()) {
+            nParams = 0;  // 'r' with no counts (e.g. constrained extension) -> requirements only
+        } else {
             bool bOk = false;
             nParams = cnt.slItems.last().toLongLong(&bOk);
             if (!bOk) { pI->bErrored = true; return; }
@@ -6236,7 +6257,7 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
             QChar k = swift_nextc(pI);
             if (pI->bErrored) return;
             if (k == QChar('E')) sConv = "";                       // @noescape (implicit in display)
-            else if (k == QChar('f')) sConv = "@thin ";
+            else if (k == QChar('f')) sConv = "@convention(thin) ";
             else if (k == QChar('C')) sConv = "@convention(c) ";
             else if (k == QChar('B')) sConv = "@convention(block) ";
             else { pI->bErrored = true; return; }
@@ -6295,6 +6316,22 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         }
         if (slProt.isEmpty()) { pI->bErrored = true; return; }
         swift_push(pI, SWK_TYPE, slProt.join(" & "));
+        return;
+    }
+
+    if (c == QChar('E')) {  // extension context: <extended-type> <module> generic-signature? 'E'
+        pI->nPos++;
+        QString sGenSig = swift_takeGenericSig(pI);  // constrained extension: "< where reqs>"
+        SWNODE module;
+        if (!swift_pop(pI, &module)) return;
+        SWNODE type;
+        if (!swift_pop(pI, &type)) return;
+        if (module.nKind != SWK_IDENT) { pI->bErrored = true; return; }
+        SWNODE node;
+        node.nKind = SWK_TYPE;
+        node.cKind = type.cKind;  // preserve class-ness for a possible extension initializer
+        node.sText = QString("(extension in ") + module.sText + QString("):") + type.sText + sGenSig;
+        pI->stackNodes.append(node);
         return;
     }
 
@@ -6385,7 +6422,7 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         bool bLabeled = false;
         if (!pI->stackNodes.isEmpty() && (pI->stackNodes.last().nKind == SWK_LISTMARK) && (pI->stackNodes.last().sText == "y")) {
             pI->stackNodes.removeLast();
-        } else {
+        } else if (type.bFunc) {  // only a function-typed subscript carries a parameter label-list
             qint32 n = type.slItems.size();
             for (qint32 k = 0; k < n; k++) {
                 if (pI->stackNodes.isEmpty()) { pI->bErrored = true; return; }
@@ -6409,7 +6446,13 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         } else {
             sTypeStr = type.sText;
         }
-        swift_push(pI, SWK_TYPE, context.sText + QString(".subscript") + sSuffix + QString(" : ") + sTypeStr);
+        if ((acc == QChar('p')) && type.bFunc) {
+            // The pseudo (storage) accessor prints a function-typed subscript declaration
+            // itself as a signature: "Ctx.subscript(params) -> result" (no " : type").
+            swift_push(pI, SWK_TYPE, context.sText + QString(".subscript") + sTypeStr);
+        } else {
+            swift_push(pI, SWK_TYPE, context.sText + QString(".subscript") + sSuffix + QString(" : ") + sTypeStr);
+        }
         return;
     }
 
@@ -6488,10 +6531,49 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (d == QChar('o')) sPrefix = "@objc ";
         else if (d == QChar('O')) sPrefix = "@nonobjc ";
         else if (d == QChar('m')) sPrefix = "merged ";
+        else if (d == QChar('j')) sPrefix = "dispatch thunk of ";       // 'Tj' dispatch thunk
+        else if (d == QChar('q')) sPrefix = "method descriptor for ";   // 'Tq' method descriptor
         else { pI->bErrored = true; return; }
         SWNODE inner;
         if (!swift_pop(pI, &inner)) return;
         swift_push(pI, SWK_TYPE, sPrefix + inner.sText);
+        return;
+    }
+
+    if (c == QChar('M')) {  // type-metadata / descriptor accessors: 'M'<kind> wrapping a type or entity
+        pI->nPos++;
+        QChar d = swift_nextc(pI);
+        if (pI->bErrored) return;
+        QString sDesc;
+        if (d == QChar('a')) sDesc = "type metadata accessor for ";
+        else if (d == QChar('n')) sDesc = "nominal type descriptor for ";
+        else if (d == QChar('p')) sDesc = "protocol descriptor for ";
+        else if (d == QChar('o')) sDesc = "class metadata base offset for ";
+        else if (d == QChar('u')) sDesc = "method lookup function for ";
+        else if (d == QChar('V')) sDesc = "property descriptor for ";
+        else if (d == QChar('f')) sDesc = "full type metadata for ";
+        else if (d == QChar('m')) sDesc = "metaclass for ";
+        else if (d == QChar('F')) sDesc = "reflection metadata field descriptor ";  // no "for"
+        else { pI->bErrored = true; return; }
+        SWNODE inner;
+        if (!swift_pop(pI, &inner)) return;
+        if (inner.nKind != SWK_TYPE) { pI->bErrored = true; return; }
+        swift_push(pI, SWK_TYPE, sDesc + inner.sText);
+        return;
+    }
+
+    if (c == QChar('W')) {  // witness-table accessors
+        pI->nPos++;
+        QChar d = swift_nextc(pI);
+        if (pI->bErrored) return;
+        if (d == QChar('V')) {  // 'WV' value witness table (WP/Wl conformance forms not modeled)
+            SWNODE inner;
+            if (!swift_pop(pI, &inner)) return;
+            if (inner.nKind != SWK_TYPE) { pI->bErrored = true; return; }
+            swift_push(pI, SWK_TYPE, QString("value witness table for ") + inner.sText);
+            return;
+        }
+        pI->bErrored = true;
         return;
     }
 
@@ -8875,9 +8957,11 @@ QString XDemangle::demangle(const QString &sString, XDemangle::MODE mode)
     }
 
     if ((mode == MODE_GNU_V3) || (mode == MODE_GCC_WIN) || (mode == MODE_GCC_MAC) || (mode == MODE_BORLAND64)) {
-        // OpenVMS IA-64 wraps Itanium names in a 'CXX$' prefix; strip it before parsing.
-        // (The full VMS case-reencoding suffix is not decoded -> such names fall back to raw.)
-        QString sItanium = _sString.startsWith("CXX$") ? _sString.mid(4) : _sString;
+        // OpenVMS IA-64 wraps Itanium names in a 'CXX$' prefix; strip it before parsing
+        // (only when a real Itanium '_Z' name follows, so a pathological non-VMS symbol
+        // literally named 'CXX$...' is never altered). The full VMS case-reencoding suffix
+        // is not decoded -> such names fall back to raw.
+        QString sItanium = _sString.startsWith("CXX$_Z") ? _sString.mid(4) : _sString;
         DSYMBOL symbol = itanium_getSymbol(sItanium, mode);
 
         sResult = dsymbolToString(symbol);
