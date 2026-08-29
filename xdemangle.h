@@ -55,8 +55,8 @@ public:
         MODE_GO,
         MODE_HASKELL,
         MODE_OCAML,
-        MODE_TRU64,   // DEC/Compaq Tru64 C++ (ARM-style, '__X' signature marker)
-        MODE_SUN      // SunPro / Sun Studio C++ ('__1c' scheme)
+        MODE_TRU64,  // DEC/Compaq Tru64 C++ (ARM-style, '__X' signature marker)
+        MODE_SUN     // SunPro / Sun Studio C++ ('__1c' scheme)
         // TODO more !!!
     };
 
@@ -733,17 +733,17 @@ private:
     void swift_demangleTuple(SWIFTINFO *pI);
     void swift_demangleSubstitution(SWIFTINFO *pI);
     void swift_demangleFunction(SWIFTINFO *pI);
-    void swift_demangleRequirement(SWIFTINFO *pI);   // 'R...' -> a where-clause requirement / param marker
-    void swift_demangleParamCounts(SWIFTINFO *pI);   // 'r' GENERIC-PARAM-COUNT*  -> a param-count node
-    void swift_finishGenericSig(SWIFTINFO *pI);       // 'l' -> assemble "<params where reqs>"
+    void swift_demangleRequirement(SWIFTINFO *pI);          // 'R...' -> a where-clause requirement / param marker
+    void swift_demangleParamCounts(SWIFTINFO *pI);          // 'r' GENERIC-PARAM-COUNT*  -> a param-count node
+    void swift_finishGenericSig(SWIFTINFO *pI);             // 'l' -> assemble "<params where reqs>"
     QString swift_parseGPIName(SWIFTINFO *pI, bool *pbOk);  // GENERIC-PARAM-INDEX -> absolute param name
-    QString swift_takeGenericSig(SWIFTINFO *pI);      // pop a pending generic-sig node (or "")
+    QString swift_takeGenericSig(SWIFTINFO *pI);            // pop a pending generic-sig node (or "")
     QList<XDemangle::SWNODE> swift_popTypeList(SWIFTINFO *pI);
     static QString swift_genericParamName(qint64 nDepth, qint64 nIndex);
 
     // Rust (native port of libiberty rust-demangle: legacy _ZN..E + v0 _R..)
     struct RUSTINFO {
-        QString sSym;   // symbol body after the _R / _ZN prefix
+        QString sSym;  // symbol body after the _R / _ZN prefix
         qint32 nSymLen;
         qint32 nNext;
         bool bErrored;

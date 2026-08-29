@@ -118,7 +118,7 @@ QString XDemangle::typeIdToString(XDemangle::XTYPE type, XDemangle::MODE mode)
         case XTYPE_POINTERTOFUNCTION: sResult = QString(""); break;
         // Itanium (Dn) renders "decltype(nullptr)"; MSVC ($$T) renders "std::nullptr_t".
         case XTYPE_NULLPTR: sResult = (getSyntaxFromMode(mode) == SYNTAX_ITANIUM) ? QString("decltype(nullptr)") : QString("std::nullptr_t"); break;
-        case XTYPE_NTSTATUS: sResult = QString("NTSTATUS"); break;       // Used by Drivers
+        case XTYPE_NTSTATUS: sResult = QString("NTSTATUS"); break;  // Used by Drivers
         case XTYPE_DWORD: sResult = QString("DWORD"); break;
         case XTYPE__DWORD: sResult = QString("_DWORD"); break;
         case XTYPE_QWORD: sResult = QString("QWORD"); break;
@@ -3469,7 +3469,7 @@ QString XDemangle::watcom_parseScopedName(DSYMBOL *pSymbol, HDATA *pHdata, const
         QChar cScope = watcom_charAt(sString, *pnPos);
 
         if (cScope == QChar(':')) {  // template arguments - attach to the most recent element
-            *pnPos += 1;  // consume second ':'
+            *pnPos += 1;             // consume second ':'
 
             QString sTemplate = watcom_parseTemplateArgs(pSymbol, pHdata, sString, pnPos);
 
@@ -3837,8 +3837,7 @@ bool XDemangle::watcom_isIdentifierChar(QChar cChar)
 {
     char16_t nUnicode = cChar.unicode();
 
-    return (((nUnicode >= 'A') && (nUnicode <= 'Z')) || ((nUnicode >= 'a') && (nUnicode <= 'z')) || ((nUnicode >= '0') && (nUnicode <= '9')) ||
-            (nUnicode == '_'));
+    return (((nUnicode >= 'A') && (nUnicode <= 'Z')) || ((nUnicode >= 'a') && (nUnicode <= 'z')) || ((nUnicode >= '0') && (nUnicode <= '9')) || (nUnicode == '_'));
 }
 
 bool XDemangle::watcom_pointeeNeedsParen(const QString &sString, qint32 nPos)
@@ -3922,13 +3921,13 @@ bool XDemangle::gnat_isDigit(QChar cChar)
 
 bool XDemangle::gnat_demangleName(const QString &sMangled, QString *psResult)
 {
-    static const char *const operators[][2] = {{"Oabs", "abs"},      {"Oand", "and"},   {"Omod", "mod"},      {"Onot", "not"},     {"Oor", "or"},
-                                               {"Orem", "rem"},      {"Oxor", "xor"},   {"Oeq", "="},         {"One", "/="},       {"Olt", "<"},
-                                               {"Ole", "<="},        {"Ogt", ">"},      {"Oge", ">="},        {"Oadd", "+"},       {"Osubtract", "-"},
-                                               {"Oconcat", "&"},     {"Omultiply", "*"}, {"Odivide", "/"},    {"Oexpon", "**"},    {nullptr, nullptr}};
+    static const char *const operators[][2] = {{"Oabs", "abs"},  {"Oand", "and"},    {"Omod", "mod"},  {"Onot", "not"},  {"Oor", "or"},
+                                               {"Orem", "rem"},  {"Oxor", "xor"},    {"Oeq", "="},     {"One", "/="},    {"Olt", "<"},
+                                               {"Ole", "<="},    {"Ogt", ">"},       {"Oge", ">="},    {"Oadd", "+"},    {"Osubtract", "-"},
+                                               {"Oconcat", "&"}, {"Omultiply", "*"}, {"Odivide", "/"}, {"Oexpon", "**"}, {nullptr, nullptr}};
 
-    static const char *const special[][2] = {{"_elabb", "'Elab_Body"}, {"_elabs", "'Elab_Spec"}, {"_size", "'Size"},
-                                             {"_alignment", "'Alignment"}, {"_assign", ".\":=\""}, {nullptr, nullptr}};
+    static const char *const special[][2] = {{"_elabb", "'Elab_Body"},     {"_elabs", "'Elab_Spec"}, {"_size", "'Size"},
+                                             {"_alignment", "'Alignment"}, {"_assign", ".\":=\""},   {nullptr, nullptr}};
 
     QString d;
     qint32 p = 0;
@@ -4377,7 +4376,10 @@ QString XDemangle::go_demangle(const QString &sString)
 qint64 XDemangle::gnu2_consumeCount(const QString &sM, qint32 *pnPos, bool *pbOk)
 {
     QChar c = watcom_charAt(sM, *pnPos);
-    if (!((c >= QChar('0')) && (c <= QChar('9')))) { *pbOk = false; return -1; }
+    if (!((c >= QChar('0')) && (c <= QChar('9')))) {
+        *pbOk = false;
+        return -1;
+    }
     qint64 n = 0;
     while (true) {
         c = watcom_charAt(sM, *pnPos);
@@ -4393,7 +4395,10 @@ qint64 XDemangle::gnu2_getCount(const QString &sM, qint32 *pnPos, bool *pbOk)
 {
     // single digit, unless the digits are followed by '_' (then the whole value)
     QChar c = watcom_charAt(sM, *pnPos);
-    if (!((c >= QChar('0')) && (c <= QChar('9')))) { *pbOk = false; return -1; }
+    if (!((c >= QChar('0')) && (c <= QChar('9')))) {
+        *pbOk = false;
+        return -1;
+    }
     qint32 nSave = *pnPos;
     qint64 n = gnu2_consumeCount(sM, pnPos, pbOk);
     if (!*pbOk) return -1;
@@ -4408,16 +4413,18 @@ qint64 XDemangle::gnu2_getCount(const QString &sM, qint32 *pnPos, bool *pbOk)
 
 QString XDemangle::gnu2_operatorName(const QString &sCode, bool *pbOk)
 {
-    static const char *ops[][2] = {
-        {"nw", " new"}, {"dl", " delete"}, {"vn", " new []"}, {"vd", " delete []"}, {"as", "="}, {"ne", "!="}, {"eq", "=="},
-        {"ge", ">="}, {"gt", ">"}, {"le", "<="}, {"lt", "<"}, {"pl", "+"}, {"apl", "+="}, {"mi", "-"}, {"ami", "-="},
-        {"ml", "*"}, {"amu", "*="}, {"aml", "*="}, {"md", "%"}, {"amd", "%="}, {"dv", "/"}, {"adv", "/="}, {"aa", "&&"},
-        {"oo", "||"}, {"nt", "!"}, {"pp", "++"}, {"mm", "--"}, {"or", "|"}, {"aor", "|="}, {"er", "^"}, {"aer", "^="},
-        {"ad", "&"}, {"aad", "&="}, {"co", "~"}, {"cl", "()"}, {"ls", "<<"}, {"als", "<<="}, {"rs", ">>"}, {"ars", ">>="},
-        {"rf", "->"}, {"vc", "[]"}, {"cm", ", "}, {"cn", "?:"}, {"mx", ">?"}, {"mn", "<?"}, {"rm", "->*"}, {"sz", "sizeof "},
-        {nullptr, nullptr}};
+    static const char *ops[][2] = {{"nw", " new"}, {"dl", " delete"}, {"vn", " new []"}, {"vd", " delete []"}, {"as", "="},       {"ne", "!="},      {"eq", "=="},
+                                   {"ge", ">="},   {"gt", ">"},       {"le", "<="},      {"lt", "<"},          {"pl", "+"},       {"apl", "+="},     {"mi", "-"},
+                                   {"ami", "-="},  {"ml", "*"},       {"amu", "*="},     {"aml", "*="},        {"md", "%"},       {"amd", "%="},     {"dv", "/"},
+                                   {"adv", "/="},  {"aa", "&&"},      {"oo", "||"},      {"nt", "!"},          {"pp", "++"},      {"mm", "--"},      {"or", "|"},
+                                   {"aor", "|="},  {"er", "^"},       {"aer", "^="},     {"ad", "&"},          {"aad", "&="},     {"co", "~"},       {"cl", "()"},
+                                   {"ls", "<<"},   {"als", "<<="},    {"rs", ">>"},      {"ars", ">>="},       {"rf", "->"},      {"vc", "[]"},      {"cm", ", "},
+                                   {"cn", "?:"},   {"mx", ">?"},      {"mn", "<?"},      {"rm", "->*"},        {"sz", "sizeof "}, {nullptr, nullptr}};
     for (qint32 i = 0; ops[i][0] != nullptr; i++) {
-        if (sCode == QString(ops[i][0])) { *pbOk = true; return QString("operator") + QString(ops[i][1]); }
+        if (sCode == QString(ops[i][0])) {
+            *pbOk = true;
+            return QString("operator") + QString(ops[i][1]);
+        }
     }
     *pbOk = false;
     return QString();
@@ -4692,7 +4699,10 @@ bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
                 // nested args (save/restore remembered types)
                 QList<QString> savedRem = pI->listRemembered;
                 QString sArgs;
-                if (!gnu2_args(pI, &sArgs)) { success = false; break; }
+                if (!gnu2_args(pI, &sArgs)) {
+                    success = false;
+                    break;
+                }
                 pI->listRemembered = savedRem;
                 decl.append(sArgs);
                 if (watcom_charAt(pI->sMangled, pI->nPos) == QChar('_')) pI->nPos++;
@@ -4702,12 +4712,18 @@ bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
                 pI->nPos++;
                 bool bOk = false;
                 qint64 n = gnu2_getCount(pI->sMangled, &(pI->nPos), &bOk);
-                if (!bOk || (n < 0) || (n >= pI->listRemembered.size())) { success = false; break; }
+                if (!bOk || (n < 0) || (n >= pI->listRemembered.size())) {
+                    success = false;
+                    break;
+                }
                 // Splice the remembered type back in (it is a fully-rendered type).
                 QString sRem = pI->listRemembered.at((qint32)n);
                 if (!result.isEmpty()) result += " ";
                 result += sRem;
-                if (!decl.isEmpty()) { result += " "; result += decl; }
+                if (!decl.isEmpty()) {
+                    result += " ";
+                    result += decl;
+                }
                 *psResult = result;
                 return true;
             }
@@ -4718,14 +4734,23 @@ bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
                 if ((cc >= QChar('0')) && (cc <= QChar('9'))) {
                     bool bOk = false;
                     qint64 nLen = gnu2_consumeCount(pI->sMangled, &(pI->nPos), &bOk);
-                    if (!bOk || (pI->nPos + (qint32)nLen > pI->sMangled.size())) { success = false; break; }
+                    if (!bOk || (pI->nPos + (qint32)nLen > pI->sMangled.size())) {
+                        success = false;
+                        break;
+                    }
                     sCls = pI->sMangled.mid(pI->nPos, (qint32)nLen);
                     pI->nPos += (qint32)nLen;
                 } else if (cc == QChar('Q')) {
-                    if (!gnu2_qualified(pI, &sCls, nullptr)) { success = false; break; }
+                    if (!gnu2_qualified(pI, &sCls, nullptr)) {
+                        success = false;
+                        break;
+                    }
                 } else if (cc == QChar('t')) {
                     QString sBare;
-                    if (!gnu2_template(pI, &sCls, &sBare)) { success = false; break; }
+                    if (!gnu2_template(pI, &sCls, &sBare)) {
+                        success = false;
+                        break;
+                    }
                 } else {
                     success = false;
                     break;
@@ -4741,19 +4766,18 @@ bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
                     pI->nPos++;
                     QList<QString> savedRem = pI->listRemembered;
                     QString sArgs;
-                    if (!gnu2_args(pI, &sArgs)) { success = false; break; }
+                    if (!gnu2_args(pI, &sArgs)) {
+                        success = false;
+                        break;
+                    }
                     pI->listRemembered = savedRem;
                     decl.append(sArgs);
                     if (watcom_charAt(pI->sMangled, pI->nPos) == QChar('_')) pI->nPos++;
                 }
                 break;
             }
-            case 'G':
-                pI->nPos++;
-                break;
-            default:
-                done = true;
-                break;
+            case 'G': pI->nPos++; break;
+            default: done = true; break;
         }
     }
 
@@ -5024,9 +5048,15 @@ QString XDemangle::gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, c
     QString sQuals;
     while (true) {
         QChar c = watcom_charAt(I.sMangled, I.nPos);
-        if (c == QChar('C')) { if (!sQuals.isEmpty()) sQuals += " "; sQuals += "const"; I.nPos++; }
-        else if (c == QChar('V')) { if (!sQuals.isEmpty()) sQuals += " "; sQuals += "volatile"; I.nPos++; }
-        else break;
+        if (c == QChar('C')) {
+            if (!sQuals.isEmpty()) sQuals += " ";
+            sQuals += "const";
+            I.nPos++;
+        } else if (c == QChar('V')) {
+            if (!sQuals.isEmpty()) sQuals += " ";
+            sQuals += "volatile";
+            I.nPos++;
+        } else break;
     }
 
     QString sClass;
@@ -5141,14 +5171,38 @@ QString XDemangle::gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, c
 
 bool XDemangle::sun_builtin(QChar cCode, QString *psType)
 {
-    if (cCode == QChar('v')) { *psType = "void"; return true; }
-    if (cCode == QChar('b')) { *psType = "bool"; return true; }
-    if (cCode == QChar('c')) { *psType = "char"; return true; }
-    if (cCode == QChar('s')) { *psType = "short"; return true; }
-    if (cCode == QChar('i')) { *psType = "int"; return true; }
-    if (cCode == QChar('l')) { *psType = "long"; return true; }
-    if (cCode == QChar('f')) { *psType = "float"; return true; }
-    if (cCode == QChar('d')) { *psType = "double"; return true; }
+    if (cCode == QChar('v')) {
+        *psType = "void";
+        return true;
+    }
+    if (cCode == QChar('b')) {
+        *psType = "bool";
+        return true;
+    }
+    if (cCode == QChar('c')) {
+        *psType = "char";
+        return true;
+    }
+    if (cCode == QChar('s')) {
+        *psType = "short";
+        return true;
+    }
+    if (cCode == QChar('i')) {
+        *psType = "int";
+        return true;
+    }
+    if (cCode == QChar('l')) {
+        *psType = "long";
+        return true;
+    }
+    if (cCode == QChar('f')) {
+        *psType = "float";
+        return true;
+    }
+    if (cCode == QChar('d')) {
+        *psType = "double";
+        return true;
+    }
     return false;
 }
 
@@ -5300,20 +5354,20 @@ QString XDemangle::gnu2_demangle(const QString &sString, bool bAllowXMarker)
 // the raw string (all-or-nothing), so wrong output is never produced.
 
 // Node kinds
-static const qint32 SWK_IDENT = 1;     // a bare identifier (name / module)
-static const qint32 SWK_TYPE = 2;      // a rendered type
-static const qint32 SWK_LISTMARK = 3;  // empty-list 'y' or first-element '_' marker
-static const qint32 SWK_EFFECT = 4;    // a postfix function effect (" async", " throws")
-static const qint32 SWK_ATTR = 5;      // a prefix function-type attribute ("@Sendable ", ...)
-static const qint32 SWK_REQ = 6;       // a generic-signature requirement ("A: Swift.Equatable")
-static const qint32 SWK_COUNT = 7;     // generic-param counts from 'r' (slItems = per-depth counts)
-static const qint32 SWK_PACKMARK = 8;  // 'Rv' pack marker (sText = index letter of the pack param)
-static const qint32 SWK_GENERICSIG = 9;// assembled "<params where reqs>" ready to splice after a name
+static const qint32 SWK_IDENT = 1;       // a bare identifier (name / module)
+static const qint32 SWK_TYPE = 2;        // a rendered type
+static const qint32 SWK_LISTMARK = 3;    // empty-list 'y' or first-element '_' marker
+static const qint32 SWK_EFFECT = 4;      // a postfix function effect (" async", " throws")
+static const qint32 SWK_ATTR = 5;        // a prefix function-type attribute ("@Sendable ", ...)
+static const qint32 SWK_REQ = 6;         // a generic-signature requirement ("A: Swift.Equatable")
+static const qint32 SWK_COUNT = 7;       // generic-param counts from 'r' (slItems = per-depth counts)
+static const qint32 SWK_PACKMARK = 8;    // 'Rv' pack marker (sText = index letter of the pack param)
+static const qint32 SWK_GENERICSIG = 9;  // assembled "<params where reqs>" ready to splice after a name
 
 // Layout-constraint letter -> printed constraint (only the ones Swift prints as a name).
 static QString swift_layoutName(QChar cLayout)
 {
-    if (cLayout == QChar('C')) return QString("AnyObject");             // Class
+    if (cLayout == QChar('C')) return QString("AnyObject");  // Class
     if (cLayout == QChar('D')) return QString("_NativeClass");
     if (cLayout == QChar('N')) return QString("_NativeRefCountedObject");
     if (cLayout == QChar('R')) return QString("_RefCountedObject");
@@ -5480,7 +5534,10 @@ void XDemangle::swift_demangleKnownType(SWIFTINFO *pI)
         qint64 nRepeat = swift_parseNatural(pI, &bOk);
         // Bound the repeat (real counts are tiny) so a huge value can't drive an
         // unbounded push loop (OOM / hang) on crafted input.
-        if (!bOk || (nRepeat > 4096)) { pI->bErrored = true; return; }
+        if (!bOk || (nRepeat > 4096)) {
+            pI->bErrored = true;
+            return;
+        }
         // followed by a single known-type letter, repeated nRepeat times
         QChar letter = swift_nextc(pI);
         if (pI->bErrored) return;
@@ -5491,22 +5548,66 @@ void XDemangle::swift_demangleKnownType(SWIFTINFO *pI)
             Q_UNUSED(tmp)
         }
         // inline known-type lookup for the letter
-        static const char *known[] = {
-            "A", "AutoreleasingUnsafeMutablePointer", "a", "Swift.Array", "B", "Swift.BinaryFloatingPoint", "b", "Swift.Bool",
-            "D", "Swift.Dictionary", "d", "Swift.Double", "E", "Swift.Encodable", "e", "Swift.Decodable", "F", "Swift.FloatingPoint",
-            "f", "Swift.Float", "G", "Swift.RandomNumberGenerator", "H", "Swift.Hashable", "h", "Swift.Set", "I", "Swift.DefaultIndices",
-            "i", "Swift.Int", "J", "Swift.Character", "j", "Swift.Numeric", "K", "Swift.BidirectionalCollection", "k", "Swift.RandomAccessCollection",
-            "L", "Swift.Comparable", "l", "Swift.Collection", "M", "Swift.MutableCollection", "m", "Swift.RangeReplaceableCollection",
-            "N", "Swift.ClosedRange", "n", "Swift.Range", "O", "Swift.ObjectIdentifier", "P", "Swift.UnsafePointer", "p", "Swift.UnsafeMutablePointer",
-            "Q", "Swift.Equatable", "q", "Swift.Optional", "R", "Swift.UnsafeBufferPointer", "r", "Swift.UnsafeMutableBufferPointer",
-            "S", "Swift.String", "s", "Swift.Substring", "T", "Swift.Sequence", "t", "Swift.IteratorProtocol", "U", "Swift.UnsignedInteger",
-            "u", "Swift.UInt", "V", "Swift.UnsafeRawPointer", "v", "Swift.UnsafeMutableRawPointer", "W", "Swift.UnsafeRawBufferPointer",
-            "w", "Swift.UnsafeMutableRawBufferPointer", "X", "Swift.RangeExpression", "x", "Swift.Strideable", "Y", "Swift.RawRepresentable",
-            "y", "Swift.StringProtocol", "Z", "Swift.SignedInteger", "z", "Swift.BinaryInteger", nullptr, nullptr};
+        static const char *known[] = {"A",     "AutoreleasingUnsafeMutablePointer",
+                                      "a",     "Swift.Array",
+                                      "B",     "Swift.BinaryFloatingPoint",
+                                      "b",     "Swift.Bool",
+                                      "D",     "Swift.Dictionary",
+                                      "d",     "Swift.Double",
+                                      "E",     "Swift.Encodable",
+                                      "e",     "Swift.Decodable",
+                                      "F",     "Swift.FloatingPoint",
+                                      "f",     "Swift.Float",
+                                      "G",     "Swift.RandomNumberGenerator",
+                                      "H",     "Swift.Hashable",
+                                      "h",     "Swift.Set",
+                                      "I",     "Swift.DefaultIndices",
+                                      "i",     "Swift.Int",
+                                      "J",     "Swift.Character",
+                                      "j",     "Swift.Numeric",
+                                      "K",     "Swift.BidirectionalCollection",
+                                      "k",     "Swift.RandomAccessCollection",
+                                      "L",     "Swift.Comparable",
+                                      "l",     "Swift.Collection",
+                                      "M",     "Swift.MutableCollection",
+                                      "m",     "Swift.RangeReplaceableCollection",
+                                      "N",     "Swift.ClosedRange",
+                                      "n",     "Swift.Range",
+                                      "O",     "Swift.ObjectIdentifier",
+                                      "P",     "Swift.UnsafePointer",
+                                      "p",     "Swift.UnsafeMutablePointer",
+                                      "Q",     "Swift.Equatable",
+                                      "q",     "Swift.Optional",
+                                      "R",     "Swift.UnsafeBufferPointer",
+                                      "r",     "Swift.UnsafeMutableBufferPointer",
+                                      "S",     "Swift.String",
+                                      "s",     "Swift.Substring",
+                                      "T",     "Swift.Sequence",
+                                      "t",     "Swift.IteratorProtocol",
+                                      "U",     "Swift.UnsignedInteger",
+                                      "u",     "Swift.UInt",
+                                      "V",     "Swift.UnsafeRawPointer",
+                                      "v",     "Swift.UnsafeMutableRawPointer",
+                                      "W",     "Swift.UnsafeRawBufferPointer",
+                                      "w",     "Swift.UnsafeMutableRawBufferPointer",
+                                      "X",     "Swift.RangeExpression",
+                                      "x",     "Swift.Strideable",
+                                      "Y",     "Swift.RawRepresentable",
+                                      "y",     "Swift.StringProtocol",
+                                      "Z",     "Swift.SignedInteger",
+                                      "z",     "Swift.BinaryInteger",
+                                      nullptr, nullptr};
         for (qint32 i = 0; known[i] != nullptr; i += 2) {
-            if (letter == QChar(known[i][0])) { sType = QString(known[i + 1]); bKnownOk = true; break; }
+            if (letter == QChar(known[i][0])) {
+                sType = QString(known[i + 1]);
+                bKnownOk = true;
+                break;
+            }
         }
-        if (!bKnownOk) { pI->bErrored = true; return; }
+        if (!bKnownOk) {
+            pI->bErrored = true;
+            return;
+        }
         for (qint64 k = 0; k < nRepeat; k++) {
             swift_push(pI, SWK_TYPE, sType);
         }
@@ -5527,14 +5628,30 @@ void XDemangle::swift_demangleKnownType(SWIFTINFO *pI)
         pI->nPos++;
         QChar d = swift_nextc(pI);
         if (pI->bErrored) return;
-        static const char *conc[] = {
-            "A", "Swift.Actor", "C", "Swift.CheckedContinuation", "c", "Swift.UnsafeContinuation", "E", "Swift.CancellationError",
-            "e", "Swift.UnownedSerialExecutor", "F", "Swift.Executor", "f", "Swift.SerialExecutor", "G", "Swift.TaskGroup",
-            "g", "Swift.ThrowingTaskGroup", "I", "Swift.AsyncIteratorProtocol", "i", "Swift.AsyncSequence", "J", "Swift.UnownedJob",
-            "M", "Swift.MainActor", "P", "Swift.TaskPriority", "S", "Swift.AsyncStream", "s", "Swift.AsyncThrowingStream",
-            "T", "Swift.Task", "t", "Swift.UnsafeCurrentTask", nullptr, nullptr};
+        static const char *conc[] = {"A",     "Swift.Actor",
+                                     "C",     "Swift.CheckedContinuation",
+                                     "c",     "Swift.UnsafeContinuation",
+                                     "E",     "Swift.CancellationError",
+                                     "e",     "Swift.UnownedSerialExecutor",
+                                     "F",     "Swift.Executor",
+                                     "f",     "Swift.SerialExecutor",
+                                     "G",     "Swift.TaskGroup",
+                                     "g",     "Swift.ThrowingTaskGroup",
+                                     "I",     "Swift.AsyncIteratorProtocol",
+                                     "i",     "Swift.AsyncSequence",
+                                     "J",     "Swift.UnownedJob",
+                                     "M",     "Swift.MainActor",
+                                     "P",     "Swift.TaskPriority",
+                                     "S",     "Swift.AsyncStream",
+                                     "s",     "Swift.AsyncThrowingStream",
+                                     "T",     "Swift.Task",
+                                     "t",     "Swift.UnsafeCurrentTask",
+                                     nullptr, nullptr};
         for (qint32 i = 0; conc[i] != nullptr; i += 2) {
-            if (d == QChar(conc[i][0])) { swift_push(pI, SWK_TYPE, QString(conc[i + 1])); return; }
+            if (d == QChar(conc[i][0])) {
+                swift_push(pI, SWK_TYPE, QString(conc[i + 1]));
+                return;
+            }
         }
         pI->bErrored = true;
         return;
@@ -5543,20 +5660,60 @@ void XDemangle::swift_demangleKnownType(SWIFTINFO *pI)
     // single known-type letter
     QChar letter = swift_nextc(pI);
     if (pI->bErrored) return;
-    static const char *known2[] = {
-        "A", "AutoreleasingUnsafeMutablePointer", "a", "Swift.Array", "B", "Swift.BinaryFloatingPoint", "b", "Swift.Bool",
-        "D", "Swift.Dictionary", "d", "Swift.Double", "E", "Swift.Encodable", "e", "Swift.Decodable", "F", "Swift.FloatingPoint",
-        "f", "Swift.Float", "G", "Swift.RandomNumberGenerator", "H", "Swift.Hashable", "h", "Swift.Set", "I", "Swift.DefaultIndices",
-        "i", "Swift.Int", "J", "Swift.Character", "j", "Swift.Numeric", "K", "Swift.BidirectionalCollection", "k", "Swift.RandomAccessCollection",
-        "L", "Swift.Comparable", "l", "Swift.Collection", "M", "Swift.MutableCollection", "m", "Swift.RangeReplaceableCollection",
-        "N", "Swift.ClosedRange", "n", "Swift.Range", "O", "Swift.ObjectIdentifier", "P", "Swift.UnsafePointer", "p", "Swift.UnsafeMutablePointer",
-        "Q", "Swift.Equatable", "q", "Swift.Optional", "R", "Swift.UnsafeBufferPointer", "r", "Swift.UnsafeMutableBufferPointer",
-        "S", "Swift.String", "s", "Swift.Substring", "T", "Swift.Sequence", "t", "Swift.IteratorProtocol", "U", "Swift.UnsignedInteger",
-        "u", "Swift.UInt", "V", "Swift.UnsafeRawPointer", "v", "Swift.UnsafeMutableRawPointer", "W", "Swift.UnsafeRawBufferPointer",
-        "w", "Swift.UnsafeMutableRawBufferPointer", "X", "Swift.RangeExpression", "x", "Swift.Strideable", "Y", "Swift.RawRepresentable",
-        "y", "Swift.StringProtocol", "Z", "Swift.SignedInteger", "z", "Swift.BinaryInteger", nullptr, nullptr};
+    static const char *known2[] = {"A",     "AutoreleasingUnsafeMutablePointer",
+                                   "a",     "Swift.Array",
+                                   "B",     "Swift.BinaryFloatingPoint",
+                                   "b",     "Swift.Bool",
+                                   "D",     "Swift.Dictionary",
+                                   "d",     "Swift.Double",
+                                   "E",     "Swift.Encodable",
+                                   "e",     "Swift.Decodable",
+                                   "F",     "Swift.FloatingPoint",
+                                   "f",     "Swift.Float",
+                                   "G",     "Swift.RandomNumberGenerator",
+                                   "H",     "Swift.Hashable",
+                                   "h",     "Swift.Set",
+                                   "I",     "Swift.DefaultIndices",
+                                   "i",     "Swift.Int",
+                                   "J",     "Swift.Character",
+                                   "j",     "Swift.Numeric",
+                                   "K",     "Swift.BidirectionalCollection",
+                                   "k",     "Swift.RandomAccessCollection",
+                                   "L",     "Swift.Comparable",
+                                   "l",     "Swift.Collection",
+                                   "M",     "Swift.MutableCollection",
+                                   "m",     "Swift.RangeReplaceableCollection",
+                                   "N",     "Swift.ClosedRange",
+                                   "n",     "Swift.Range",
+                                   "O",     "Swift.ObjectIdentifier",
+                                   "P",     "Swift.UnsafePointer",
+                                   "p",     "Swift.UnsafeMutablePointer",
+                                   "Q",     "Swift.Equatable",
+                                   "q",     "Swift.Optional",
+                                   "R",     "Swift.UnsafeBufferPointer",
+                                   "r",     "Swift.UnsafeMutableBufferPointer",
+                                   "S",     "Swift.String",
+                                   "s",     "Swift.Substring",
+                                   "T",     "Swift.Sequence",
+                                   "t",     "Swift.IteratorProtocol",
+                                   "U",     "Swift.UnsignedInteger",
+                                   "u",     "Swift.UInt",
+                                   "V",     "Swift.UnsafeRawPointer",
+                                   "v",     "Swift.UnsafeMutableRawPointer",
+                                   "W",     "Swift.UnsafeRawBufferPointer",
+                                   "w",     "Swift.UnsafeMutableRawBufferPointer",
+                                   "X",     "Swift.RangeExpression",
+                                   "x",     "Swift.Strideable",
+                                   "Y",     "Swift.RawRepresentable",
+                                   "y",     "Swift.StringProtocol",
+                                   "Z",     "Swift.SignedInteger",
+                                   "z",     "Swift.BinaryInteger",
+                                   nullptr, nullptr};
     for (qint32 i = 0; known2[i] != nullptr; i += 2) {
-        if (letter == QChar(known2[i][0])) { swift_push(pI, SWK_TYPE, QString(known2[i + 1])); return; }
+        if (letter == QChar(known2[i][0])) {
+            swift_push(pI, SWK_TYPE, QString(known2[i + 1]));
+            return;
+        }
     }
     pI->bErrored = true;
 }
@@ -5567,30 +5724,57 @@ void XDemangle::swift_demangleBuiltin(SWIFTINFO *pI)
     QChar c = swift_nextc(pI);
     if (pI->bErrored) return;
 
-    if (c == QChar('p')) { swift_push(pI, SWK_TYPE, "Builtin.RawPointer"); return; }
-    if (c == QChar('o')) { swift_push(pI, SWK_TYPE, "Builtin.NativeObject"); return; }
-    if (c == QChar('O')) { swift_push(pI, SWK_TYPE, "Builtin.UnknownObject"); return; }
-    if (c == QChar('b')) { swift_push(pI, SWK_TYPE, "Builtin.BridgeObject"); return; }
-    if (c == QChar('t')) { swift_push(pI, SWK_TYPE, "Builtin.SILToken"); return; }
-    if (c == QChar('w')) { swift_push(pI, SWK_TYPE, "Builtin.Word"); return; }
+    if (c == QChar('p')) {
+        swift_push(pI, SWK_TYPE, "Builtin.RawPointer");
+        return;
+    }
+    if (c == QChar('o')) {
+        swift_push(pI, SWK_TYPE, "Builtin.NativeObject");
+        return;
+    }
+    if (c == QChar('O')) {
+        swift_push(pI, SWK_TYPE, "Builtin.UnknownObject");
+        return;
+    }
+    if (c == QChar('b')) {
+        swift_push(pI, SWK_TYPE, "Builtin.BridgeObject");
+        return;
+    }
+    if (c == QChar('t')) {
+        swift_push(pI, SWK_TYPE, "Builtin.SILToken");
+        return;
+    }
+    if (c == QChar('w')) {
+        swift_push(pI, SWK_TYPE, "Builtin.Word");
+        return;
+    }
     if (c == QChar('i')) {  // Bi<N>_ integer
         bool bOk = false;
         qint64 n = swift_parseNatural(pI, &bOk);
-        if (!bOk || !swift_eat(pI, QChar('_'))) { pI->bErrored = true; return; }
+        if (!bOk || !swift_eat(pI, QChar('_'))) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_TYPE, QString("Builtin.Int%1").arg(n));
         return;
     }
     if (c == QChar('f')) {  // Bf<N>_ float
         bool bOk = false;
         qint64 n = swift_parseNatural(pI, &bOk);
-        if (!bOk || !swift_eat(pI, QChar('_'))) { pI->bErrored = true; return; }
+        if (!bOk || !swift_eat(pI, QChar('_'))) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_TYPE, QString("Builtin.FPIEEE%1").arg(n));
         return;
     }
     if (c == QChar('v')) {  // Bv<N>_<element> vector
         bool bOk = false;
         qint64 n = swift_parseNatural(pI, &bOk);
-        if (!bOk || !swift_eat(pI, QChar('_'))) { pI->bErrored = true; return; }
+        if (!bOk || !swift_eat(pI, QChar('_'))) {
+            pI->bErrored = true;
+            return;
+        }
         SWNODE elem;
         if (!swift_pop(pI, &elem)) return;
         QString sElem = elem.sText;
@@ -5609,11 +5793,17 @@ void XDemangle::swift_demangleNominal(SWIFTINFO *pI, QChar cKind)
     if (!swift_pop(pI, &name)) return;
     SWNODE context;
     if (!swift_pop(pI, &context)) return;
-    if (name.nKind != SWK_IDENT) { pI->bErrored = true; return; }
+    if (name.nKind != SWK_IDENT) {
+        pI->bErrored = true;
+        return;
+    }
     // A nominal context is always a module or another nominal type; if it is a rendered
     // entity (contains a signature separator) this is really some other 'P'/'a' form
     // (e.g. a private-discriminator) we do not model -> fall back to raw, never guess.
-    if (context.sText.contains(" : ") || context.sText.contains(" -> ")) { pI->bErrored = true; return; }
+    if (context.sText.contains(" : ") || context.sText.contains(" -> ")) {
+        pI->bErrored = true;
+        return;
+    }
 
     // The module (context) is already in the substitution list: it was added when its
     // identifier was parsed. The nominal TYPE itself is added here, in order.
@@ -5632,7 +5822,10 @@ void XDemangle::swift_demangleBoundGeneric(SWIFTINFO *pI)
     QList<SWNODE> listArgs = swift_popTypeList(pI);
     SWNODE base;
     if (!swift_pop(pI, &base)) return;
-    if (listArgs.isEmpty()) { pI->bErrored = true; return; }
+    if (listArgs.isEmpty()) {
+        pI->bErrored = true;
+        return;
+    }
 
     QString sBase = base.sText;
     QStringList slArgs;
@@ -5674,10 +5867,13 @@ void XDemangle::swift_demangleTuple(SWIFTINFO *pI)
     if (sMarker == "_") {
         SWNODE top;
         if (!swift_pop(pI, &top)) return;
-        if (top.nKind == SWK_IDENT) {   // trailing label sits on top of its type
+        if (top.nKind == SWK_IDENT) {  // trailing label sits on top of its type
             SWNODE ty;
             if (!swift_pop(pI, &ty)) return;
-            if (ty.nKind != SWK_TYPE) { pI->bErrored = true; return; }
+            if (ty.nKind != SWK_TYPE) {
+                pI->bErrored = true;
+                return;
+            }
             elems.append(ty);
             elems.append(top);
         } else if (top.nKind == SWK_TYPE) {
@@ -5694,7 +5890,10 @@ void XDemangle::swift_demangleTuple(SWIFTINFO *pI)
     QStringList slBare;
     qint32 i = 0;
     while (i < elems.size()) {
-        if (elems.at(i).nKind != SWK_TYPE) { pI->bErrored = true; return; }
+        if (elems.at(i).nKind != SWK_TYPE) {
+            pI->bErrored = true;
+            return;
+        }
         QString sTy = elems.at(i).sText;
         i++;
         if ((i < elems.size()) && (elems.at(i).nKind == SWK_IDENT)) {
@@ -5708,7 +5907,7 @@ void XDemangle::swift_demangleTuple(SWIFTINFO *pI)
 
     SWNODE node;
     node.nKind = SWK_TYPE;
-    node.slItems = slBare;    // bare element types (for function-param re-labeling)
+    node.slItems = slBare;  // bare element types (for function-param re-labeling)
     node.bTuple = true;
     node.sText = QString("(") + slDisplay.join(", ") + QString(")");
     pI->stackNodes.append(node);
@@ -5727,7 +5926,10 @@ void XDemangle::swift_demangleSubstitution(SWIFTINFO *pI)
         QChar c = swift_peek(pI);
         if ((c >= QChar('a')) && (c <= QChar('z'))) {
             qint64 nIndex = c.unicode() - 'a';
-            if ((nIndex < 0) || (nIndex >= pI->listSubst.size())) { pI->bErrored = true; return; }
+            if ((nIndex < 0) || (nIndex >= pI->listSubst.size())) {
+                pI->bErrored = true;
+                return;
+            }
             SWNODE node = pI->listSubst.at((qint32)nIndex);
             qint64 nCopies = (nRepeat > 1) ? nRepeat : 1;
             for (qint64 k = 0; k < nCopies; k++) pI->stackNodes.append(node);
@@ -5737,7 +5939,10 @@ void XDemangle::swift_demangleSubstitution(SWIFTINFO *pI)
         }
         if ((c >= QChar('A')) && (c <= QChar('Z'))) {
             qint64 nIndex = c.unicode() - 'A';
-            if ((nIndex < 0) || (nIndex >= pI->listSubst.size())) { pI->bErrored = true; return; }
+            if ((nIndex < 0) || (nIndex >= pI->listSubst.size())) {
+                pI->bErrored = true;
+                return;
+            }
             SWNODE node = pI->listSubst.at((qint32)nIndex);
             qint64 nCopies = (nRepeat > 1) ? nRepeat : 1;
             for (qint64 k = 0; k < nCopies; k++) pI->stackNodes.append(node);
@@ -5747,7 +5952,10 @@ void XDemangle::swift_demangleSubstitution(SWIFTINFO *pI)
         if (c == QChar('_')) {
             pI->nPos++;
             qint64 nIndex = ((nRepeat < 0) ? 0 : (nRepeat + 1)) + 26;
-            if ((nIndex < 0) || (nIndex >= pI->listSubst.size())) { pI->bErrored = true; return; }
+            if ((nIndex < 0) || (nIndex >= pI->listSubst.size())) {
+                pI->bErrored = true;
+                return;
+            }
             pI->stackNodes.append(pI->listSubst.at((qint32)nIndex));
             return;
         }
@@ -5756,7 +5964,10 @@ void XDemangle::swift_demangleSubstitution(SWIFTINFO *pI)
             nRepeat = swift_parseNatural(pI, &bOk);
             // Bound the repeat/index (real values are tiny) so a huge count can't drive
             // an unbounded append loop (OOM / hang) on crafted input.
-            if (!bOk || (nRepeat > 4096)) { pI->bErrored = true; return; }
+            if (!bOk || (nRepeat > 4096)) {
+                pI->bErrored = true;
+                return;
+            }
             continue;
         }
         pI->bErrored = true;
@@ -5783,19 +5994,28 @@ void XDemangle::swift_demangleFunction(SWIFTINFO *pI)
     // Label-list (mandatory for functions): the empty-list marker 'y' means no labels;
     // otherwise there is one label per parameter, each an identifier or the empty-label
     // marker '_' (which prints as "_:").
-    qint32 nParams = params.bTuple ? params.slItems.size()
-                                   : (((params.nKind == SWK_LISTMARK) || params.sText.isEmpty()) ? 0 : 1);
+    qint32 nParams = params.bTuple ? params.slItems.size() : (((params.nKind == SWK_LISTMARK) || params.sText.isEmpty()) ? 0 : 1);
     QStringList slLabels;
     bool bLabeled = false;
     if (!pI->stackNodes.isEmpty() && (pI->stackNodes.last().nKind == SWK_LISTMARK) && (pI->stackNodes.last().sText == "y")) {
         pI->stackNodes.removeLast();  // no parameter labels
     } else if (nParams > 0) {
         for (qint32 i = 0; i < nParams; i++) {
-            if (pI->stackNodes.isEmpty()) { pI->bErrored = true; return; }
+            if (pI->stackNodes.isEmpty()) {
+                pI->bErrored = true;
+                return;
+            }
             SWNODE lab = pI->stackNodes.last();
-            if (lab.nKind == SWK_IDENT) { slLabels.prepend(lab.sText); pI->stackNodes.removeLast(); }
-            else if ((lab.nKind == SWK_LISTMARK) && (lab.sText == "_")) { slLabels.prepend("_"); pI->stackNodes.removeLast(); }
-            else { pI->bErrored = true; return; }
+            if (lab.nKind == SWK_IDENT) {
+                slLabels.prepend(lab.sText);
+                pI->stackNodes.removeLast();
+            } else if ((lab.nKind == SWK_LISTMARK) && (lab.sText == "_")) {
+                slLabels.prepend("_");
+                pI->stackNodes.removeLast();
+            } else {
+                pI->bErrored = true;
+                return;
+            }
         }
         bLabeled = true;
     }
@@ -5804,7 +6024,10 @@ void XDemangle::swift_demangleFunction(SWIFTINFO *pI)
     if (!swift_pop(pI, &name)) return;
     SWNODE context;
     if (!swift_pop(pI, &context)) return;
-    if (name.nKind != SWK_IDENT) { pI->bErrored = true; return; }
+    if (name.nKind != SWK_IDENT) {
+        pI->bErrored = true;
+        return;
+    }
 
     QString sParams;
     if (bLabeled) {
@@ -5836,19 +6059,31 @@ QString XDemangle::swift_parseGPIName(SWIFTINFO *pI, bool *pbOk)
     // GENERIC-PARAM-INDEX -> absolute positional name (depth 0 -> A,B; depth 1 -> A1,B1).
     *pbOk = true;
     QChar c = swift_peek(pI);
-    if (c == QChar('z')) { pI->nPos++; return swift_genericParamName(0, 0); }
+    if (c == QChar('z')) {
+        pI->nPos++;
+        return swift_genericParamName(0, 0);
+    }
     if (c == QChar('d')) {
         pI->nPos++;
         bool b1 = false, b2 = false;
         qint64 nDepth = swift_parseIndex(pI, &b1);
         qint64 nIndex = swift_parseIndex(pI, &b2);
-        if (!b1 || !b2) { *pbOk = false; return QString(); }
+        if (!b1 || !b2) {
+            *pbOk = false;
+            return QString();
+        }
         return swift_genericParamName(nDepth + 1, nIndex);
     }
-    if (c == QChar('s')) { *pbOk = false; return QString(); }  // constrained-existential Self: unmodeled
+    if (c == QChar('s')) {
+        *pbOk = false;
+        return QString();
+    }  // constrained-existential Self: unmodeled
     bool b = false;
     qint64 nIndex = swift_parseIndex(pI, &b);
-    if (!b) { *pbOk = false; return QString(); }
+    if (!b) {
+        *pbOk = false;
+        return QString();
+    }
     return swift_genericParamName(0, nIndex + 1);
 }
 
@@ -5861,20 +6096,29 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         pI->nPos++;
         bool bOk = false;
         QString sName = swift_parseGPIName(pI, &bOk);
-        if (!bOk) { pI->bErrored = true; return; }
+        if (!bOk) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_PACKMARK, sName);
         return;
     }
     // Inverse requirements (Ri/RI/Rj/RJ, ~Copyable/~Escapable): the real demangler's
     // handling is subtle (it even rejects some encodings) and these never appear in
     // compiler-emitted symbols for ordinary code -> bail to raw, never guess.
-    if ((d == QChar('i')) || (d == QChar('j'))) { pI->bErrored = true; return; }
+    if ((d == QChar('i')) || (d == QChar('j'))) {
+        pI->bErrored = true;
+        return;
+    }
 
     // Conformance: 'R' GENERIC-PARAM-INDEX (d is a GPI start: z / d / '_' / digit; NOT 's').
     if ((d == QChar('z')) || (d == QChar('d')) || (d == QChar('_')) || ((d >= QChar('0')) && (d <= QChar('9')))) {
         bool bOk = false;
         QString sSubj = swift_parseGPIName(pI, &bOk);
-        if (!bOk) { pI->bErrored = true; return; }
+        if (!bOk) {
+            pI->bErrored = true;
+            return;
+        }
         // In a requirement, a protocol is markerless: known protocols are one type node,
         // but a user protocol is module + name (combine into "module.name").
         SWNODE proto;
@@ -5889,7 +6133,7 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         return;
     }
 
-    pI->nPos++;  // consume the sub-op letter
+    pI->nPos++;             // consume the sub-op letter
     if (d == QChar('p')) {  // protocol assoc-type-name 'Rp' GPI -> "subj.assoc: proto"
         bool bOk = false;
         QString sSubj = swift_parseGPIName(pI, &bOk);
@@ -5903,7 +6147,10 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
             if (!swift_pop(pI, &ctx)) return;
             sProto = ctx.sText + QString(".") + proto.sText;
         }
-        if (!bOk || (assoc.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
+        if (!bOk || (assoc.nKind != SWK_IDENT)) {
+            pI->bErrored = true;
+            return;
+        }
         // The dependent member type "subj.assoc" is itself substitutable -> Swift adds it.
         QString sDep = sSubj + QString(".") + assoc.sText;
         SWNODE dep;
@@ -5918,7 +6165,10 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         QString sSubj = swift_parseGPIName(pI, &bOk);
         SWNODE ty;
         if (!swift_pop(pI, &ty)) return;
-        if (!bOk) { pI->bErrored = true; return; }
+        if (!bOk) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_REQ, sSubj + QString(": ") + ty.sText);
         return;
     }
@@ -5929,7 +6179,10 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         if (!swift_pop(pI, &assoc)) return;
         SWNODE ty;
         if (!swift_pop(pI, &ty)) return;
-        if (!bOk || (assoc.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
+        if (!bOk || (assoc.nKind != SWK_IDENT)) {
+            pI->bErrored = true;
+            return;
+        }
         QString sDep = sSubj + QString(".") + assoc.sText;
         SWNODE dep;
         dep.nKind = SWK_TYPE;
@@ -5943,7 +6196,10 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         QString sSubj = swift_parseGPIName(pI, &bOk);
         SWNODE ty;
         if (!swift_pop(pI, &ty)) return;
-        if (!bOk) { pI->bErrored = true; return; }
+        if (!bOk) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_REQ, sSubj + QString(" == ") + ty.sText);
         return;
     }
@@ -5954,7 +6210,10 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         if (!swift_pop(pI, &assoc)) return;
         SWNODE ty;
         if (!swift_pop(pI, &ty)) return;
-        if (!bOk || (assoc.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
+        if (!bOk || (assoc.nKind != SWK_IDENT)) {
+            pI->bErrored = true;
+            return;
+        }
         QString sDep = sSubj + QString(".") + assoc.sText;
         SWNODE dep;
         dep.nKind = SWK_TYPE;
@@ -5981,9 +6240,15 @@ void XDemangle::swift_demangleRequirement(SWIFTINFO *pI)
         bool bOk = false;
         QString sSubj = swift_parseGPIName(pI, &bOk);
         QChar cl = swift_nextc(pI);
-        if (pI->bErrored || !bOk) { pI->bErrored = true; return; }
+        if (pI->bErrored || !bOk) {
+            pI->bErrored = true;
+            return;
+        }
         QString sLayout = swift_layoutName(cl);
-        if (sLayout.isEmpty()) { pI->bErrored = true; return; }
+        if (sLayout.isEmpty()) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_REQ, sSubj + QString(": ") + sLayout);
         return;
     }
@@ -6000,11 +6265,18 @@ void XDemangle::swift_demangleParamCounts(SWIFTINFO *pI)
     while (true) {
         QChar c = swift_peek(pI);
         if (c == QChar('l')) break;
-        if (c == QChar('z')) { pI->nPos++; slCounts.append(QString("0")); continue; }
+        if (c == QChar('z')) {
+            pI->nPos++;
+            slCounts.append(QString("0"));
+            continue;
+        }
         if ((c == QChar('_')) || ((c >= QChar('0')) && (c <= QChar('9')))) {
             bool bOk = false;
             qint64 n = swift_parseIndex(pI, &bOk);
-            if (!bOk) { pI->bErrored = true; return; }
+            if (!bOk) {
+                pI->bErrored = true;
+                return;
+            }
             slCounts.append(QString::number(n + 1));
             continue;
         }
@@ -6029,13 +6301,19 @@ void XDemangle::swift_finishGenericSig(SWIFTINFO *pI)
         // A multi-depth signature (2+ counts) prints as one '<...>' group per depth with
         // depth-suffixed names -- not modeled here -> bail to raw rather than collapse it
         // to a single group (never occurs in compiler-emitted symbols).
-        if (cnt.slItems.size() >= 2) { pI->bErrored = true; return; }
+        if (cnt.slItems.size() >= 2) {
+            pI->bErrored = true;
+            return;
+        }
         if (cnt.slItems.isEmpty()) {
             nParams = 0;  // 'r' with no counts (e.g. constrained extension) -> requirements only
         } else {
             bool bOk = false;
             nParams = cnt.slItems.last().toLongLong(&bOk);
-            if (!bOk) { pI->bErrored = true; return; }
+            if (!bOk) {
+                pI->bErrored = true;
+                return;
+            }
         }
     }
     QStringList slPacks;
@@ -6045,7 +6323,10 @@ void XDemangle::swift_finishGenericSig(SWIFTINFO *pI)
         if (n.nKind == SWK_PACKMARK) slPacks.append(n.sText);
         else slReqs.prepend(n.sText);
     }
-    if ((nParams < 0) || (nParams > 64)) { pI->bErrored = true; return; }
+    if ((nParams < 0) || (nParams > 64)) {
+        pI->bErrored = true;
+        return;
+    }
     QStringList slParams;
     for (qint64 i = 0; i < nParams; i++) {
         QString nm = swift_genericParamName(0, i);
@@ -6073,7 +6354,7 @@ static QString swift_accessorSuffix(QChar cAcc, bool *pbOk)
 {
     *pbOk = true;
     if (cAcc == QChar('g')) return QString(".getter");
-    if (cAcc == QChar('G')) return QString(".getter");   // global getter
+    if (cAcc == QChar('G')) return QString(".getter");  // global getter
     if (cAcc == QChar('s')) return QString(".setter");
     if (cAcc == QChar('m')) return QString(".materializeForSet");
     if (cAcc == QChar('w')) return QString(".willset");
@@ -6081,8 +6362,8 @@ static QString swift_accessorSuffix(QChar cAcc, bool *pbOk)
     if (cAcc == QChar('r')) return QString(".read");
     if (cAcc == QChar('M')) return QString(".modify");
     if (cAcc == QChar('x')) return QString(".modify2");
-    if (cAcc == QChar('p')) return QString();            // pseudo (storage): no suffix
-    *pbOk = false;                                       // addressors (a/l), yield (y/b/z): not handled -> raw
+    if (cAcc == QChar('p')) return QString();  // pseudo (storage): no suffix
+    *pbOk = false;                             // addressors (a/l), yield (y/b/z): not handled -> raw
     return QString();
 }
 
@@ -6093,7 +6374,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
     if ((c >= QChar('0')) && (c <= QChar('9'))) {
         bool bOk = false;
         QString sIdent = swift_readIdentifier(pI, &bOk);
-        if (!bOk) { pI->bErrored = true; return; }
+        if (!bOk) {
+            pI->bErrored = true;
+            return;
+        }
         // Every identifier (module / decl-name / label / type-name) is added to the
         // substitution list, in order (known 'S...' types are NOT — see below).
         swift_pushSubst(pI, SWK_IDENT, sIdent);
@@ -6103,8 +6387,16 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
     if (c == QChar('S')) {
         // Module abbreviations SC (__C_Synthesized) / So (imported Obj-C, __C).
         QChar d = watcom_charAt(pI->sSym, pI->nPos + 1);
-        if (d == QChar('C')) { pI->nPos += 2; swift_push(pI, SWK_IDENT, "__C_Synthesized"); return; }
-        if (d == QChar('o')) { pI->nPos += 2; swift_push(pI, SWK_IDENT, "__C"); return; }
+        if (d == QChar('C')) {
+            pI->nPos += 2;
+            swift_push(pI, SWK_IDENT, "__C_Synthesized");
+            return;
+        }
+        if (d == QChar('o')) {
+            pI->nPos += 2;
+            swift_push(pI, SWK_IDENT, "__C");
+            return;
+        }
         pI->nPos++;
         swift_demangleKnownType(pI);
         return;
@@ -6183,13 +6475,19 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
             qint64 nDepth = swift_parseIndex(pI, &bOkD);
             bool bOkI = false;
             qint64 nIndex = swift_parseIndex(pI, &bOkI);
-            if (!bOkD || !bOkI) { pI->bErrored = true; return; }
+            if (!bOkD || !bOkI) {
+                pI->bErrored = true;
+                return;
+            }
             swift_push(pI, SWK_TYPE, swift_genericParamName(nDepth + 1, nIndex));
             return;
         }
         bool bOk = false;
         qint64 nIndex = swift_parseIndex(pI, &bOk);
-        if (!bOk) { pI->bErrored = true; return; }
+        if (!bOk) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_TYPE, swift_genericParamName(0, nIndex + 1));
         return;
     }
@@ -6206,8 +6504,14 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         pI->nPos++;
         QChar d = swift_nextc(pI);
         if (pI->bErrored) return;
-        if (d == QChar('a')) { swift_push(pI, SWK_EFFECT, " async"); return; }
-        if (d == QChar('b')) { swift_push(pI, SWK_ATTR, "@Sendable "); return; }
+        if (d == QChar('a')) {
+            swift_push(pI, SWK_EFFECT, " async");
+            return;
+        }
+        if (d == QChar('b')) {
+            swift_push(pI, SWK_ATTR, "@Sendable ");
+            return;
+        }
         if (d == QChar('j')) {  // @differentiable(...)
             QChar k = swift_nextc(pI);
             if (pI->bErrored) return;
@@ -6220,7 +6524,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         }
         // Per-element markers modifying the top type (list-type attributes).
         if ((d == QChar('t')) || (d == QChar('k')) || (d == QChar('i'))) {
-            if (pI->stackNodes.isEmpty() || (pI->stackNodes.last().nKind != SWK_TYPE)) { pI->bErrored = true; return; }
+            if (pI->stackNodes.isEmpty() || (pI->stackNodes.last().nKind != SWK_TYPE)) {
+                pI->bErrored = true;
+                return;
+            }
             QString sPre = (d == QChar('t')) ? QString("_const ") : ((d == QChar('k')) ? QString("@noDerivative ") : QString("isolated "));
             pI->stackNodes.last().sText.prepend(sPre);
             return;
@@ -6231,7 +6538,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
 
     if ((c == QChar('z')) || (c == QChar('n')) || (c == QChar('h'))) {  // inout / __owned / __shared
         pI->nPos++;
-        if (pI->stackNodes.isEmpty() || (pI->stackNodes.last().nKind != SWK_TYPE)) { pI->bErrored = true; return; }
+        if (pI->stackNodes.isEmpty() || (pI->stackNodes.last().nKind != SWK_TYPE)) {
+            pI->bErrored = true;
+            return;
+        }
         QString sPre = (c == QChar('z')) ? QString("inout ") : ((c == QChar('n')) ? QString("__owned ") : QString("__shared "));
         pI->stackNodes.last().sText.prepend(sPre);
         return;
@@ -6239,7 +6549,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
 
     if (c == QChar('d')) {  // variadic
         pI->nPos++;
-        if (pI->stackNodes.isEmpty() || (pI->stackNodes.last().nKind != SWK_TYPE)) { pI->bErrored = true; return; }
+        if (pI->stackNodes.isEmpty() || (pI->stackNodes.last().nKind != SWK_TYPE)) {
+            pI->bErrored = true;
+            return;
+        }
         pI->stackNodes.last().sText.append("...");
         return;
     }
@@ -6256,11 +6569,14 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (c == QChar('X')) {
             QChar k = swift_nextc(pI);
             if (pI->bErrored) return;
-            if (k == QChar('E')) sConv = "";                       // @noescape (implicit in display)
+            if (k == QChar('E')) sConv = "";  // @noescape (implicit in display)
             else if (k == QChar('f')) sConv = "@convention(thin) ";
             else if (k == QChar('C')) sConv = "@convention(c) ";
             else if (k == QChar('B')) sConv = "@convention(block) ";
-            else { pI->bErrored = true; return; }
+            else {
+                pI->bErrored = true;
+                return;
+            }
         }
         // Collect trailing prefix attributes (@Sendable/@differentiable) and postfix
         // effects (async/throws) that belong to this function type.
@@ -6277,15 +6593,15 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (!swift_pop(pI, &result)) return;
         QString sP;
         if ((params.nKind == SWK_LISTMARK) || params.sText.isEmpty()) sP = "()";
-        else if (params.bTuple) sP = params.sText;  // already parenthesized
+        else if (params.bTuple) sP = params.sText;             // already parenthesized
         else sP = QString("(") + params.sText + QString(")");  // single non-tuple param
         QString sR = ((result.nKind == SWK_LISTMARK) || result.sText.isEmpty()) ? QString("()") : result.sText;
         SWNODE fn;
         fn.nKind = SWK_TYPE;
         fn.sText = sPrefix + sConv + sP + sEffects + QString(" -> ") + sR;
-        fn.slItems = params.slItems;             // param type texts (for entity re-render with labels)
+        fn.slItems = params.slItems;                // param type texts (for entity re-render with labels)
         fn.sAux = sEffects + QString(" -> ") + sR;  // effects + result tail (for entity re-render)
-        fn.bFunc = true;                          // needs parens when used under Optional '?' / sugar
+        fn.bFunc = true;                            // needs parens when used under Optional '?' / sugar
         pI->stackNodes.append(fn);
         return;
     }
@@ -6301,20 +6617,33 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         QStringList slProt;
         QString sMarker;
         while (!pI->stackNodes.isEmpty()) {
-            if (pI->stackNodes.last().nKind == SWK_LISTMARK) { sMarker = pI->stackNodes.last().sText; pI->stackNodes.removeLast(); break; }
+            if (pI->stackNodes.last().nKind == SWK_LISTMARK) {
+                sMarker = pI->stackNodes.last().sText;
+                pI->stackNodes.removeLast();
+                break;
+            }
             SWNODE nm = pI->stackNodes.takeLast();
             SWNODE ctx;
-            if (!swift_pop(pI, &ctx) || (nm.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
+            if (!swift_pop(pI, &ctx) || (nm.nKind != SWK_IDENT)) {
+                pI->bErrored = true;
+                return;
+            }
             slProt.prepend(ctx.sText + QString(".") + nm.sText);
         }
         if (sMarker == "_") {
             SWNODE nm;
             if (!swift_pop(pI, &nm)) return;
             SWNODE ctx;
-            if (!swift_pop(pI, &ctx) || (nm.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
+            if (!swift_pop(pI, &ctx) || (nm.nKind != SWK_IDENT)) {
+                pI->bErrored = true;
+                return;
+            }
             slProt.prepend(ctx.sText + QString(".") + nm.sText);
         }
-        if (slProt.isEmpty()) { pI->bErrored = true; return; }
+        if (slProt.isEmpty()) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_TYPE, slProt.join(" & "));
         return;
     }
@@ -6326,7 +6655,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (!swift_pop(pI, &module)) return;
         SWNODE type;
         if (!swift_pop(pI, &type)) return;
-        if (module.nKind != SWK_IDENT) { pI->bErrored = true; return; }
+        if (module.nKind != SWK_IDENT) {
+            pI->bErrored = true;
+            return;
+        }
         SWNODE node;
         node.nKind = SWK_TYPE;
         node.cKind = type.cKind;  // preserve class-ness for a possible extension initializer
@@ -6340,7 +6672,7 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (d == QChar('p')) {  // pack expansion: pattern-type count-type 'Qp' -> "repeat <pattern>"
             pI->nPos += 2;
             SWNODE count;
-            if (!swift_pop(pI, &count)) return;   // shape/count operand (not printed)
+            if (!swift_pop(pI, &count)) return;  // shape/count operand (not printed)
             SWNODE pattern;
             if (!swift_pop(pI, &pattern)) return;
             swift_push(pI, SWK_TYPE, QString("repeat ") + pattern.sText);
@@ -6350,7 +6682,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
             pI->nPos += 2;
             SWNODE assoc;
             if (!swift_pop(pI, &assoc)) return;
-            if (assoc.nKind != SWK_IDENT) { pI->bErrored = true; return; }
+            if (assoc.nKind != SWK_IDENT) {
+                pI->bErrored = true;
+                return;
+            }
             swift_pushSubst(pI, SWK_TYPE, swift_genericParamName(0, 0) + QString(".") + assoc.sText);
             return;
         }
@@ -6360,7 +6695,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
             QString sName = swift_parseGPIName(pI, &bOk);
             SWNODE assoc;
             if (!swift_pop(pI, &assoc)) return;
-            if (!bOk || (assoc.nKind != SWK_IDENT)) { pI->bErrored = true; return; }
+            if (!bOk || (assoc.nKind != SWK_IDENT)) {
+                pI->bErrored = true;
+                return;
+            }
             swift_pushSubst(pI, SWK_TYPE, sName + QString(".") + assoc.sText);
             return;
         }
@@ -6392,7 +6730,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (pI->bErrored) return;
         bool bAccOk = false;
         QString sSuffix = swift_accessorSuffix(acc, &bAccOk);
-        if (!bAccOk) { pI->bErrored = true; return; }
+        if (!bAccOk) {
+            pI->bErrored = true;
+            return;
+        }
         SWNODE type;
         if (!swift_pop(pI, &type)) return;
         if (!pI->stackNodes.isEmpty() && (pI->stackNodes.last().nKind == SWK_LISTMARK)) {
@@ -6402,7 +6743,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (!swift_pop(pI, &name)) return;
         SWNODE context;
         if (!swift_pop(pI, &context)) return;
-        if (name.nKind != SWK_IDENT) { pI->bErrored = true; return; }
+        if (name.nKind != SWK_IDENT) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_TYPE, context.sText + QString(".") + name.sText + sSuffix + QString(" : ") + type.sText);
         return;
     }
@@ -6413,7 +6757,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (pI->bErrored) return;
         bool bAccOk = false;
         QString sSuffix = swift_accessorSuffix(acc, &bAccOk);
-        if (!bAccOk) { pI->bErrored = true; return; }
+        if (!bAccOk) {
+            pI->bErrored = true;
+            return;
+        }
         SWNODE type;
         if (!swift_pop(pI, &type)) return;
         // Label-list: 'y' => the type prints as-is; otherwise one label per parameter,
@@ -6425,11 +6772,21 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         } else if (type.bFunc) {  // only a function-typed subscript carries a parameter label-list
             qint32 n = type.slItems.size();
             for (qint32 k = 0; k < n; k++) {
-                if (pI->stackNodes.isEmpty()) { pI->bErrored = true; return; }
+                if (pI->stackNodes.isEmpty()) {
+                    pI->bErrored = true;
+                    return;
+                }
                 SWNODE lab = pI->stackNodes.last();
-                if (lab.nKind == SWK_IDENT) { slLabels.prepend(lab.sText); pI->stackNodes.removeLast(); }
-                else if ((lab.nKind == SWK_LISTMARK) && (lab.sText == "_")) { slLabels.prepend("_"); pI->stackNodes.removeLast(); }
-                else { pI->bErrored = true; return; }
+                if (lab.nKind == SWK_IDENT) {
+                    slLabels.prepend(lab.sText);
+                    pI->stackNodes.removeLast();
+                } else if ((lab.nKind == SWK_LISTMARK) && (lab.sText == "_")) {
+                    slLabels.prepend("_");
+                    pI->stackNodes.removeLast();
+                } else {
+                    pI->bErrored = true;
+                    return;
+                }
             }
             bLabeled = true;
         }
@@ -6466,11 +6823,21 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
             QStringList slLabels;
             qint32 n = type.slItems.size();
             for (qint32 k = 0; k < n; k++) {
-                if (pI->stackNodes.isEmpty()) { pI->bErrored = true; return; }
+                if (pI->stackNodes.isEmpty()) {
+                    pI->bErrored = true;
+                    return;
+                }
                 SWNODE lab = pI->stackNodes.last();
-                if (lab.nKind == SWK_IDENT) { slLabels.prepend(lab.sText); pI->stackNodes.removeLast(); }
-                else if ((lab.nKind == SWK_LISTMARK) && (lab.sText == "_")) { slLabels.prepend("_"); pI->stackNodes.removeLast(); }
-                else { pI->bErrored = true; return; }
+                if (lab.nKind == SWK_IDENT) {
+                    slLabels.prepend(lab.sText);
+                    pI->stackNodes.removeLast();
+                } else if ((lab.nKind == SWK_LISTMARK) && (lab.sText == "_")) {
+                    slLabels.prepend("_");
+                    pI->stackNodes.removeLast();
+                } else {
+                    pI->bErrored = true;
+                    return;
+                }
             }
             SWNODE context;
             if (!swift_pop(pI, &context)) return;
@@ -6506,7 +6873,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (d == QChar('A')) {  // default argument N generator: 'fA' INDEX, wraps the preceding entity
             bool bOk = false;
             qint64 nIdx = swift_parseIndex(pI, &bOk);
-            if (!bOk) { pI->bErrored = true; return; }
+            if (!bOk) {
+                pI->bErrored = true;
+                return;
+            }
             SWNODE inner;
             if (!swift_pop(pI, &inner)) return;
             swift_push(pI, SWK_TYPE, QString("default argument %1 of ").arg(nIdx) + inner.sText);
@@ -6518,7 +6888,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
 
     if (c == QChar('Z')) {  // static : postfix on the just-produced entity
         pI->nPos++;
-        if (pI->stackNodes.isEmpty()) { pI->bErrored = true; return; }
+        if (pI->stackNodes.isEmpty()) {
+            pI->bErrored = true;
+            return;
+        }
         pI->stackNodes.last().sText.prepend("static ");
         return;
     }
@@ -6531,9 +6904,12 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (d == QChar('o')) sPrefix = "@objc ";
         else if (d == QChar('O')) sPrefix = "@nonobjc ";
         else if (d == QChar('m')) sPrefix = "merged ";
-        else if (d == QChar('j')) sPrefix = "dispatch thunk of ";       // 'Tj' dispatch thunk
-        else if (d == QChar('q')) sPrefix = "method descriptor for ";   // 'Tq' method descriptor
-        else { pI->bErrored = true; return; }
+        else if (d == QChar('j')) sPrefix = "dispatch thunk of ";      // 'Tj' dispatch thunk
+        else if (d == QChar('q')) sPrefix = "method descriptor for ";  // 'Tq' method descriptor
+        else {
+            pI->bErrored = true;
+            return;
+        }
         SWNODE inner;
         if (!swift_pop(pI, &inner)) return;
         swift_push(pI, SWK_TYPE, sPrefix + inner.sText);
@@ -6554,10 +6930,16 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         else if (d == QChar('f')) sDesc = "full type metadata for ";
         else if (d == QChar('m')) sDesc = "metaclass for ";
         else if (d == QChar('F')) sDesc = "reflection metadata field descriptor ";  // no "for"
-        else { pI->bErrored = true; return; }
+        else {
+            pI->bErrored = true;
+            return;
+        }
         SWNODE inner;
         if (!swift_pop(pI, &inner)) return;
-        if (inner.nKind != SWK_TYPE) { pI->bErrored = true; return; }
+        if (inner.nKind != SWK_TYPE) {
+            pI->bErrored = true;
+            return;
+        }
         swift_push(pI, SWK_TYPE, sDesc + inner.sText);
         return;
     }
@@ -6569,7 +6951,10 @@ void XDemangle::swift_demangleTop(SWIFTINFO *pI)
         if (d == QChar('V')) {  // 'WV' value witness table (WP/Wl conformance forms not modeled)
             SWNODE inner;
             if (!swift_pop(pI, &inner)) return;
-            if (inner.nKind != SWK_TYPE) { pI->bErrored = true; return; }
+            if (inner.nKind != SWK_TYPE) {
+                pI->bErrored = true;
+                return;
+            }
             swift_push(pI, SWK_TYPE, QString("value witness table for ") + inner.sText);
             return;
         }
@@ -7176,9 +7561,7 @@ qint32 XDemangle::dlang_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
         case 'C':
         case 'S':
         case 'E':
-        case 'T':
-            nPos++;
-            return dlang_parse_qualified(psDecl, nPos, pInfo, false);
+        case 'T': nPos++; return dlang_parse_qualified(psDecl, nPos, pInfo, false);
         case 'D': {
             nPos++;
             QString sMods;
@@ -7193,11 +7576,8 @@ qint32 XDemangle::dlang_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
             *psDecl += QString("delegate") + sMods;
             return nPos;
         }
-        case 'B':
-            nPos++;
-            return dlang_parse_tuple(psDecl, nPos, pInfo);
-        case 'Q':
-            return dlang_type_backref(psDecl, nPos, pInfo, false);
+        case 'B': nPos++; return dlang_parse_tuple(psDecl, nPos, pInfo);
+        case 'Q': return dlang_type_backref(psDecl, nPos, pInfo, false);
         case 'z':
             nPos++;
             if (watcom_charAt(pInfo->sMangled, nPos) == QChar('i')) {
@@ -7211,29 +7591,98 @@ qint32 XDemangle::dlang_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
                 return nPos;
             }
             return -1;
-        case 'n': nPos++; *psDecl += "none"; return nPos;
-        case 'v': nPos++; *psDecl += "void"; return nPos;
-        case 'g': nPos++; *psDecl += "byte"; return nPos;
-        case 'h': nPos++; *psDecl += "ubyte"; return nPos;
-        case 's': nPos++; *psDecl += "short"; return nPos;
-        case 't': nPos++; *psDecl += "ushort"; return nPos;
-        case 'i': nPos++; *psDecl += "int"; return nPos;
-        case 'k': nPos++; *psDecl += "uint"; return nPos;
-        case 'l': nPos++; *psDecl += "long"; return nPos;
-        case 'm': nPos++; *psDecl += "ulong"; return nPos;
-        case 'f': nPos++; *psDecl += "float"; return nPos;
-        case 'd': nPos++; *psDecl += "double"; return nPos;
-        case 'e': nPos++; *psDecl += "real"; return nPos;
-        case 'o': nPos++; *psDecl += "ifloat"; return nPos;
-        case 'p': nPos++; *psDecl += "idouble"; return nPos;
-        case 'j': nPos++; *psDecl += "ireal"; return nPos;
-        case 'q': nPos++; *psDecl += "cfloat"; return nPos;
-        case 'r': nPos++; *psDecl += "cdouble"; return nPos;
-        case 'c': nPos++; *psDecl += "creal"; return nPos;
-        case 'b': nPos++; *psDecl += "bool"; return nPos;
-        case 'a': nPos++; *psDecl += "char"; return nPos;
-        case 'u': nPos++; *psDecl += "wchar"; return nPos;
-        case 'w': nPos++; *psDecl += "dchar"; return nPos;
+        case 'n':
+            nPos++;
+            *psDecl += "none";
+            return nPos;
+        case 'v':
+            nPos++;
+            *psDecl += "void";
+            return nPos;
+        case 'g':
+            nPos++;
+            *psDecl += "byte";
+            return nPos;
+        case 'h':
+            nPos++;
+            *psDecl += "ubyte";
+            return nPos;
+        case 's':
+            nPos++;
+            *psDecl += "short";
+            return nPos;
+        case 't':
+            nPos++;
+            *psDecl += "ushort";
+            return nPos;
+        case 'i':
+            nPos++;
+            *psDecl += "int";
+            return nPos;
+        case 'k':
+            nPos++;
+            *psDecl += "uint";
+            return nPos;
+        case 'l':
+            nPos++;
+            *psDecl += "long";
+            return nPos;
+        case 'm':
+            nPos++;
+            *psDecl += "ulong";
+            return nPos;
+        case 'f':
+            nPos++;
+            *psDecl += "float";
+            return nPos;
+        case 'd':
+            nPos++;
+            *psDecl += "double";
+            return nPos;
+        case 'e':
+            nPos++;
+            *psDecl += "real";
+            return nPos;
+        case 'o':
+            nPos++;
+            *psDecl += "ifloat";
+            return nPos;
+        case 'p':
+            nPos++;
+            *psDecl += "idouble";
+            return nPos;
+        case 'j':
+            nPos++;
+            *psDecl += "ireal";
+            return nPos;
+        case 'q':
+            nPos++;
+            *psDecl += "cfloat";
+            return nPos;
+        case 'r':
+            nPos++;
+            *psDecl += "cdouble";
+            return nPos;
+        case 'c':
+            nPos++;
+            *psDecl += "creal";
+            return nPos;
+        case 'b':
+            nPos++;
+            *psDecl += "bool";
+            return nPos;
+        case 'a':
+            nPos++;
+            *psDecl += "char";
+            return nPos;
+        case 'u':
+            nPos++;
+            *psDecl += "wchar";
+            return nPos;
+        case 'w':
+            nPos++;
+            *psDecl += "dchar";
+            return nPos;
         default: return -1;
     }
 }
@@ -7591,9 +8040,7 @@ qint32 XDemangle::dlang_value(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, co
         case '6':
         case '7':
         case '8':
-        case '9':
-            nPos = dlang_parse_integer(psDecl, nPos, pInfo, cType);
-            break;
+        case '9': nPos = dlang_parse_integer(psDecl, nPos, pInfo, cType); break;
         case 'e':
             nPos++;
             nPos = dlang_parse_real(psDecl, nPos, pInfo);
@@ -7611,9 +8058,7 @@ qint32 XDemangle::dlang_value(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, co
             break;
         case 'a':
         case 'w':
-        case 'd':
-            nPos = dlang_parse_string(psDecl, nPos, pInfo);
-            break;
+        case 'd': nPos = dlang_parse_string(psDecl, nPos, pInfo); break;
         case 'A':
             nPos++;
             if (cType == QChar('H')) {
@@ -7626,8 +8071,7 @@ qint32 XDemangle::dlang_value(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, co
             nPos++;
             nPos = dlang_parse_structlit(psDecl, nPos, pInfo, sName);
             break;
-        default:
-            return -1;
+        default: return -1;
     }
 
     return nPos;
@@ -8517,34 +8961,22 @@ void XDemangle::rust_demangle_const(RUSTINFO *pR)
     QChar cTag = rust_next(pR);
 
     switch (cTag.unicode()) {
-        case 'p':
-            rust_print_str(pR, "_");
-            return;
+        case 'p': rust_print_str(pR, "_"); return;
         case 'h':
         case 't':
         case 'm':
         case 'y':
         case 'o':
-        case 'j':
-            rust_demangle_const_uint(pR, cTag);
-            break;
+        case 'j': rust_demangle_const_uint(pR, cTag); break;
         case 'a':
         case 's':
         case 'l':
         case 'x':
         case 'n':
-        case 'i':
-            rust_demangle_const_int(pR, cTag);
-            break;
-        case 'b':
-            rust_demangle_const_bool(pR);
-            break;
-        case 'c':
-            rust_demangle_const_char(pR);
-            break;
-        default:
-            pR->bErrored = true;
-            return;
+        case 'i': rust_demangle_const_int(pR, cTag); break;
+        case 'b': rust_demangle_const_bool(pR); break;
+        case 'c': rust_demangle_const_char(pR); break;
+        default: pR->bErrored = true; return;
     }
 
     if (pR->bErrored) {
@@ -8812,9 +9244,7 @@ void XDemangle::rust_demangle_path(RUSTINFO *pR, bool bInValue)
             }
             break;
         }
-        default:
-            pR->bErrored = true;
-            return;
+        default: pR->bErrored = true; return;
     }
 }
 
@@ -8898,7 +9328,10 @@ QString XDemangle::rust_demangle(const QString &sString)
                 qint32 nv = -1;
                 if ((hc >= QChar('0')) && (hc <= QChar('9'))) nv = hc.unicode() - '0';
                 else if ((hc >= QChar('a')) && (hc <= QChar('f'))) nv = hc.unicode() - 'a' + 10;
-                else { bAllHex = false; break; }
+                else {
+                    bAllHex = false;
+                    break;
+                }
                 nNibbleSet |= (1u << nv);
             }
             if (bAllHex) {
@@ -10071,27 +10504,27 @@ QMap<QString, quint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("$na", OP_ARRAYNEW);
         mapResult.insert("$da", OP_ARRAYDELETE);
         // Arithmetic / unary / misc (operatorFunction table, index a..u)
-        mapResult.insert("$oa", OP_RIGHTSHIFT);        // operator>>
-        mapResult.insert("$ob", OP_LEFTSHIFT);         // operator<<
-        mapResult.insert("$oc", OP_LOGICALNOT);        // operator!
-        mapResult.insert("$od", OP_ARRAYSUBSCRIPT);    // operator[]
-        mapResult.insert("$oe", OP_POINTER);           // operator->
-        mapResult.insert("$of", OP_DEREFERENCE);       // operator*
-        mapResult.insert("$og", OP_INCREMENT);         // operator++
-        mapResult.insert("$oh", OP_DECREMENT);         // operator--
-        mapResult.insert("$oi", OP_MINUS);             // operator-
-        mapResult.insert("$oj", OP_PLUS);              // operator+
-        mapResult.insert("$ok", OP_BITWISEAND);        // operator&
-        mapResult.insert("$ol", OP_MEMBERPOINTER);     // operator->*
-        mapResult.insert("$om", OP_DIVIDE);            // operator/
-        mapResult.insert("$on", OP_MODULUS);           // operator%
-        mapResult.insert("$oo", OP_COMMA);             // operator,
-        mapResult.insert("$op", OP_PARENS);            // operator()
-        mapResult.insert("$oq", OP_BITWISENOT);        // operator~
-        mapResult.insert("$or", OP_BITWISEXOR);        // operator^
-        mapResult.insert("$os", OP_BITWISEOR);         // operator|
-        mapResult.insert("$ot", OP_LOGICALAND);        // operator&&
-        mapResult.insert("$ou", OP_LOGICALOR);         // operator||
+        mapResult.insert("$oa", OP_RIGHTSHIFT);      // operator>>
+        mapResult.insert("$ob", OP_LEFTSHIFT);       // operator<<
+        mapResult.insert("$oc", OP_LOGICALNOT);      // operator!
+        mapResult.insert("$od", OP_ARRAYSUBSCRIPT);  // operator[]
+        mapResult.insert("$oe", OP_POINTER);         // operator->
+        mapResult.insert("$of", OP_DEREFERENCE);     // operator*
+        mapResult.insert("$og", OP_INCREMENT);       // operator++
+        mapResult.insert("$oh", OP_DECREMENT);       // operator--
+        mapResult.insert("$oi", OP_MINUS);           // operator-
+        mapResult.insert("$oj", OP_PLUS);            // operator+
+        mapResult.insert("$ok", OP_BITWISEAND);      // operator&
+        mapResult.insert("$ol", OP_MEMBERPOINTER);   // operator->*
+        mapResult.insert("$om", OP_DIVIDE);          // operator/
+        mapResult.insert("$on", OP_MODULUS);         // operator%
+        mapResult.insert("$oo", OP_COMMA);           // operator,
+        mapResult.insert("$op", OP_PARENS);          // operator()
+        mapResult.insert("$oq", OP_BITWISENOT);      // operator~
+        mapResult.insert("$or", OP_BITWISEXOR);      // operator^
+        mapResult.insert("$os", OP_BITWISEOR);       // operator|
+        mapResult.insert("$ot", OP_LOGICALAND);      // operator&&
+        mapResult.insert("$ou", OP_LOGICALOR);       // operator||
         // Relational (relationalFunction table, index a..f)
         mapResult.insert("$ra", OP_EQUALS);            // operator==
         mapResult.insert("$rb", OP_NOTEQUALS);         // operator!=
@@ -10100,17 +10533,17 @@ QMap<QString, quint32> XDemangle::getOperators(XDemangle::MODE mode)
         mapResult.insert("$re", OP_GREATERTHAN);       // operator>
         mapResult.insert("$rf", OP_GREATERTHANEQUAL);  // operator>=
         // Assignment (assignmentFunction table, index a..k)
-        mapResult.insert("$aa", OP_ASSIGN);            // operator=
-        mapResult.insert("$ab", OP_TIMESEQUAL);        // operator*=
-        mapResult.insert("$ac", OP_PLUSEQUAL);         // operator+=
-        mapResult.insert("$ad", OP_MINUSEQUAL);        // operator-=
-        mapResult.insert("$ae", OP_DIVEQUAL);          // operator/=
-        mapResult.insert("$af", OP_MODEQUAL);          // operator%=
-        mapResult.insert("$ag", OP_RSHEQUAL);          // operator>>=
-        mapResult.insert("$ah", OP_LSHEQUAL);          // operator<<=
-        mapResult.insert("$ai", OP_BITWISEANDEQUAL);   // operator&=
-        mapResult.insert("$aj", OP_BITWISEOREQUAL);    // operator|=
-        mapResult.insert("$ak", OP_BITWISEXOREQUAL);   // operator^=
+        mapResult.insert("$aa", OP_ASSIGN);           // operator=
+        mapResult.insert("$ab", OP_TIMESEQUAL);       // operator*=
+        mapResult.insert("$ac", OP_PLUSEQUAL);        // operator+=
+        mapResult.insert("$ad", OP_MINUSEQUAL);       // operator-=
+        mapResult.insert("$ae", OP_DIVEQUAL);         // operator/=
+        mapResult.insert("$af", OP_MODEQUAL);         // operator%=
+        mapResult.insert("$ag", OP_RSHEQUAL);         // operator>>=
+        mapResult.insert("$ah", OP_LSHEQUAL);         // operator<<=
+        mapResult.insert("$ai", OP_BITWISEANDEQUAL);  // operator&=
+        mapResult.insert("$aj", OP_BITWISEOREQUAL);   // operator|=
+        mapResult.insert("$ak", OP_BITWISEXOREQUAL);  // operator^=
     }
 
     return mapResult;
