@@ -4221,7 +4221,7 @@ QString XDemangle::haskell_demangle(const QString &sString)
                     if (n <= 0xFFFF) {
                         sResult += QChar((char16_t)n);
                     } else {
-                        uint cp = (uint)n;
+                        char32_t cp = (char32_t)n;
                         sResult += QString::fromUcs4(&cp, 1);
                     }
                     i = j + 1;
@@ -8690,7 +8690,7 @@ void XDemangle::rust_print_ident(RUSTINFO *pR, const RUSTIDENT &ident)
 
     QString sResult;
     for (qint32 k = 0; k < listCps.size(); k++) {
-        uint cp = listCps.at(k);
+        char32_t cp = (char32_t)listCps.at(k);
         if (cp <= 0xFFFF) {
             sResult += QChar((char16_t)cp);
         } else {
