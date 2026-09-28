@@ -19,6 +19,22 @@
  * SOFTWARE.
  */
 #include "xdemangle.h"
+#include <limits>
+
+namespace {
+struct XDemangleParseDepthGuard {
+    quint32 &depth;
+    bool allowed;
+    explicit XDemangleParseDepthGuard(quint32 &value) : depth(value), allowed(value < 128)
+    {
+        if (allowed) ++depth;
+    }
+    ~XDemangleParseDepthGuard()
+    {
+        if (allowed) --depth;
+    }
+};
+}
 
 XDemangle::XDemangle(QObject *pParent) : QObject(pParent)
 {
@@ -603,6 +619,11 @@ qint32 XDemangle::ms_demangle_LocalStaticGuard(XDemangle::DSYMBOL *pSymbol, XDem
 
 qint32 XDemangle::ms_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, MSDT msdt)
 {
+    XDemangleParseDepthGuard depthGuard(pHdata->nParserDepth);
+    if (!depthGuard.allowed || !pSymbol->bIsValid) {
+        pSymbol->bIsValid = false;
+        return 0;
+    }
     QString _sString = sString;
     qint32 nResult = 0;
 
@@ -978,11 +999,18 @@ qint32 XDemangle::ms_demangle_UnkSymbolName(XDemangle::DSYMBOL *pSymbol, XDemang
 
 qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, DPARAMETER *pParameter, const QString &sString)
 {
+    XDemangleParseDepthGuard depthGuard(pHdata->nParserDepth);
+    if (!depthGuard.allowed || !pSymbol->bIsValid) {
+        pSymbol->bIsValid = false;
+        return 0;
+    }
     QString _sString = sString;
 
     qint32 nResult = 0;
+    bool bTerminated = false;
 
     while (_sString != "") {
+        qint32 nPreviousSize = _sString.size();
         if (isReplaceStringPresent(pSymbol, pHdata, _sString)) {
             SIGNATURE signature = getReplaceStringSignature(pSymbol, pHdata, _sString);
             // TODO Error empty String
@@ -1043,12 +1071,21 @@ qint32 XDemangle::ms_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::
             nResult += 1;
             _sString = _sString.mid(1, -1);
 
+            bTerminated = true;
             break;
+        }
+
+        if (_sString.size() == nPreviousSize) {
+            pSymbol->bIsValid = false;
         }
 
         if (!(pSymbol->bIsValid)) {
             break;
         }
+    }
+
+    if (!bTerminated) {
+        pSymbol->bIsValid = false;
     }
 
     return nResult;
@@ -1253,6 +1290,8 @@ qint32 XDemangle::ms_demangle_FunctionType(XDemangle::DSYMBOL *pSymbol, XDemangl
 
         nResult += 2;
         _sString = _sString.mid(2, -1);
+    } else {
+        pSymbol->bIsValid = false;  // A function encoding must end in its exception-specification marker.
     }
 
     return nResult;
@@ -1262,6 +1301,7 @@ qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XD
 {
     QString _sString = sString;
     qint32 nResult = 0;
+    bool bTerminated = false;
 
     while (_sString != "") {
         bool bBreak = false;
@@ -1270,6 +1310,7 @@ qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XD
             _sString = _sString.mid(1, -1);
             nResult += 1;
 
+            bTerminated = true;
             break;
         } else if (_compare(_sString, "Z")) {
             bBreak = true;
@@ -1301,12 +1342,17 @@ qint32 XDemangle::ms_demangle_FunctionParameters(XDemangle::DSYMBOL *pSymbol, XD
         }
 
         if (bBreak) {
+            bTerminated = pSymbol->bIsValid;
             break;
         }
 
         if (!(pSymbol->bIsValid)) {
             break;
         }
+    }
+
+    if (!bTerminated) {
+        pSymbol->bIsValid = false;
     }
 
     return nResult;
@@ -1433,6 +1479,11 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
 
             NUMBER number = readNumber(pHdata, _sString, pSymbol->mode);
 
+            if (!number.nSize) {
+                pSymbol->bIsValid = false;
+                break;
+            }
+
             DPARAMETER parameter = {};
 
             parameter.st = ST_CONST;
@@ -1461,6 +1512,8 @@ qint32 XDemangle::ms_demangle_TemplateParameters(XDemangle::DSYMBOL *pSymbol, XD
     if (_compare(_sString, "@")) {
         _sString = _sString.mid(1, -1);
         nResult += 1;
+    } else {
+        pSymbol->bIsValid = false;
     }
 
     return nResult;
@@ -1693,7 +1746,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pS
     }
 
     if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_MICROSOFT) {
-        if ((nIndex != -1) && (nIndex < pHdata->listStringRef.count())) {
+        if ((nIndex >= 0) && (nIndex < pHdata->listStringRef.count())) {
             result.sString = pHdata->listStringRef.at(nIndex);
         } else {
             pSymbol->bIsValid = false;
@@ -1702,7 +1755,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceStringSignature(XDemangle::DSYMBOL *pS
 #endif
         }
     } else if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_ITANIUM) {
-        if ((nIndex != -1) && (nIndex < pHdata->listListStringRef.count())) {
+        if ((nIndex >= 0) && (nIndex < pHdata->listListStringRef.count())) {
             result.listStrings = pHdata->listListStringRef.at(nIndex);
         } else {
             pSymbol->bIsValid = false;
@@ -1751,7 +1804,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
     }
 
     if (getSyntaxFromMode(pSymbol->mode) == SYNTAX_MICROSOFT) {
-        if (nIndex < pHdata->listArgRef.count()) {
+        if (nIndex >= 0 && nIndex < pHdata->listArgRef.count()) {
             result.sString = pHdata->listArgRef.at(nIndex);
             result.nValue = nIndex;
         } else {
@@ -1770,7 +1823,7 @@ XDemangle::SIGNATURE XDemangle::getReplaceArgSignature(XDemangle::DSYMBOL *pSymb
         // active context.
         if (pHdata->listListTemplates.count()) {
             qint32 nCount = pHdata->listListTemplates.last().count();
-            bSuccess = (nIndex < nCount);
+            bSuccess = (nIndex >= 0 && nIndex < nCount);
         }
 
         if (bSuccess) {
@@ -2427,6 +2480,11 @@ qint32 XDemangle::itanium_demangle_Encoding(XDemangle::DSYMBOL *pSymbol, XDemang
 
 qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    XDemangleParseDepthGuard depthGuard(pHdata->nParserDepth);
+    if (!depthGuard.allowed || !pSymbol->bIsValid) {
+        pSymbol->bIsValid = false;
+        return 0;
+    }
     QString _sString = sString;
     qint32 nResult = 0;
 
@@ -2446,6 +2504,9 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
         if (_compare(_sString, "E")) {
             nResult++;
             _sString = _sString.mid(1, -1);
+        } else {
+            pSymbol->bIsValid = false;
+            return nResult;
         }
 
         QString sInner;
@@ -2512,6 +2573,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
     }
 
     bool bNested = false;
+    bool bNestedTerminated = false;
 
     if (_compare(_sString, "N")) {
         nResult++;
@@ -2659,6 +2721,8 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
 
             STRING string = readString(pHdata, _sString, pSymbol->mode);
 
+            if (!string.nSize) pSymbol->bIsValid = false;
+
             dname.sName += QString("[abi:%1]").arg(string.sString);
 
             nResult += string.nSize;
@@ -2671,6 +2735,7 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
             nResult++;
             _sString = _sString.mid(1, -1);
 
+            bNestedTerminated = true;
             break;
         } else if ((!bNested) && (!bSpecial)) {
             break;
@@ -2685,11 +2750,13 @@ qint32 XDemangle::itanium_demangle_NameScope(XDemangle::DSYMBOL *pSymbol, XDeman
         }
     }
 
+    if (bNested && !bNestedTerminated) pSymbol->bIsValid = false;
+
     return nResult;
 }
 
 qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString,
-                                            bool bReturn)
+                                            bool bReturn, bool bRequireEnd)
 {
     QString _sString = sString;
     qint32 nResult = 0;
@@ -2713,7 +2780,7 @@ qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemang
         _sString = _sString.mid(nRSize, -1);
     }
 
-    qint32 nFSize = itanium_demangle_Parameters(pSymbol, pHdata, pParameter, _sString);
+    qint32 nFSize = itanium_demangle_Parameters(pSymbol, pHdata, pParameter, _sString, bRequireEnd);
 
     nResult += nFSize;
     _sString = _sString.mid(nFSize, -1);
@@ -2721,15 +2788,23 @@ qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemang
     return nResult;
 }
 
-qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
+qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString,
+                                            bool bRequireEnd)
 {
     QString _sString = sString;
     qint32 nResult = 0;
+    bRequireEnd = bRequireEnd || pParameter->st == ST_TEMPLATE;
+    bool bTerminated = false;
 
     while (_sString != "") {
         // Empty parameter list (e.g. the outer encoding of a local name "Z <encoding> E ..."):
         // stop before consuming the terminator that belongs to the enclosing construct.
         if (_compare(_sString, "E")) {
+            if (bRequireEnd) {
+                ++nResult;
+                _sString = _sString.mid(1, -1);
+                bTerminated = true;
+            }
             break;
         }
 
@@ -2756,8 +2831,11 @@ qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDema
         }
 
         if (_compare(_sString, "E")) {
-            nResult++;
-            _sString = _sString.mid(1, -1);
+            if (bRequireEnd) {
+                nResult++;
+                _sString = _sString.mid(1, -1);
+                bTerminated = true;
+            }
 
             break;
         }
@@ -2767,11 +2845,18 @@ qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDema
         }
     }
 
+    if (bRequireEnd && !bTerminated) pSymbol->bIsValid = false;
+
     return nResult;
 }
 
 qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString)
 {
+    XDemangleParseDepthGuard depthGuard(pHdata->nParserDepth);
+    if (!depthGuard.allowed || !pSymbol->bIsValid) {
+        pSymbol->bIsValid = false;
+        return 0;
+    }
     QString _sString = sString;
     qint32 nResult = 0;
 
@@ -2849,7 +2934,7 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
 
         pParameter->st = ST_FUNCTION;
 
-        qint32 nFSize = itanium_demangle_Function(pSymbol, pHdata, pParameter, _sString, true);
+        qint32 nFSize = itanium_demangle_Function(pSymbol, pHdata, pParameter, _sString, true, true);
 
         nResult += nFSize;
         _sString = _sString.mid(nFSize, -1);
@@ -2882,19 +2967,7 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
         nResult += 1;
         _sString = _sString.mid(1, -1);
 
-        qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
-
-        if (nNSSize) {
-            nResult += nNSSize;
-            _sString = _sString.mid(nNSSize, -1);
-
-            NUMBER number = readNumberS(pHdata, _sString, pSymbol->mode);
-
-            pParameter->varConst = number.nValue;
-
-            nResult += number.nSize;
-            _sString = _sString.mid(number.nSize, -1);
-        } else if (isSignaturePresent(_sString, &(pHdata->mapTypes))) {
+        if (isSignaturePresent(_sString, &(pHdata->mapTypes))) {
             SIGNATURE signature = getSignature(_sString, &(pHdata->mapTypes));
 
             pParameter->typeConst = (XTYPE)signature.nValue;
@@ -2902,24 +2975,24 @@ qint32 XDemangle::itanium_demangle_Type(XDemangle::DSYMBOL *pSymbol, XDemangle::
             nResult += signature.nSize;
             _sString = _sString.mid(signature.nSize, -1);
 
-            NUMBER number = readNumberS(pHdata, _sString, pSymbol->mode);
-
-            pParameter->varConst = number.nValue;
-
-            nResult += number.nSize;
-            _sString = _sString.mid(number.nSize, -1);
-
-            pSymbol->bIsValid = true;
         } else {
-#ifdef QT_DEBUG
-            qDebug("TODO: unknown const %s", _sString.toLatin1().data());
-#endif
-            pSymbol->bIsValid = false;
+            qint32 nNSSize = itanium_demangle_NameScope(pSymbol, pHdata, pParameter, _sString);
+            nResult += nNSSize;
+            _sString = _sString.mid(nNSSize, -1);
+            if (!nNSSize) pSymbol->bIsValid = false;
         }
+
+        NUMBER number = readNumberS(pHdata, _sString, pSymbol->mode);
+        if (!number.nSize) pSymbol->bIsValid = false;
+        pParameter->varConst = number.nValue;
+        nResult += number.nSize;
+        _sString = _sString.mid(number.nSize, -1);
 
         if (_compare(_sString, "E")) {
             nResult += 1;
             _sString = _sString.mid(1, -1);
+        } else {
+            pSymbol->bIsValid = false;
         }
     } else if (_compare(_sString, "X")) {
         nResult += 1;
@@ -3241,6 +3314,11 @@ qint32 XDemangle::borland_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DP
 
 qint32 XDemangle::borland_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString)
 {
+    XDemangleParseDepthGuard depthGuard(pHdata->nParserDepth);
+    if (!depthGuard.allowed || !pSymbol->bIsValid) {
+        pSymbol->bIsValid = false;
+        return 0;
+    }
     QString _sString = sString;
 
     qint32 nResult = 0;
@@ -3426,12 +3504,18 @@ XDemangle::DSYMBOL XDemangle::watcom_getSymbol(const QString &sString, XDemangle
 
     result.nSize = nPos;
     result.sResult = sFull;
+    result.bIsValid = nPos == sString.size();
 
     return result;
 }
 
 QString XDemangle::watcom_parseScopedName(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString, qint32 *pnPos, bool bAllowOperator)
 {
+    XDemangleParseDepthGuard depthGuard(pHdata->nParserDepth);
+    if (!depthGuard.allowed || !pSymbol->bIsValid) {
+        pSymbol->bIsValid = false;
+        return "";
+    }
     QList<QString> listChain;
     OP _operator = OP_UNKNOWN;
     bool bOperatorLike = false;
@@ -3580,6 +3664,10 @@ QString XDemangle::watcom_parseTemplateArgs(DSYMBOL *pSymbol, HDATA *pHdata, con
             *pnPos += 1;
 
             qint64 nValue = watcom_parseBase32(sString, pnPos);
+            if (nValue < 0) {
+                pSymbol->bIsValid = false;
+                break;
+            }
             QChar cTerm = watcom_charAt(sString, *pnPos);
 
             if (cTerm == QChar('z')) {  // positive
@@ -3602,6 +3690,8 @@ QString XDemangle::watcom_parseTemplateArgs(DSYMBOL *pSymbol, HDATA *pHdata, con
 
 QString XDemangle::watcom_parseType(DSYMBOL *pSymbol, HDATA *pHdata, const QString &sString, qint32 *pnPos, const QString &sCore)
 {
+    XDemangleParseDepthGuard depthGuard(pHdata->nParserDepth);
+    if (!depthGuard.allowed) pSymbol->bIsValid = false;
     if (!pSymbol->bIsValid) {
         return sCore;
     }
@@ -3651,7 +3741,12 @@ QString XDemangle::watcom_parseType(DSYMBOL *pSymbol, HDATA *pHdata, const QStri
             QString sDim;
 
             if (watcom_charAt(sString, *pnPos) != QChar(']')) {
-                sDim = QString::number(watcom_parseBase10(sString, pnPos));
+                qint64 nDimension = watcom_parseBase10(sString, pnPos);
+                if (nDimension < 0) {
+                    pSymbol->bIsValid = false;
+                    return sCore;
+                }
+                sDim = QString::number(nDimension);
             }
 
             if (watcom_charAt(sString, *pnPos) == QChar(']')) {
@@ -3772,6 +3867,7 @@ QString XDemangle::watcom_parseType(DSYMBOL *pSymbol, HDATA *pHdata, const QStri
 qint64 XDemangle::watcom_parseBase32(const QString &sString, qint32 *pnPos)
 {
     qint64 nValue = 0;
+    qint32 nStart = *pnPos;
 
     while (true) {
         qint32 nDigit = watcom_charToDigit(watcom_charAt(sString, *pnPos));
@@ -3780,16 +3876,18 @@ qint64 XDemangle::watcom_parseBase32(const QString &sString, qint32 *pnPos)
             break;
         }
 
+        if (nValue > ((std::numeric_limits<qint64>::max)() - nDigit) / 32) return -1;
         nValue = nValue * 32 + nDigit;
         *pnPos += 1;
     }
 
-    return nValue;
+    return *pnPos == nStart ? -1 : nValue;
 }
 
 qint64 XDemangle::watcom_parseBase10(const QString &sString, qint32 *pnPos)
 {
     qint64 nValue = 0;
+    qint32 nStart = *pnPos;
 
     while (true) {
         QChar c = watcom_charAt(sString, *pnPos);
@@ -3798,11 +3896,13 @@ qint64 XDemangle::watcom_parseBase10(const QString &sString, qint32 *pnPos)
             break;
         }
 
-        nValue = nValue * 10 + (qint32)(c.unicode() - '0');
+        qint32 nDigit = (qint32)(c.unicode() - '0');
+        if (nValue > ((std::numeric_limits<qint64>::max)() - nDigit) / 10) return -1;
+        nValue = nValue * 10 + nDigit;
         *pnPos += 1;
     }
 
-    return nValue;
+    return *pnPos == nStart ? -1 : nValue;
 }
 
 QChar XDemangle::watcom_charAt(const QString &sString, qint32 nPos)
@@ -4035,6 +4135,10 @@ bool XDemangle::gnat_demangleName(const QString &sMangled, QString *psResult)
                 return false;
             }
 
+            if (watcom_charAt(sMangled, p + 2) != QChar('\0')) {
+                return false;
+            }
+
             d += sName;
             break;
         }
@@ -4067,7 +4171,7 @@ bool XDemangle::gnat_demangleName(const QString &sMangled, QString *psResult)
                     for (qint32 k = 0; special[k][0] != nullptr; k++) {
                         QString sSpecial = QString(special[k][0]);
 
-                        if (sMangled.mid(p).startsWith(sSpecial)) {
+                        if (sMangled.mid(p) == sSpecial) {
                             p += sSpecial.size();
                             d += QString(special[k][1]);
                             bFound = true;
@@ -4165,7 +4269,11 @@ QString XDemangle::haskell_demangle(const QString &sString)
                 qint64 n = 0;
 
                 while ((j < nLen) && (sString.at(j) >= QChar('0')) && (sString.at(j) <= QChar('9'))) {
-                    n = n * 10 + (sString.at(j).unicode() - '0');
+                    qint32 nDigit = sString.at(j).unicode() - '0';
+                    if (n > (4096 - nDigit) / 10) {
+                        return QString();  // bound tuple expansion and reject overflow
+                    }
+                    n = n * 10 + nDigit;
                     j++;
                 }
 
@@ -4213,11 +4321,17 @@ QString XDemangle::haskell_demangle(const QString &sString)
                 while (j < nLen) {
                     qint32 hv = watcom_charToDigit(sString.at(j));
                     if ((hv < 0) || (hv >= 16)) break;
+                    if (n > (0x10FFFF - hv) / 16) {
+                        return QString();
+                    }
                     n = n * 16 + hv;
                     j++;
                 }
 
                 if ((j < nLen) && (sString.at(j) == QChar('U'))) {
+                    if ((n == 0) || ((n >= 0xD800) && (n <= 0xDFFF))) {
+                        return QString();  // not a printable Unicode scalar
+                    }
                     if (n <= 0xFFFF) {
                         sResult += QChar((char16_t)n);
                     } else {
@@ -4347,12 +4461,18 @@ QString XDemangle::go_demangle(const QString &sString)
             sResult += QChar('/');
             i++;
         } else if ((c == QChar('%')) && (i + 2 < sString.size())) {
-            qint32 hi = watcom_charToDigit(sString.at(i + 1));
-            qint32 lo = watcom_charToDigit(sString.at(i + 2));
-
-            if ((hi >= 0) && (hi < 16) && (lo >= 0) && (lo < 16)) {
-                sResult += QChar((char16_t)((hi << 4) | lo));
+            QByteArray bytes;
+            while ((i + 2 < sString.size()) && (sString.at(i) == QChar('%'))) {
+                qint32 hi = watcom_charToDigit(sString.at(i + 1));
+                qint32 lo = watcom_charToDigit(sString.at(i + 2));
+                if ((hi < 0) || (hi >= 16) || (lo < 0) || (lo >= 16)) break;
+                bytes.append((char)((hi << 4) | lo));
                 i += 3;
+            }
+            if (!bytes.isEmpty()) {
+                QString decoded = QString::fromUtf8(bytes);
+                if (decoded.toUtf8() != bytes || decoded.contains(QChar('\0'))) return QString();
+                sResult += decoded;
             } else {
                 sResult += c;
                 i++;
@@ -4373,6 +4493,32 @@ QString XDemangle::go_demangle(const QString &sString)
 // `decl` string (prepended/appended), then the base type is read into `result`
 // and combined as `result + " " + decl`. All-or-nothing: unparsable => raw.
 
+class XDemangleGNU2Scope {
+public:
+    XDemangleGNU2Scope(qint32 *pnDepth, qint32 *pnSteps, bool *pbErrored) : pDepth(pnDepth), bEntered(false)
+    {
+        if (!*pbErrored && *pnDepth < 128 && *pnSteps < 200000) {
+            ++*pnDepth;
+            ++*pnSteps;
+            bEntered = true;
+        } else *pbErrored = true;
+    }
+    ~XDemangleGNU2Scope() { if (bEntered) --*pDepth; }
+    bool isValid() const { return bEntered; }
+private:
+    qint32 *pDepth;
+    bool bEntered;
+};
+
+static bool gnu2_appendBounded(QStringList *pList, const QString &sValue, qint64 *pnLength)
+{
+    const qint64 nAdded = sValue.size() + (pList->isEmpty() ? 0 : 2);
+    if (pList->size() >= 1024 || nAdded > 1048576 - *pnLength) return false;
+    pList->append(sValue);
+    *pnLength += nAdded;
+    return true;
+}
+
 qint64 XDemangle::gnu2_consumeCount(const QString &sM, qint32 *pnPos, bool *pbOk)
 {
     QChar c = watcom_charAt(sM, *pnPos);
@@ -4384,7 +4530,12 @@ qint64 XDemangle::gnu2_consumeCount(const QString &sM, qint32 *pnPos, bool *pbOk
     while (true) {
         c = watcom_charAt(sM, *pnPos);
         if (!((c >= QChar('0')) && (c <= QChar('9')))) break;
-        n = n * 10 + (c.unicode() - '0');
+        qint64 nDigit = c.unicode() - '0';
+        if (n > ((std::numeric_limits<qint64>::max)() - nDigit) / 10) {
+            *pbOk = false;
+            return -1;
+        }
+        n = n * 10 + nDigit;
         *pnPos += 1;
     }
     *pbOk = true;
@@ -4495,6 +4646,8 @@ bool XDemangle::gnu2_integralValue(GNU2INFO *pI, QString *psResult)
 
 bool XDemangle::gnu2_fundType(GNU2INFO *pI, QString *psResult)
 {
+    XDemangleGNU2Scope scope(&pI->nDepth, &pI->nSteps, &pI->bErrored);
+    if (!scope.isValid()) return false;
     QString result;
     bool done = false;
 
@@ -4553,7 +4706,7 @@ bool XDemangle::gnu2_fundType(GNU2INFO *pI, QString *psResult)
     if ((c >= QChar('0')) && (c <= QChar('9'))) {  // explicit class name <len><name>
         bool bOk = false;
         qint64 nLen = gnu2_consumeCount(pI->sMangled, &(pI->nPos), &bOk);
-        if (!bOk || (pI->nPos + (qint32)nLen > pI->sMangled.size())) return false;
+        if (!bOk || nLen <= 0 || nLen > pI->sMangled.size() - pI->nPos) return false;
         QString sName = pI->sMangled.mid(pI->nPos, (qint32)nLen);
         pI->nPos += (qint32)nLen;
         if (!result.isEmpty()) result += " ";
@@ -4577,37 +4730,41 @@ bool XDemangle::gnu2_fundType(GNU2INFO *pI, QString *psResult)
 
 bool XDemangle::gnu2_template(GNU2INFO *pI, QString *psResult, QString *psBareName)
 {
+    XDemangleGNU2Scope scope(&pI->nDepth, &pI->nSteps, &pI->bErrored);
+    if (!scope.isValid()) return false;
     if (watcom_charAt(pI->sMangled, pI->nPos) != QChar('t')) return false;
     pI->nPos++;
 
     bool bOk = false;
     qint64 nLen = gnu2_consumeCount(pI->sMangled, &(pI->nPos), &bOk);
-    if (!bOk || (pI->nPos + (qint32)nLen > pI->sMangled.size())) return false;
+    if (!bOk || nLen <= 0 || nLen > pI->sMangled.size() - pI->nPos) return false;
     QString sName = pI->sMangled.mid(pI->nPos, (qint32)nLen);
     pI->nPos += (qint32)nLen;
 
     qint64 nArgs = gnu2_getCount(pI->sMangled, &(pI->nPos), &bOk);
-    if (!bOk) return false;
+    if (!bOk || nArgs < 0 || nArgs > 1024) return false;
 
     QStringList slArgs;
+    qint64 nLength = 0;
     for (qint64 i = 0; i < nArgs; i++) {
         QChar c = watcom_charAt(pI->sMangled, pI->nPos);
         if (c == QChar('Z')) {  // type argument
             pI->nPos++;
             QString sType;
             if (!gnu2_type(pI, &sType)) return false;
-            slArgs.append(sType);
+            if (!gnu2_appendBounded(&slArgs, sType, &nLength)) return false;
         } else {  // value argument: <param-type> <literal>
             QString sType;
             if (!gnu2_type(pI, &sType)) return false;  // the parameter type (not printed)
             QString sVal;
             if (!gnu2_integralValue(pI, &sVal)) return false;
-            slArgs.append(sVal);
+            if (!gnu2_appendBounded(&slArgs, sVal, &nLength)) return false;
         }
     }
 
     QString sJoined = slArgs.join(", ");
     QString sSpace = sJoined.endsWith(">") ? QString(" ") : QString("");
+    if (sName.size() + sJoined.size() + sSpace.size() + 2 > 1048576) return false;
     *psResult = sName + QString("<") + sJoined + sSpace + QString(">");
     if (psBareName) *psBareName = sName;
     return true;
@@ -4615,6 +4772,8 @@ bool XDemangle::gnu2_template(GNU2INFO *pI, QString *psResult, QString *psBareNa
 
 bool XDemangle::gnu2_qualified(GNU2INFO *pI, QString *psResult, QString *psLastName)
 {
+    XDemangleGNU2Scope scope(&pI->nDepth, &pI->nSteps, &pI->bErrored);
+    if (!scope.isValid()) return false;
     if ((watcom_charAt(pI->sMangled, pI->nPos) != QChar('Q'))) return false;
     pI->nPos++;
 
@@ -4624,7 +4783,8 @@ bool XDemangle::gnu2_qualified(GNU2INFO *pI, QString *psResult, QString *psLastN
         pI->nPos++;  // Q _ <count> _ ...  (for count >= 10)
         nCount = gnu2_consumeCount(pI->sMangled, &(pI->nPos), &bOk);
         if (!bOk) return false;
-        if (watcom_charAt(pI->sMangled, pI->nPos) == QChar('_')) pI->nPos++;
+        if (watcom_charAt(pI->sMangled, pI->nPos) != QChar('_')) return false;
+        pI->nPos++;
     } else {
         QChar c = watcom_charAt(pI->sMangled, pI->nPos);
         if (!((c >= QChar('0')) && (c <= QChar('9')))) return false;
@@ -4632,21 +4792,23 @@ bool XDemangle::gnu2_qualified(GNU2INFO *pI, QString *psResult, QString *psLastN
         pI->nPos++;
     }
 
+    if (nCount <= 0 || nCount > 1024) return false;
     QStringList sl;
+    qint64 nLength = 0;
     QString sLast;
     for (qint64 i = 0; i < nCount; i++) {
         QChar c = watcom_charAt(pI->sMangled, pI->nPos);
         if (c == QChar('t')) {
             QString sTmpl, sBare;
             if (!gnu2_template(pI, &sTmpl, &sBare)) return false;
-            sl.append(sTmpl);
+            if (!gnu2_appendBounded(&sl, sTmpl, &nLength)) return false;
             sLast = sBare;
         } else if ((c >= QChar('0')) && (c <= QChar('9'))) {
             qint64 nLen = gnu2_consumeCount(pI->sMangled, &(pI->nPos), &bOk);
-            if (!bOk || (pI->nPos + (qint32)nLen > pI->sMangled.size())) return false;
+            if (!bOk || nLen <= 0 || nLen > pI->sMangled.size() - pI->nPos) return false;
             QString sName = pI->sMangled.mid(pI->nPos, (qint32)nLen);
             pI->nPos += (qint32)nLen;
-            sl.append(sName);
+            if (!gnu2_appendBounded(&sl, sName, &nLength)) return false;
             sLast = sName;
         } else {
             return false;
@@ -4660,12 +4822,15 @@ bool XDemangle::gnu2_qualified(GNU2INFO *pI, QString *psResult, QString *psLastN
 
 bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
 {
+    XDemangleGNU2Scope scope(&pI->nDepth, &pI->nSteps, &pI->bErrored);
+    if (!scope.isValid()) return false;
     QString decl;
     QString result;
     bool done = false;
     bool success = true;
 
     while (success && !done) {
+        if (decl.size() > 1048576) return false;
         QChar c = watcom_charAt(pI->sMangled, pI->nPos);
         switch (c.unicode()) {
             case 'P':
@@ -4724,6 +4889,7 @@ bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
                     result += " ";
                     result += decl;
                 }
+                if (result.size() > 1048576) return false;
                 *psResult = result;
                 return true;
             }
@@ -4734,7 +4900,7 @@ bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
                 if ((cc >= QChar('0')) && (cc <= QChar('9'))) {
                     bool bOk = false;
                     qint64 nLen = gnu2_consumeCount(pI->sMangled, &(pI->nPos), &bOk);
-                    if (!bOk || (pI->nPos + (qint32)nLen > pI->sMangled.size())) {
+                    if (!bOk || nLen <= 0 || nLen > pI->sMangled.size() - pI->nPos) {
                         success = false;
                         break;
                     }
@@ -4818,13 +4984,17 @@ bool XDemangle::gnu2_type(GNU2INFO *pI, QString *psResult)
         result += decl;
     }
 
+    if (result.size() > 1048576) return false;
     *psResult = result;
     return true;
 }
 
 bool XDemangle::gnu2_args(GNU2INFO *pI, QString *psResult)
 {
+    XDemangleGNU2Scope scope(&pI->nDepth, &pI->nSteps, &pI->bErrored);
+    if (!scope.isValid()) return false;
     QStringList slArgs;
+    qint64 nLength = 0;
     bool bEllipsis = false;
 
     while (true) {
@@ -4841,11 +5011,13 @@ bool XDemangle::gnu2_args(GNU2INFO *pI, QString *psResult)
             pI->nPos++;
             bool bOk = false;
             qint64 nRepeat = gnu2_getCount(pI->sMangled, &(pI->nPos), &bOk);
-            if (!bOk) return false;
+            if (!bOk || nRepeat <= 0 || nRepeat > 1024) return false;
             qint64 nIndex = gnu2_getCount(pI->sMangled, &(pI->nPos), &bOk);
             if (!bOk || (nIndex < 0) || (nIndex >= pI->listRemembered.size())) return false;
             QString sType = pI->listRemembered.at((qint32)nIndex);
-            for (qint64 i = 0; i < nRepeat; i++) slArgs.append(sType);
+            for (qint64 i = 0; i < nRepeat; i++) {
+                if (!gnu2_appendBounded(&slArgs, sType, &nLength)) return false;
+            }
             continue;
         }
 
@@ -4854,7 +5026,7 @@ bool XDemangle::gnu2_args(GNU2INFO *pI, QString *psResult)
             bool bOk = false;
             qint64 nIndex = gnu2_getCount(pI->sMangled, &(pI->nPos), &bOk);
             if (!bOk || (nIndex < 0) || (nIndex >= pI->listRemembered.size())) return false;
-            slArgs.append(pI->listRemembered.at((qint32)nIndex));
+            if (!gnu2_appendBounded(&slArgs, pI->listRemembered.at((qint32)nIndex), &nLength)) return false;
             continue;
         }
 
@@ -4863,7 +5035,7 @@ bool XDemangle::gnu2_args(GNU2INFO *pI, QString *psResult)
         if (!gnu2_type(pI, &sType)) return false;
         if (pI->nPos == nBefore) return false;  // no progress guard
         pI->listRemembered.append(sType);
-        slArgs.append(sType);
+        if (!gnu2_appendBounded(&slArgs, sType, &nLength)) return false;
     }
 
     QString sInner = slArgs.join(", ");
@@ -4933,7 +5105,7 @@ bool XDemangle::gnu2_special(const QString &sMangled, QString *psResult)
         } else if ((c >= QChar('0')) && (c <= QChar('9'))) {
             bool bOk = false;
             qint64 nLen = gnu2_consumeCount(sMangled, &(I.nPos), &bOk);
-            if (!bOk || (I.nPos + (qint32)nLen > sMangled.size())) return false;
+            if (!bOk || nLen <= 0 || nLen > sMangled.size() - I.nPos) return false;
             sClass = sMangled.mid(I.nPos, (qint32)nLen);
             I.nPos += (qint32)nLen;
             sBare = sClass;
@@ -4959,11 +5131,13 @@ bool XDemangle::gnu2_special(const QString &sMangled, QString *psResult)
         } else if ((c >= QChar('0')) && (c <= QChar('9'))) {
             bool bOk = false;
             qint64 nLen = gnu2_consumeCount(sMangled, &(I.nPos), &bOk);
-            if (!bOk || (I.nPos + (qint32)nLen > sMangled.size())) return false;
+            if (!bOk || (nLen <= 0) || (nLen > sMangled.size() - I.nPos)) return false;
             sName = sMangled.mid(I.nPos, (qint32)nLen);
+            I.nPos += (qint32)nLen;
         } else {
             return false;
         }
+        if (I.nPos != sMangled.size()) return false;
         *psResult = sName + QString(" virtual table");
         return true;
     }
@@ -4974,6 +5148,7 @@ bool XDemangle::gnu2_special(const QString &sMangled, QString *psResult)
         // Split on the CPLUS markers; a component may be a template (t...), a
         // length-prefixed class name (<digits>...) or a plain literal.
         QStringList slParts;
+        qint64 nLength = 0;
         QString sCur = sRest;
         sCur.replace(QChar('.'), QChar('$'));
         QStringList slRaw = sCur.split(QChar('$'));
@@ -4987,11 +5162,11 @@ bool XDemangle::gnu2_special(const QString &sMangled, QString *psResult)
                 I.bErrored = false;
                 QString sTmpl, sBare;
                 if (gnu2_template(&I, &sTmpl, &sBare) && (I.nPos == sPart.size())) {
-                    slParts.append(sTmpl);
+                    if (!gnu2_appendBounded(&slParts, sTmpl, &nLength)) return false;
                     continue;
                 }
             }
-            slParts.append(sPart);
+            if (!gnu2_appendBounded(&slParts, sPart, &nLength)) return false;
         }
         *psResult = slParts.join("::") + QString(" virtual table");
         return true;
@@ -5019,7 +5194,7 @@ bool XDemangle::gnu2_special(const QString &sMangled, QString *psResult)
             } else {
                 bool bOk = false;
                 qint64 nLen = gnu2_consumeCount(sMangled, &(I.nPos), &bOk);
-                if (!bOk || (I.nPos + (qint32)nLen > sMangled.size())) return false;
+                if (!bOk || nLen <= 0 || nLen > sMangled.size() - I.nPos) return false;
                 sClass = sMangled.mid(I.nPos, (qint32)nLen);
                 I.nPos += (qint32)nLen;
             }
@@ -5066,7 +5241,7 @@ QString XDemangle::gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, c
     if ((c >= QChar('0')) && (c <= QChar('9'))) {
         bool bOk = false;
         qint64 nLen = gnu2_consumeCount(I.sMangled, &(I.nPos), &bOk);
-        if (!bOk || (I.nPos + (qint32)nLen > I.sMangled.size())) return QString();
+        if (!bOk || nLen <= 0 || nLen > I.sMangled.size() - I.nPos) return QString();
         sClass = I.sMangled.mid(I.nPos, (qint32)nLen);
         I.nPos += (qint32)nLen;
         sBareClass = sClass;
@@ -5090,8 +5265,9 @@ QString XDemangle::gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, c
         I.bExpectReturn = true;
         bool bOk = false;
         qint64 nT = gnu2_getCount(I.sMangled, &(I.nPos), &bOk);
-        if (!bOk) return QString();
+        if (!bOk || nT < 0 || nT > 1024) return QString();
         QStringList slT;
+        qint64 nLength = 0;
         for (qint64 i = 0; i < nT; i++) {
             QChar ct = watcom_charAt(I.sMangled, I.nPos);
             if (ct == QChar('Z')) {
@@ -5099,7 +5275,7 @@ QString XDemangle::gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, c
                 QString sType;
                 if (!gnu2_type(&I, &sType)) return QString();
                 I.listTmplArgs.append(sType);
-                slT.append(sType);
+                if (!gnu2_appendBounded(&slT, sType, &nLength)) return QString();
             } else {
                 return QString();  // value template params not supported here
             }
@@ -5156,7 +5332,7 @@ QString XDemangle::gnu2_tryFunction(const QString &sMangled, qint32 nSigStart, c
         sFull = sReturn + QString(" ") + sFull;  // template functions encode a return type
     }
 
-    return sFull;
+    return sFull.size() <= 1048576 ? sFull : QString();
 }
 
 // --- SunPro / Sun Studio C++ ('__1c' scheme) ---------------------------------
@@ -5254,6 +5430,8 @@ QString XDemangle::sun_demangle(const QString &sString)
         nPos++;
     }
     nPos++;  // consume '_'
+    // 'void' denotes an empty argument list and cannot accompany other types.
+    if (slArgs.contains("void") && slArgs.size() != 1) return QString();
 
     // Return type, then the terminating '_'.
     QString sRet;
@@ -5277,9 +5455,10 @@ QString XDemangle::sun_demangle(const QString &sString)
 
 QString XDemangle::gnu2_demangle(const QString &sString, bool bAllowXMarker)
 {
+    if (sString.size() > 65536) return QString();
     QString sResult;
     if (gnu2_special(sString, &sResult)) {
-        return sResult;
+        return sResult.size() <= 1048576 ? sResult : QString();
     }
 
     if (!sString.contains("__") || sString.contains("_GLOBAL_")) {
@@ -5416,7 +5595,12 @@ qint64 XDemangle::swift_parseNatural(SWIFTINFO *pI, bool *pbOk)
     while (true) {
         c = swift_peek(pI);
         if (!((c >= QChar('0')) && (c <= QChar('9')))) break;
-        n = n * 10 + (c.unicode() - '0');
+        qint32 digit = c.unicode() - '0';
+        if (n > (std::numeric_limits<qint64>::max() - digit) / 10) {
+            *pbOk = false;
+            return 0;
+        }
+        n = n * 10 + digit;
         pI->nPos++;
     }
     *pbOk = true;
@@ -5439,7 +5623,12 @@ qint64 XDemangle::swift_parseIndex(SWIFTINFO *pI, bool *pbOk)
     while (true) {
         c = swift_peek(pI);
         if (!((c >= QChar('0')) && (c <= QChar('9')))) break;
-        n = n * 10 + (c.unicode() - '0');
+        qint32 digit = c.unicode() - '0';
+        if (n > (std::numeric_limits<qint64>::max() - 2 - digit) / 10) {
+            *pbOk = false;
+            return 0;
+        }
+        n = n * 10 + digit;
         pI->nPos++;
     }
     if (!swift_eat(pI, QChar('_'))) {
@@ -5484,7 +5673,8 @@ QString XDemangle::swift_readIdentifier(SWIFTINFO *pI, bool *pbOk)
     }
     // Compare as qint64 (never narrow to qint32 first: a length >= 2^31 would wrap
     // negative, pass the bounds check, and drive nPos negative -> OOB read).
-    if ((nLen < 0) || ((qint64)pI->nPos + nLen > (qint64)pI->sSym.size())) {
+    if ((nLen < 0) || (pI->nPos < 0) || (pI->nPos > pI->sSym.size()) ||
+        (nLen > (qint64)pI->sSym.size() - pI->nPos)) {
         *pbOk = false;
         return QString();
     }
@@ -7000,6 +7190,23 @@ QString XDemangle::swift_demangle(const QString &sString)
 // failure (mirroring the C code's "return the rest, or NULL"). The all-or-nothing
 // contract of the entry point is preserved: leftover bytes => failure.
 
+class XDemangleDlangScope {
+public:
+    XDemangleDlangScope(qint32 *pnDepth, qint32 *pnSteps) : pDepth(pnDepth), bEntered(false)
+    {
+        if ((*pnDepth < 128) && (*pnSteps < 200000)) {
+            ++*pnDepth;
+            ++*pnSteps;
+            bEntered = true;
+        }
+    }
+    ~XDemangleDlangScope() { if (bEntered) --*pDepth; }
+    bool isValid() const { return bEntered; }
+private:
+    qint32 *pDepth;
+    bool bEntered;
+};
+
 qint32 XDemangle::dlang_number(qint32 nPos, DLANGINFO *pInfo, quint32 *pnRet)
 {
     if (nPos < 0) {
@@ -7241,6 +7448,8 @@ qint32 XDemangle::dlang_call_convention(QString *psDecl, qint32 nPos, DLANGINFO 
 
 qint32 XDemangle::dlang_type_modifiers(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
 {
+    XDemangleDlangScope scope(&pInfo->nDepth, &pInfo->nSteps);
+    if (!scope.isValid()) return -1;
     QChar c = watcom_charAt(pInfo->sMangled, nPos);
 
     if (c == QChar('\0')) {
@@ -7461,6 +7670,8 @@ qint32 XDemangle::dlang_function_args(QString *psDecl, qint32 nPos, DLANGINFO *p
 
 qint32 XDemangle::dlang_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
 {
+    XDemangleDlangScope scope(&pInfo->nDepth, &pInfo->nSteps);
+    if (!scope.isValid()) return -1;
     QChar c = watcom_charAt(pInfo->sMangled, nPos);
 
     if (c == QChar('\0')) {
@@ -7521,6 +7732,7 @@ qint32 XDemangle::dlang_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
                 sNum += watcom_charAt(pInfo->sMangled, nPos);
                 nPos++;
             }
+            if (sNum.isEmpty()) return -1;
             nPos = dlang_type(psDecl, nPos, pInfo);
             if (nPos < 0) return -1;
             *psDecl += QString("[") + sNum + QString("]");
@@ -7689,6 +7901,8 @@ qint32 XDemangle::dlang_type(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
 
 qint32 XDemangle::dlang_identifier(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
 {
+    XDemangleDlangScope scope(&pInfo->nDepth, &pInfo->nSteps);
+    if (!scope.isValid()) return -1;
     QChar c = watcom_charAt(pInfo->sMangled, nPos);
 
     if (c == QChar('\0')) {
@@ -7887,10 +8101,13 @@ qint32 XDemangle::dlang_parse_real(QString *psDecl, qint32 nPos, DLANGINFO *pInf
         nPos++;
     }
 
+    qint32 nExponentStart = nPos;
     while ((watcom_charAt(pInfo->sMangled, nPos) >= QChar('0')) && (watcom_charAt(pInfo->sMangled, nPos) <= QChar('9'))) {
         *psDecl += watcom_charAt(pInfo->sMangled, nPos);
         nPos++;
     }
+
+    if (nPos == nExponentStart) return -1;
 
     return nPos;
 }
@@ -8011,6 +8228,8 @@ qint32 XDemangle::dlang_parse_structlit(QString *psDecl, qint32 nPos, DLANGINFO 
 
 qint32 XDemangle::dlang_value(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, const QString &sName, QChar cType)
 {
+    XDemangleDlangScope scope(&pInfo->nDepth, &pInfo->nSteps);
+    if (!scope.isValid()) return -1;
     QChar c = watcom_charAt(pInfo->sMangled, nPos);
 
     if (c == QChar('\0')) {
@@ -8098,6 +8317,8 @@ qint32 XDemangle::dlang_parse_tuple(QString *psDecl, qint32 nPos, DLANGINFO *pIn
 
 qint32 XDemangle::dlang_template_symbol_param(QString *psDecl, qint32 nPos, DLANGINFO *pInfo)
 {
+    XDemangleDlangScope scope(&pInfo->nDepth, &pInfo->nSteps);
+    if (!scope.isValid()) return -1;
     if ((pInfo->sMangled.mid(nPos, 2) == "_D") && dlang_symbol_name_p(nPos + 2, pInfo)) {
         return dlang_parse_mangle(psDecl, nPos, pInfo);
     }
@@ -8217,6 +8438,8 @@ qint32 XDemangle::dlang_template_args(QString *psDecl, qint32 nPos, DLANGINFO *p
 
 qint32 XDemangle::dlang_parse_template(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, quint32 nLen)
 {
+    XDemangleDlangScope scope(&pInfo->nDepth, &pInfo->nSteps);
+    if (!scope.isValid()) return -1;
     qint32 nStart = nPos;
 
     if (!dlang_symbol_name_p(nPos + 3, pInfo) || (watcom_charAt(pInfo->sMangled, nPos + 3) == QChar('0'))) {
@@ -8243,6 +8466,8 @@ qint32 XDemangle::dlang_parse_template(QString *psDecl, qint32 nPos, DLANGINFO *
 
 qint32 XDemangle::dlang_parse_qualified(QString *psDecl, qint32 nPos, DLANGINFO *pInfo, bool bSuffixModifiers)
 {
+    XDemangleDlangScope scope(&pInfo->nDepth, &pInfo->nSteps);
+    if (!scope.isValid()) return -1;
     qint32 n = 0;
 
     do {
@@ -8346,9 +8571,28 @@ QString XDemangle::dlang_demangle(const QString &sString)
 // and backreferences). Positions index into pR->sSym; output accumulates in
 // pR->sOut.
 
+class XDemangleRustScope {
+public:
+    XDemangleRustScope(qint32 *pnDepth, qint32 *pnSteps, bool *pbErrored) : pDepth(pnDepth), bEntered(false)
+    {
+        if (!*pbErrored && (*pnDepth < 128) && (*pnSteps < 200000)) {
+            ++*pnDepth;
+            ++*pnSteps;
+            bEntered = true;
+        } else {
+            *pbErrored = true;
+        }
+    }
+    ~XDemangleRustScope() { if (bEntered) --*pDepth; }
+    bool isValid() const { return bEntered; }
+private:
+    qint32 *pDepth;
+    bool bEntered;
+};
+
 QChar XDemangle::rust_peek(RUSTINFO *pR)
 {
-    if (pR->nNext < pR->nSymLen) {
+    if ((pR->nNext >= 0) && (pR->nNext < pR->nSymLen)) {
         return pR->sSym.at(pR->nNext);
     }
 
@@ -8381,6 +8625,10 @@ QChar XDemangle::rust_next(RUSTINFO *pR)
 void XDemangle::rust_print_str(RUSTINFO *pR, const QString &sString)
 {
     if (!pR->bErrored && !pR->bSkipping) {
+        if (sString.size() > 1048576 - pR->sOut.size()) {
+            pR->bErrored = true;
+            return;
+        }
         pR->sOut += sString;
     }
 }
@@ -8450,7 +8698,12 @@ XDemangle::RUSTIDENT XDemangle::rust_parse_ident(RUSTINFO *pR)
         while (true) {
             QChar p = rust_peek(pR);
             if (!((p >= QChar('0')) && (p <= QChar('9')))) break;
-            nLen = nLen * 10 + (quint64)(rust_next(pR).unicode() - '0');
+            quint64 nDigit = (quint64)(rust_next(pR).unicode() - '0');
+            if ((nDigit > (quint64)pR->nSymLen) || (nLen > ((quint64)pR->nSymLen - nDigit) / 10)) {
+                pR->bErrored = true;
+                return ident;
+            }
+            nLen = nLen * 10 + nDigit;
         }
     }
 
@@ -8459,6 +8712,10 @@ XDemangle::RUSTIDENT XDemangle::rust_parse_ident(RUSTINFO *pR)
     }
 
     qint32 nStart = pR->nNext;
+    if ((nStart < 0) || (nStart > pR->nSymLen) || (nLen > (quint64)(pR->nSymLen - nStart))) {
+        pR->bErrored = true;
+        return ident;
+    }
     pR->nNext += (qint32)nLen;
 
     if ((nStart > pR->nNext) || (pR->nNext > pR->nSymLen)) {
@@ -8711,15 +8968,19 @@ quint64 XDemangle::rust_parse_integer_62(RUSTINFO *pR)
 
     while (!rust_eat(pR, QChar('_'))) {
         QChar c = rust_next(pR);
-        x *= 62;
-
-        if ((c >= QChar('0')) && (c <= QChar('9'))) x += (quint64)(c.unicode() - '0');
-        else if ((c >= QChar('a')) && (c <= QChar('z'))) x += 10 + (quint64)(c.unicode() - 'a');
-        else if ((c >= QChar('A')) && (c <= QChar('Z'))) x += 10 + 26 + (quint64)(c.unicode() - 'A');
+        quint64 digit = 0;
+        if ((c >= QChar('0')) && (c <= QChar('9'))) digit = (quint64)(c.unicode() - '0');
+        else if ((c >= QChar('a')) && (c <= QChar('z'))) digit = 10 + (quint64)(c.unicode() - 'a');
+        else if ((c >= QChar('A')) && (c <= QChar('Z'))) digit = 10 + 26 + (quint64)(c.unicode() - 'A');
         else {
             pR->bErrored = true;
             return 0;
         }
+        if (x > (std::numeric_limits<quint64>::max() - 1 - digit) / 62) {
+            pR->bErrored = true;
+            return 0;
+        }
+        x = x * 62 + digit;
     }
 
     return x + 1;
@@ -8731,7 +8992,12 @@ quint64 XDemangle::rust_parse_opt_integer_62(RUSTINFO *pR, QChar cTag)
         return 0;
     }
 
-    return 1 + rust_parse_integer_62(pR);
+    quint64 value = rust_parse_integer_62(pR);
+    if (value == std::numeric_limits<quint64>::max()) {
+        pR->bErrored = true;
+        return 0;
+    }
+    return 1 + value;
 }
 
 quint64 XDemangle::rust_parse_disambiguator(RUSTINFO *pR)
@@ -8771,6 +9037,11 @@ void XDemangle::rust_print_lifetime_from_index(RUSTINFO *pR, quint64 nLt)
         return;
     }
 
+    if (nLt > (quint64)pR->nBoundLifetimeDepth) {
+        pR->bErrored = true;
+        return;
+    }
+
     quint64 nDepth = pR->nBoundLifetimeDepth - nLt;
 
     if (nDepth < 26) {
@@ -8788,6 +9059,11 @@ void XDemangle::rust_demangle_binder(RUSTINFO *pR)
     }
 
     quint64 nBound = rust_parse_opt_integer_62(pR, QChar('G'));
+
+    if (pR->bErrored || (nBound > (quint64)(128 - pR->nBoundLifetimeDepth))) {
+        pR->bErrored = true;
+        return;
+    }
 
     if (nBound > 0) {
         rust_print_str(pR, "for<");
@@ -8818,16 +9094,25 @@ bool XDemangle::rust_demangle_path_maybe_open_generics(RUSTINFO *pR)
 {
     bool bOpen = false;
 
+    XDemangleRustScope scope(&pR->nDepth, &pR->nSteps, &pR->bErrored);
+    if (!scope.isValid()) return false;
+
     if (pR->bErrored) {
         return bOpen;
     }
 
     if (rust_eat(pR, QChar('B'))) {
+        qint32 nBackrefStart = pR->nNext - 1;
         quint64 nBackref = rust_parse_integer_62(pR);
-        if (!pR->bSkipping) {
+        if (pR->bErrored || nBackref >= (quint64)nBackrefStart) {
+            pR->bErrored = true;
+            return false;
+        }
+        {
             qint32 nOldNext = pR->nNext;
             pR->nNext = (qint32)nBackref;
             bOpen = rust_demangle_path_maybe_open_generics(pR);
+            if (pR->nNext > nBackrefStart) pR->bErrored = true;
             pR->nNext = nOldNext;
         }
     } else if (rust_eat(pR, QChar('I'))) {
@@ -8849,6 +9134,8 @@ bool XDemangle::rust_demangle_path_maybe_open_generics(RUSTINFO *pR)
 
 void XDemangle::rust_demangle_dyn_trait(RUSTINFO *pR)
 {
+    XDemangleRustScope scope(&pR->nDepth, &pR->nSteps, &pR->bErrored);
+    if (!scope.isValid()) return;
     if (pR->bErrored) {
         return;
     }
@@ -8884,7 +9171,7 @@ void XDemangle::rust_demangle_const_uint(RUSTINFO *pR, QChar cTag)
 
     if (nHexLen > 16) {
         rust_print_str(pR, "0x");
-        rust_print_str(pR, pR->sSym.mid(pR->nNext - nHexLen, nHexLen));  // does not fit in 64 bits - verbatim
+        rust_print_str(pR, pR->sSym.mid(pR->nNext - nHexLen - 1, nHexLen));  // does not fit in 64 bits - verbatim
     } else if (nHexLen > 0) {
         rust_print_uint64(pR, nValue);
     } else {
@@ -8943,16 +9230,24 @@ void XDemangle::rust_demangle_const_char(RUSTINFO *pR)
 
 void XDemangle::rust_demangle_const(RUSTINFO *pR)
 {
+    XDemangleRustScope scope(&pR->nDepth, &pR->nSteps, &pR->bErrored);
+    if (!scope.isValid()) return;
     if (pR->bErrored) {
         return;
     }
 
     if (rust_eat(pR, QChar('B'))) {
+        qint32 nBackrefStart = pR->nNext - 1;
         quint64 nBackref = rust_parse_integer_62(pR);
-        if (!pR->bSkipping) {
+        if (pR->bErrored || nBackref >= (quint64)nBackrefStart) {
+            pR->bErrored = true;
+            return;
+        }
+        {
             qint32 nOldNext = pR->nNext;
             pR->nNext = (qint32)nBackref;
             rust_demangle_const(pR);
+            if (pR->nNext > nBackrefStart) pR->bErrored = true;
             pR->nNext = nOldNext;
         }
         return;
@@ -8992,6 +9287,8 @@ void XDemangle::rust_demangle_const(RUSTINFO *pR)
 
 void XDemangle::rust_demangle_type(RUSTINFO *pR)
 {
+    XDemangleRustScope scope(&pR->nDepth, &pR->nSteps, &pR->bErrored);
+    if (!scope.isValid()) return;
     if (pR->bErrored) {
         return;
     }
@@ -9123,11 +9420,17 @@ void XDemangle::rust_demangle_type(RUSTINFO *pR)
             break;
         }
         case 'B': {
+            qint32 nBackrefStart = pR->nNext - 1;
             quint64 nBackref = rust_parse_integer_62(pR);
-            if (!pR->bSkipping) {
+            if (pR->bErrored || nBackref >= (quint64)nBackrefStart) {
+                pR->bErrored = true;
+                return;
+            }
+            {
                 qint32 nOldNext = pR->nNext;
                 pR->nNext = (qint32)nBackref;
                 rust_demangle_type(pR);
+                if (pR->nNext > nBackrefStart) pR->bErrored = true;
                 pR->nNext = nOldNext;
             }
             break;
@@ -9141,6 +9444,8 @@ void XDemangle::rust_demangle_type(RUSTINFO *pR)
 
 void XDemangle::rust_demangle_path(RUSTINFO *pR, bool bInValue)
 {
+    XDemangleRustScope scope(&pR->nDepth, &pR->nSteps, &pR->bErrored);
+    if (!scope.isValid()) return;
     if (pR->bErrored) {
         return;
     }
@@ -9235,11 +9540,17 @@ void XDemangle::rust_demangle_path(RUSTINFO *pR, bool bInValue)
             break;
         }
         case 'B': {
+            qint32 nBackrefStart = pR->nNext - 1;
             quint64 nBackref = rust_parse_integer_62(pR);
-            if (!pR->bSkipping) {
+            if (pR->bErrored || nBackref >= (quint64)nBackrefStart) {
+                pR->bErrored = true;
+                return;
+            }
+            {
                 qint32 nOldNext = pR->nNext;
                 pR->nNext = (qint32)nBackref;
                 rust_demangle_path(pR, bInValue);
+                if (pR->nNext > nBackrefStart) pR->bErrored = true;
                 pR->nNext = nOldNext;
             }
             break;
@@ -9250,6 +9561,7 @@ void XDemangle::rust_demangle_path(RUSTINFO *pR, bool bInValue)
 
 QString XDemangle::rust_demangle(const QString &sString)
 {
+    if (sString.size() > 65536) return QString();
     RUSTINFO r;
     r.nNext = 0;
     r.bErrored = false;
@@ -9542,6 +9854,10 @@ XDemangle::DSYMBOL XDemangle::ms_getSymbol(const QString &sString, XDemangle::MO
         *pHdata = hdata;
     }
 
+    // Embedded local-scope symbols share the remaining input with their caller.
+    // A top-level request must consume its complete encoding.
+    if (result.nSize <= 0 || (!pHdata && result.nSize != sString.size())) result.bIsValid = false;
+
     return result;
 }
 
@@ -9657,6 +9973,22 @@ XDemangle::DSYMBOL XDemangle::itanium_getSymbol(const QString &sString, XDemangl
         //    #endif
     }
 
+    if (result.bIsValid && mode == MODE_GCC_WIN && _sString.startsWith('@')) {
+        QString sBytes = _sString.mid(1);
+        bool bValidBytes = !sBytes.isEmpty();
+        for (qint32 i = 0; bValidBytes && i < sBytes.size(); ++i) {
+            QChar c = sBytes.at(i);
+            bValidBytes = c >= QChar('0') && c <= QChar('9');
+        }
+        bool bNumberValid = false;
+        sBytes.toUInt(&bNumberValid);
+        if (bValidBytes && bNumberValid) {
+            result.nSize += _sString.size();
+            _sString.clear();
+        }
+    }
+    if (result.nSize <= 0 || result.nSize != sString.size()) result.bIsValid = false;
+
     return result;
 }
 
@@ -9673,43 +10005,75 @@ XDemangle::DSYMBOL XDemangle::borland_getSymbol(const QString &sString, MODE mod
         result.nSize += borland_demangle_Encoding(&result, &hdata, &(result.paramMain), sString);
     }
 
+    if (result.nSize != sString.size() || result.paramMain.listDnames.isEmpty() ||
+        (result.paramMain.st == ST_FUNCTION && result.paramMain.listParameters.isEmpty())) result.bIsValid = false;
+
     return result;
 }
 
 XDemangle::MODE XDemangle::detectMode(const QString &sString)
 {
-    MODE result = MODE_GNU_V3;
-
-    if (_compare(sString, "?") && (sString.contains("@"))) {
-        result = MODE_MSVC;
+    if ((_compare(sString, "?") || _compare(sString, ".?")) && sString.contains("@")) {
+        return MODE_MSVC;
     } else if (_compare(sString, "W?")) {
-        result = MODE_WATCOM;
+        return MODE_WATCOM;
     } else if (_compare(sString, "@") && (sString.contains("$q") || sString.contains("$b"))) {
-        result = MODE_BORLAND32;
-    } else if (_compare(sString, "@_Z") || (_compare(sString, "_Z") && (sString.section("@", -1, -1).toUInt()))) {
-        result = MODE_GCC_WIN;
-    } else if (_compare(sString, "_Z")) {
-        result = MODE_GNU_V3;
-    } else if (_compare(sString, "__Z")) {
-        result = MODE_GCC_MAC;
+        return MODE_BORLAND32;
     }
-
-    return result;
+    if (sString.startsWith("_R") || sString.startsWith("__R")) return MODE_RUST;
+    // Legacy Rust and C++ both use _ZN. A terminal Rust hash identifies the
+    // Rust form; otherwise retain the ordinary Itanium interpretation.
+    if (sString.startsWith("_ZN") || sString.startsWith("__ZN")) {
+        qint32 nHash = sString.lastIndexOf("17h");
+        if ((nHash >= 0) && (nHash + 20 == sString.size()) && sString.endsWith('E')) {
+            bool bHex = true;
+            for (qint32 i = nHash + 3; i < nHash + 19; ++i) {
+                QChar c = sString.at(i);
+                if (!((c >= QChar('0') && c <= QChar('9')) || (c >= QChar('a') && c <= QChar('f')))) {
+                    bHex = false;
+                    break;
+                }
+            }
+            if (bHex) return MODE_RUST;
+        }
+    }
+    if (sString.startsWith("@_Z")) return MODE_GCC_WIN;
+    if (sString.startsWith("CXX$_Z")) return MODE_GNU_V3;
+    if (sString.startsWith("_Z")) {
+        qint32 nAt = sString.lastIndexOf('@');
+        bool bBytes = (nAt >= 0) && (nAt + 1 < sString.size());
+        for (qint32 i = nAt + 1; bBytes && i < sString.size(); ++i) {
+            QChar c = sString.at(i);
+            if (c < QChar('0') || c > QChar('9')) bBytes = false;
+        }
+        return bBytes ? MODE_GCC_WIN : MODE_GNU_V3;
+    }
+    if (sString.startsWith("__Z")) return MODE_GCC_MAC;
+    if (sString == "_Dmain" || sString.startsWith("_D__T") || sString.startsWith("_D__U") ||
+        (sString.startsWith("_D") && watcom_charAt(sString, 2).isDigit())) return MODE_DLANG;
+    if (sString.startsWith("$s") || sString.startsWith("_$s") || sString.startsWith("$S") || sString.startsWith("_$S")) return MODE_SWIFT;
+    if (sString.startsWith("_ada_")) return MODE_GNAT;
+    if (sString.startsWith("caml") && watcom_charAt(sString, 4).isUpper()) return MODE_OCAML;
+    if (sString.startsWith("__1c")) return MODE_SUN;
+    if (sString.indexOf("__X") > 0) return MODE_TRU64;
+    if (sString.startsWith("__vt_") || sString.startsWith("_vt$") || sString.startsWith("_vt.") ||
+        sString.startsWith("_$_") || sString.startsWith("_._") || sString.startsWith("__ti") || sString.startsWith("__tf") ||
+        sString.startsWith("_GLOBAL_$I$") || sString.startsWith("_GLOBAL_$D$") ||
+        sString.startsWith("_GLOBAL_.I.") || sString.startsWith("_GLOBAL_.D.")) return MODE_GNU_V2;
+    for (qint32 nSep = sString.indexOf("__"); nSep >= 0; nSep = sString.indexOf("__", nSep + 2)) {
+        QChar c = watcom_charAt(sString, nSep + 2);
+        if (c == QChar('F') || c == QChar('Q') || c == QChar('C') || c == QChar('V') || c == QChar('t') ||
+            (c >= QChar('0') && c <= QChar('9'))) return MODE_GNU_V2;
+    }
+    if (sString.contains("zi") && (sString.endsWith("_closure") || sString.endsWith("_info") || sString.endsWith("_entry"))) return MODE_HASKELL;
+    if (sString.startsWith("main.") || sString.startsWith("runtime.") || sString.startsWith("go.") ||
+        sString.contains(QChar(0x00b7)) || sString.contains(QChar(0x2215))) return MODE_GO;
+    return MODE_UNKNOWN;
 }
 
 QList<XDemangle::MODE> XDemangle::getAllModes()
 {
-    QList<MODE> listResult;
-
-    listResult.append(MODE_AUTO);
-    listResult.append(MODE_MSVC32);
-    listResult.append(MODE_GNU_V3);
-    listResult.append(MODE_GCC_MAC);
-    listResult.append(MODE_GCC_WIN);
-    listResult.append(MODE_BORLAND32);
-    listResult.append(MODE_WATCOM);
-
-    return listResult;
+    return getSupportedModes();
 }
 
 QList<XDemangle::MODE> XDemangle::getSupportedModes()
@@ -9817,6 +10181,7 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata, const QString &sString, X
     STRING result = {};
 
     if (getSyntaxFromMode(mode) == SYNTAX_MICROSOFT) {
+        if (!_sString.contains('@')) return result;
         result.sString = _sString.section("@", 0, 0);
         result.sOriginal = result.sString;
 
@@ -9835,6 +10200,7 @@ XDemangle::STRING XDemangle::readString(HDATA *pHdata, const QString &sString, X
         NUMBER number = readNumber(pHdata, _sString, mode);
 
         if (number.nSize) {
+            if (number.nValue <= 0 || number.nValue > _sString.size() - number.nSize) return result;
             result.sOriginal += _sString.left(number.nSize);
             _sString = _sString.mid(number.nSize, -1);
             result.sString = _sString.left(number.nValue);
@@ -9882,15 +10248,13 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, const QString &sString, X
             }
         } else if (isSignaturePresent(_sString, &(pHdata->mapSymNumbers))) {
             while ((_sString != "") && (!_compare(_sString, "@"))) {
-                result.nValue *= 16;
-
                 SIGNATURE signature = getSignature(_sString, &(pHdata->mapSymNumbers));
 
                 if (signature.nSize) {
+                    if (result.nValue > ((std::numeric_limits<qint64>::max)() - signature.nValue) / 16) return NUMBER{};
+                    result.nValue = result.nValue * 16 + signature.nValue;
                     _sString = _sString.mid(signature.nSize, -1);
                     result.nSize += signature.nSize;
-
-                    result.nValue += signature.nValue;
                 } else {
                     break;
                 }
@@ -9913,11 +10277,10 @@ XDemangle::NUMBER XDemangle::readNumber(HDATA *pHdata, const QString &sString, X
         }
     } else if (getSyntaxFromMode(mode) == SYNTAX_ITANIUM) {
         while ((_sString != "") && (isSignaturePresent(_sString, &(pHdata->mapNumbers)))) {
-            result.nValue *= 10;
-
             SIGNATURE signature = getSignature(_sString, &(pHdata->mapNumbers));
 
-            result.nValue += signature.nValue;
+            if (result.nValue > ((std::numeric_limits<qint64>::max)() - signature.nValue) / 10) return NUMBER{};
+            result.nValue = result.nValue * 10 + signature.nValue;
 
             result.nSize++;
 
@@ -9944,6 +10307,8 @@ XDemangle::NUMBER XDemangle::readNumberS(XDemangle::HDATA *pHdata, const QString
 
     NUMBER number = readNumber(pHdata, _sString, mode);
 
+    if (!number.nSize) return NUMBER{};
+
     qint64 nValue = number.nValue;
 
     if (bNeg) {
@@ -9963,11 +10328,12 @@ XDemangle::NUMBER XDemangle::readSymNumber(XDemangle::HDATA *pHdata, const QStri
 
     if (getSyntaxFromMode(mode) == SYNTAX_ITANIUM) {
         while ((_sString != "") && (isSignaturePresent(_sString, &(pHdata->mapSymNumbers)))) {
-            result.nValue *= 36;
-
             SIGNATURE signature = getSignature(_sString, &(pHdata->mapSymNumbers));
 
-            result.nValue += signature.nValue;
+            // These values become signed QList indices after adding one.
+            qint64 nMaximumIndex = (std::numeric_limits<qint32>::max)() - 1;
+            if (result.nValue > (nMaximumIndex - signature.nValue) / 36) return NUMBER{};
+            result.nValue = result.nValue * 36 + signature.nValue;
 
             result.nSize++;
 

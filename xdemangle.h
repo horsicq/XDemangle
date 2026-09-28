@@ -400,6 +400,7 @@ public:
     };
 
     struct HDATA {
+        quint32 nParserDepth = 0;
         QMap<QString, quint32> mapPointerTypes;
         QMap<QString, quint32> mapObjectClasses;
         QMap<QString, quint32> mapTypes;
@@ -585,8 +586,10 @@ private:
     QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, const QString &sPrefix);
     qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
-    qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bReturn);
-    qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
+    qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bReturn,
+                                    bool bRequireEnd = false);
+    qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString,
+                                      bool bRequireEnd = false);
     qint32 itanium_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     QString itanium_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter);
@@ -626,6 +629,8 @@ private:
     struct DLANGINFO {
         QString sMangled;
         qint32 nLastBackref;
+        qint32 nDepth = 0;
+        qint32 nSteps = 0;
     };
     QString dlang_demangle(const QString &sString);
     qint32 dlang_parse_mangle(QString *psDecl, qint32 nPos, DLANGINFO *pInfo);
@@ -673,6 +678,8 @@ private:
     // the historical libiberty cplus-dem.c (function/member/operator/ctor/dtor/args/
     // fundamental+qualified+template types, T/N back-references, vtable/static specials).
     struct GNU2INFO {
+        qint32 nDepth = 0;
+        qint32 nSteps = 0;
         QString sMangled;
         qint32 nPos;
         bool bErrored;
@@ -751,6 +758,8 @@ private:
         bool bVerbose;
         qint32 nVersion;  // 0 = v0, -1 = legacy
         qint32 nBoundLifetimeDepth;
+        qint32 nDepth = 0;
+        qint32 nSteps = 0;
         QString sOut;
     };
     struct RUSTIDENT {
