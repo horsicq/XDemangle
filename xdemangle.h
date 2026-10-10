@@ -586,10 +586,8 @@ private:
     QString itanium_parameterToString(DSYMBOL *pSymbol, DPARAMETER *pParameter, const QString &sPrefix);
     qint32 itanium_demangle_Encoding(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_NameScope(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
-    qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bReturn,
-                                    bool bRequireEnd = false);
-    qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString,
-                                      bool bRequireEnd = false);
+    qint32 itanium_demangle_Function(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bReturn, bool bRequireEnd = false);
+    qint32 itanium_demangle_Parameters(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString, bool bRequireEnd = false);
     qint32 itanium_demangle_Type(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     qint32 itanium_demangle_PointerType(DSYMBOL *pSymbol, HDATA *pHdata, DPARAMETER *pParameter, const QString &sString);
     QString itanium_getPointerString(DSYMBOL *pSymbol, DPARAMETER *pParameter);

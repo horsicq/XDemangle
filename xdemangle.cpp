@@ -34,7 +34,7 @@ struct XDemangleParseDepthGuard {
         if (allowed) --depth;
     }
 };
-}
+}  // namespace
 
 XDemangle::XDemangle(QObject *pParent) : QObject(pParent)
 {
@@ -2789,7 +2789,7 @@ qint32 XDemangle::itanium_demangle_Function(XDemangle::DSYMBOL *pSymbol, XDemang
 }
 
 qint32 XDemangle::itanium_demangle_Parameters(XDemangle::DSYMBOL *pSymbol, XDemangle::HDATA *pHdata, XDemangle::DPARAMETER *pParameter, const QString &sString,
-                                            bool bRequireEnd)
+                                              bool bRequireEnd)
 {
     QString _sString = sString;
     qint32 nResult = 0;
@@ -4503,8 +4503,15 @@ public:
             bEntered = true;
         } else *pbErrored = true;
     }
-    ~XDemangleGNU2Scope() { if (bEntered) --*pDepth; }
-    bool isValid() const { return bEntered; }
+    ~XDemangleGNU2Scope()
+    {
+        if (bEntered) --*pDepth;
+    }
+    bool isValid() const
+    {
+        return bEntered;
+    }
+
 private:
     qint32 *pDepth;
     bool bEntered;
@@ -5673,8 +5680,7 @@ QString XDemangle::swift_readIdentifier(SWIFTINFO *pI, bool *pbOk)
     }
     // Compare as qint64 (never narrow to qint32 first: a length >= 2^31 would wrap
     // negative, pass the bounds check, and drive nPos negative -> OOB read).
-    if ((nLen < 0) || (pI->nPos < 0) || (pI->nPos > pI->sSym.size()) ||
-        (nLen > (qint64)pI->sSym.size() - pI->nPos)) {
+    if ((nLen < 0) || (pI->nPos < 0) || (pI->nPos > pI->sSym.size()) || (nLen > (qint64)pI->sSym.size() - pI->nPos)) {
         *pbOk = false;
         return QString();
     }
@@ -7200,8 +7206,15 @@ public:
             bEntered = true;
         }
     }
-    ~XDemangleDlangScope() { if (bEntered) --*pDepth; }
-    bool isValid() const { return bEntered; }
+    ~XDemangleDlangScope()
+    {
+        if (bEntered) --*pDepth;
+    }
+    bool isValid() const
+    {
+        return bEntered;
+    }
+
 private:
     qint32 *pDepth;
     bool bEntered;
@@ -8583,8 +8596,15 @@ public:
             *pbErrored = true;
         }
     }
-    ~XDemangleRustScope() { if (bEntered) --*pDepth; }
-    bool isValid() const { return bEntered; }
+    ~XDemangleRustScope()
+    {
+        if (bEntered) --*pDepth;
+    }
+    bool isValid() const
+    {
+        return bEntered;
+    }
+
 private:
     qint32 *pDepth;
     bool bEntered;
@@ -10005,8 +10025,8 @@ XDemangle::DSYMBOL XDemangle::borland_getSymbol(const QString &sString, MODE mod
         result.nSize += borland_demangle_Encoding(&result, &hdata, &(result.paramMain), sString);
     }
 
-    if (result.nSize != sString.size() || result.paramMain.listDnames.isEmpty() ||
-        (result.paramMain.st == ST_FUNCTION && result.paramMain.listParameters.isEmpty())) result.bIsValid = false;
+    if (result.nSize != sString.size() || result.paramMain.listDnames.isEmpty() || (result.paramMain.st == ST_FUNCTION && result.paramMain.listParameters.isEmpty()))
+        result.bIsValid = false;
 
     return result;
 }
@@ -10049,25 +10069,24 @@ XDemangle::MODE XDemangle::detectMode(const QString &sString)
         return bBytes ? MODE_GCC_WIN : MODE_GNU_V3;
     }
     if (sString.startsWith("__Z")) return MODE_GCC_MAC;
-    if (sString == "_Dmain" || sString.startsWith("_D__T") || sString.startsWith("_D__U") ||
-        (sString.startsWith("_D") && watcom_charAt(sString, 2).isDigit())) return MODE_DLANG;
+    if (sString == "_Dmain" || sString.startsWith("_D__T") || sString.startsWith("_D__U") || (sString.startsWith("_D") && watcom_charAt(sString, 2).isDigit()))
+        return MODE_DLANG;
     if (sString.startsWith("$s") || sString.startsWith("_$s") || sString.startsWith("$S") || sString.startsWith("_$S")) return MODE_SWIFT;
     if (sString.startsWith("_ada_")) return MODE_GNAT;
     if (sString.startsWith("caml") && watcom_charAt(sString, 4).isUpper()) return MODE_OCAML;
     if (sString.startsWith("__1c")) return MODE_SUN;
     if (sString.indexOf("__X") > 0) return MODE_TRU64;
-    if (sString.startsWith("__vt_") || sString.startsWith("_vt$") || sString.startsWith("_vt.") ||
-        sString.startsWith("_$_") || sString.startsWith("_._") || sString.startsWith("__ti") || sString.startsWith("__tf") ||
-        sString.startsWith("_GLOBAL_$I$") || sString.startsWith("_GLOBAL_$D$") ||
-        sString.startsWith("_GLOBAL_.I.") || sString.startsWith("_GLOBAL_.D.")) return MODE_GNU_V2;
+    if (sString.startsWith("__vt_") || sString.startsWith("_vt$") || sString.startsWith("_vt.") || sString.startsWith("_$_") || sString.startsWith("_._") ||
+        sString.startsWith("__ti") || sString.startsWith("__tf") || sString.startsWith("_GLOBAL_$I$") || sString.startsWith("_GLOBAL_$D$") ||
+        sString.startsWith("_GLOBAL_.I.") || sString.startsWith("_GLOBAL_.D."))
+        return MODE_GNU_V2;
     for (qint32 nSep = sString.indexOf("__"); nSep >= 0; nSep = sString.indexOf("__", nSep + 2)) {
         QChar c = watcom_charAt(sString, nSep + 2);
-        if (c == QChar('F') || c == QChar('Q') || c == QChar('C') || c == QChar('V') || c == QChar('t') ||
-            (c >= QChar('0') && c <= QChar('9'))) return MODE_GNU_V2;
+        if (c == QChar('F') || c == QChar('Q') || c == QChar('C') || c == QChar('V') || c == QChar('t') || (c >= QChar('0') && c <= QChar('9'))) return MODE_GNU_V2;
     }
     if (sString.contains("zi") && (sString.endsWith("_closure") || sString.endsWith("_info") || sString.endsWith("_entry"))) return MODE_HASKELL;
-    if (sString.startsWith("main.") || sString.startsWith("runtime.") || sString.startsWith("go.") ||
-        sString.contains(QChar(0x00b7)) || sString.contains(QChar(0x2215))) return MODE_GO;
+    if (sString.startsWith("main.") || sString.startsWith("runtime.") || sString.startsWith("go.") || sString.contains(QChar(0x00b7)) || sString.contains(QChar(0x2215)))
+        return MODE_GO;
     return MODE_UNKNOWN;
 }
 
